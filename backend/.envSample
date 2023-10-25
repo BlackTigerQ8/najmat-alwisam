@@ -1,0 +1,5 @@
+NODE_ENV=development
+PORT=8000
+DATABASE=mongodb+srv://<USERNAME>:<PASSWORD>@cluster0.v3mgkvh.mongodb.net/<DATABASE>
+JWT_SECRET=<ANYKEY>
+JWT_EXPIRE="30d"
