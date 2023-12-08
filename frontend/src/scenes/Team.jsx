@@ -1,30 +1,52 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Typography, Box, Button, useTheme } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import { tokens } from "../theme";
-import { mockDataTeam } from "../data/mockData";
+// import { mockDataTeam } from "../data/mockData";
 import AdminPanelSettingsOutlinedIcon from "@mui/icons-material/AdminPanelSettingsOutlined";
 import LockOpenOutlinedIcon from "@mui/icons-material/LockOpenOutlined";
 import SecurityOutlinedIcon from "@mui/icons-material/SecurityOutlined";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
-
+import { useNavigate } from "react-router-dom";
 import Header from "../components/Header";
+import { useSelector, useDispatch } from "react-redux";
+import { fetchUsers } from "../redux/usersSlice";
 
 const Team = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
+  const dispatch = useDispatch();
+  const users = useSelector((state) => state.users.users); // <-- Select users from state
+  const status = useSelector((state) => state.user.status);
+  const error = useSelector((state) => state.user.error);
+  const navigate = useNavigate();
+
+  const token = useSelector((state) => state.user.token);
 
   const columns = [
     {
-      field: "id",
+      field: "_id",
       headerName: "ID",
     },
     {
       field: "name",
       headerName: "Name",
-      flex: 1,
+      flex: 0.75,
       cellClassName: "name-column--cell",
+      renderCell: ({ row: { firstName, lastName } }) => {
+        return (
+          <Box
+            width="60%"
+            m="0 auto"
+            display="flex"
+            justifyContent="center"
+            borderRadius="4px"
+          >
+            {firstName} {lastName}
+          </Box>
+        );
+      },
     },
     {
       field: "email",
@@ -32,23 +54,27 @@ const Team = () => {
       flex: 1,
     },
     {
-      field: "age",
-      headerName: "Age",
-      type: "number",
-      headerAlign: "left",
-      align: "left",
-    },
-    {
       field: "phone",
       headerName: "Phone Number",
       flex: 1,
     },
     {
-      field: "access",
+      field: "identification",
+      headerName: "Civil ID",
+      type: Number,
+      headerAlign: "left",
+      align: "left",
+    },
+    {
+      field: "passport",
+      headerName: "Passport",
+    },
+    {
+      field: "role",
       headerName: "Access Level",
       flex: 1,
       headerAlign: "center",
-      renderCell: ({ row: { access } }) => {
+      renderCell: ({ row: { role } }) => {
         return (
           <Box
             width="60%"
@@ -56,17 +82,17 @@ const Team = () => {
             display="flex"
             justifyContent="center"
             backgroundColor={
-              access === "admin"
+              role === "admin"
                 ? colors.greenAccent[600]
                 : colors.greenAccent[700]
             }
             borderRadius="4px"
           >
-            {access === "admin" && <AdminPanelSettingsOutlinedIcon />}
-            {access === "manager" && <SecurityOutlinedIcon />}
-            {access === "user" && <LockOpenOutlinedIcon />}
+            {role === "admin" && <AdminPanelSettingsOutlinedIcon />}
+            {role === "manager" && <SecurityOutlinedIcon />}
+            {role === "user" && <LockOpenOutlinedIcon />}
             <Typography color={colors.grey[100]} sx={{ ml: "5px" }}>
-              {access}
+              {role}
             </Typography>
           </Box>
         );
@@ -104,9 +130,23 @@ const Team = () => {
     },
   ];
 
+  useEffect(() => {
+    if (status === "succeeded") {
+      dispatch(fetchUsers(token));
+    }
+  }, [token]);
+
+  if (status === "loading") {
+    return <div>Loading...</div>;
+  }
+
+  if (status === "failed") {
+    return <div>Error: {error}</div>;
+  }
+
   const handleEdit = (rowData) => {
     // Here you can navigate to an edit page with rowData or open an edit modal/dialog
-    console.log("Editing user:", rowData);
+    navigate(`/profile/${rowData.id}`);
   };
 
   const handleDelete = (userId) => {
@@ -143,7 +183,11 @@ const Team = () => {
           },
         }}
       >
-        <DataGrid rows={mockDataTeam} columns={columns} />
+        <DataGrid
+          rows={Array.isArray(users) ? users : []}
+          columns={columns}
+          getRowId={(row) => row._id}
+        />
       </Box>
     </Box>
   );

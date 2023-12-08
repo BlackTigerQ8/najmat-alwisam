@@ -44,15 +44,15 @@ const createRandomUsers = async () => {
     const roles = ["Accountant", "Employee"];
     const role = roles[Math.floor(Math.random() * roles.length)];
     const email = faker.internet.email({ firstName, lastName });
-    const phone = faker.datatype.number.int({ min: 10000000, max: 99999999 });
-    const identification = faker.datatype.number.int({
+    const phone = faker.datatype.number({ min: 10000000, max: 99999999 });
+    const identification = faker.datatype.number({
       min: 1000000000,
       max: 9999999999,
     });
-    const passport = faker.datatype.number
-      .int({ min: 1000000, max: 9999999 })
+    const passport = faker.datatype
+      .number({ min: 1000000, max: 9999999 })
       .toString();
-    const password = "Test@1234";
+    const password = "12341234";
 
     const hashedPassword = await bcrypt.hash(password, 12);
 

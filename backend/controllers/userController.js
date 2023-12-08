@@ -151,6 +151,12 @@ const loginUser = async (req, res) => {
       });
     }
 
+    // Convert the Mongoose document to a plain JavaScript object
+    const userObj = user.toObject();
+
+    // Destructure the necessary properties
+    const { firstName, lastName, email: userEmail, _id, role } = userObj;
+
     // Create token
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
       expiresIn: process.env.JWT_EXPIRE,
@@ -159,6 +165,9 @@ const loginUser = async (req, res) => {
     res.status(200).json({
       status: "Success",
       token,
+      data: {
+        user: { firstName, lastName, email: userEmail, _id, role },
+      },
     });
   } catch (error) {
     res.status(500).json({
