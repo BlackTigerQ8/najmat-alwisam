@@ -32,7 +32,7 @@ const Item = ({ title, to, icon, selected, setSelected }) => {
   );
 };
 
-const SidebarE = () => {
+const SidebarM = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -80,7 +80,7 @@ const SidebarE = () => {
                 ml="15px"
               >
                 <Typography variant="h3" color={colors.grey[100]}>
-                  EMPLOYEE
+                  MANAGER
                 </Typography>
                 <IconButton onClick={() => setIsCollapsed(!isCollapsed)}>
                   <MenuOutlinedIcon />
@@ -127,6 +127,13 @@ const SidebarE = () => {
               Pages
             </Typography>
             <Item
+              title="Manage Drivers"
+              to="/drivers"
+              icon={<PeopleOutlinedIcon />}
+              selected={selected}
+              setSelected={setSelected}
+            />
+            <Item
               title="Driver Form"
               to="/driver-form"
               icon={<ContactsOutlinedIcon />}
@@ -154,4 +161,4 @@ const SidebarE = () => {
   );
 };
 
-export default SidebarE;
+export default SidebarM;

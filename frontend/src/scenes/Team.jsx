@@ -91,6 +91,7 @@ const Team = () => {
             borderRadius="4px"
           >
             {role === "Admin" && <AdminPanelSettingsOutlinedIcon />}
+            {role === "Manager" && <SecurityOutlinedIcon />}
             {role === "Employee" && <SecurityOutlinedIcon />}
             {role === "Accountant" && <LockOpenOutlinedIcon />}
             <Typography color={colors.grey[100]} sx={{ ml: "5px" }}>

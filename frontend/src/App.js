@@ -7,6 +7,9 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Topbar from "./scenes/global/Topbar";
 import Sidebar from "./scenes/global/Sidebar";
+import SidebarA from "./scenes/global/SidebarAccountant";
+import SidebarM from "./scenes/global/SidebarManager";
+import SidebarE from "./scenes/global/SidebarEmployee";
 import Dashboard from "./scenes/dashboard";
 import Team from "./scenes/Team";
 import Invoices from "./scenes/Invoices";
@@ -18,20 +21,17 @@ import Pie from "./scenes/Pie";
 import Faq from "./scenes/Faq";
 import Geography from "./scenes/Geography";
 import Calendar from "./scenes/Calendar";
-import EmployeeForm from "./scenes/EmloyeeForm";
 import DriverProfile from "./scenes/DriverProfile";
 import Login from "./scenes/Login";
 import DriverForm from "./scenes/DriverForm";
 import DriverWork from "./scenes/DriverWork";
 import Drivers from "./scenes/Drivers";
-import SidebarE from "./scenes/global/SidebarEmployee";
-import SidebarA from "./scenes/global/SidebarAccountant";
 import { setUser } from "./redux/userSlice";
 import { pulsar } from "ldrs";
 import { tokens } from "./theme";
 import { getUserRoleFromToken } from "./scenes/global/getUserRoleFromToken";
 import UserProfile from "./scenes/UserProfile";
-import NotFound from "./scenes/NotFound";
+// import NotFound from "./scenes/NotFound";
 import Notifications from "./scenes/Notifications";
 import Deduction from "./scenes/Deduction";
 import Detail from "./scenes/Detail";
@@ -101,8 +101,9 @@ function App() {
           {(currentUser || savedToken) && (
             <>
               {userRole === "Admin" && <Sidebar isSidebar={isSidebar} />}
-              {userRole === "Employee" && <SidebarE isSidebar={isSidebar} />}
+              {userRole === "Manager" && <SidebarM isSidebar={isSidebar} />}
               {userRole === "Accountant" && <SidebarA isSidebar={isSidebar} />}
+              {userRole === "Employee" && <SidebarE isSidebar={isSidebar} />}
             </>
           )}
           <main className="content">
@@ -113,13 +114,23 @@ function App() {
               {currentUser || savedToken ? (
                 <>
                   {userRole === "Admin" && (
-                    <Route exact path="/" element={<Dashboard />} />
+                    <>
+                      <Route exact path="/" element={<Dashboard />} />
+                      <Route
+                        exact
+                        path="/admin-invoices"
+                        element={<AdminInvoices />}
+                      />
+                    </>
                   )}
-                  {userRole === "Employee" && (
+                  {userRole === "Manager" && (
                     <Route exact path="/" element={<Drivers />} />
                   )}
                   {userRole === "Accountant" && (
                     <Route exact path="/" element={<Detail />} />
+                  )}
+                  {userRole === "Employee" && (
+                    <Route exact path="/" element={<Invoices />} />
                   )}
                   <Route exact path="/team" element={<Team />} />
                   <Route
@@ -127,25 +138,43 @@ function App() {
                     element={<DriverProfile />}
                   />
                   <Route path="/user-profile/:id" element={<UserProfile />} />
-                  <Route
-                    exact
-                    path="/manager-invoices"
-                    element={<Invoices />}
-                  />
-                  <Route exact path="/invoices" element={<AdminInvoices />} />
+                  <Route exact path="/invoices" element={<Invoices />} />
                   <Route
                     exact
                     path="/notifications"
                     element={<Notifications />}
                   />
+
+                  {userRole === "Accountant" && (
+                    <>
+                      <Route
+                        exact
+                        path="/drivers-salary"
+                        element={<DriversSalary />}
+                      />
+                      <Route
+                        exact
+                        path="/employees-salary"
+                        element={<EmployeesSalary />}
+                      />
+                      <Route
+                        exact
+                        path="/company-spends"
+                        element={<CoSpends />}
+                      />
+                      <Route exact path="/pt-cash" element={<PettyCash />} />
+                      <Route
+                        exact
+                        path="/spends-list"
+                        element={<SpendsList />}
+                      />
+                      <Route exact path="/detail" element={<Detail />} />
+                    </>
+                  )}
+
                   <Route exact path="/contacts" element={<Contacts />} />
                   <Route exact path="/bar" element={<Bar />} />
                   <Route exact path="/form" element={<Form />} />
-                  <Route
-                    exact
-                    path="/employee-form"
-                    element={<EmployeeForm />}
-                  />
                   <Route exact path="/driver-form" element={<DriverForm />} />
                   <Route exact path="/driver-work" element={<DriverWork />} />
                   <Route exact path="/deduction" element={<Deduction />} />
@@ -155,25 +184,12 @@ function App() {
                   <Route exact path="/faq" element={<Faq />} />
                   <Route exact path="/geography" element={<Geography />} />
                   <Route exact path="/calendar" element={<Calendar />} />
-                  <Route
-                    exact
-                    path="/drivers-salary"
-                    element={<DriversSalary />}
-                  />
-                  <Route
-                    exact
-                    path="/employees-salary"
-                    element={<EmployeesSalary />}
-                  />
-                  <Route exact path="/detail" element={<Detail />} />
+
                   <Route
                     exact
                     path="/deduction-salary"
                     element={<DeductionSalary />}
                   />
-                  <Route exact path="/company-spends" element={<CoSpends />} />
-                  <Route exact path="/pt-cash" element={<PettyCash />} />
-                  <Route exact path="/spends-list" element={<SpendsList />} />
                 </>
               ) : (
                 <Route path="/login" element={<Login />} />

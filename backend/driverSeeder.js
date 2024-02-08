@@ -115,7 +115,7 @@ const createRandomDrivers = async () => {
         passportNumber,
         passportExpiryDate,
         visa,
-        contractNumber,
+        contractExpiryDate,
         carInsurance,
         carPlateNumber,
         driverLicense,

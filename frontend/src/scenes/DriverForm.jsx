@@ -36,7 +36,7 @@ const initialValues = {
   passportNumber: "",
   passportExpiryDate: "",
   visa: "",
-  contractNumber: "",
+  contractExpiryDate: "",
   carInsurance: "",
   carPlateNumber: "",
   driverLicense: "",
@@ -67,7 +67,7 @@ const driverSchema = yup.object().shape({
   passportNumber: yup.string().required("required"),
   passportExpiryDate: yup.string().required("required"),
   visa: yup.string().required("required"),
-  contractNumber: yup.string().required("required"),
+  contractExpiryDate: yup.string().required("required"),
   vehicle: yup.string().required("required"),
   carInsurance: yup.string().required("required"),
   carPlateNumber: yup.string().required("required"),
@@ -247,14 +247,18 @@ const DriverForm = () => {
               <TextField
                 fullWidth
                 variant="filled"
-                type="text"
-                label="Contract"
+                type="date"
+                label="Contract Expiry Date"
                 onBlur={handleBlur}
                 onChange={handleChange}
-                value={values.contractNumber}
-                name="contractNumber"
-                error={!!touched.contractNumber && !!errors.contractNumber}
-                helperText={touched.contractNumber && errors.contractNumber}
+                value={values.contractExpiryDate}
+                name="contractExpiryDate"
+                error={
+                  !!touched.contractExpiryDate && !!errors.contractExpiryDate
+                }
+                helperText={
+                  touched.contractExpiryDate && errors.contractExpiryDate
+                }
                 sx={{ gridColumn: "span 2" }}
               />
               <TextField

@@ -12,6 +12,8 @@ import {
   fetchInvoices,
   updateDriverInvoice,
 } from "../redux/driverInvoiceSlice";
+import CloseOutlinedIcon from "@mui/icons-material/CloseOutlined";
+import CheckOutlinedIcon from "@mui/icons-material/CheckOutlined";
 
 const AdminInvoices = () => {
   const theme = useTheme();
@@ -101,7 +103,14 @@ const AdminInvoices = () => {
               size="small"
               style={{ marginRight: 8 }}
               onClick={() => handleUpdate(params.row)}
-              startIcon={<UpdateIcon />}
+              startIcon={<CloseOutlinedIcon />}
+            ></Button>
+            <Button
+              variant="contained"
+              color="secondary"
+              size="small"
+              onClick={() => handleUpdate(params.row._id)}
+              startIcon={<CheckOutlinedIcon />}
             ></Button>
           </Box>
         );

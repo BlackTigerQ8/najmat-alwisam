@@ -34,7 +34,7 @@ const userSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    enum: ["Admin", "Accountant", "Employee"],
+    enum: ["Admin", "Manager", "Employee", "Accountant"],
     required: true,
   },
   passport: {

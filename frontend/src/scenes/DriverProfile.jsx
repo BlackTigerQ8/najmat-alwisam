@@ -44,7 +44,7 @@ const DriverProfile = ({ driverId }) => {
     passportNumber: "",
     passportExpiryDate: "",
     visa: "",
-    contractNumber: "",
+    contractExpiryDate: "",
     carInsurance: "",
     carPlateNumber: "",
     driverLicense: "",
@@ -193,11 +193,15 @@ const DriverProfile = ({ driverId }) => {
               <TextField
                 fullWidth
                 variant="filled"
-                type="text"
+                type="date"
                 label="ID Expiry Date"
                 onBlur={handleBlur}
                 onChange={handleChange}
-                value={values.idExpiryDate}
+                value={
+                  values.idExpiryDate
+                    ? new Date(values.idExpiryDate).toISOString().split("T")[0]
+                    : ""
+                }
                 name="idExpiryDate"
                 error={!!touched.idExpiryDate && !!errors.idExpiryDate}
                 helperText={touched.idExpiryDate && errors.idExpiryDate}
@@ -219,11 +223,17 @@ const DriverProfile = ({ driverId }) => {
               <TextField
                 fullWidth
                 variant="filled"
-                type="text"
+                type="date"
                 label="Passport Expiry Date"
                 onBlur={handleBlur}
                 onChange={handleChange}
-                value={values.passportExpiryDate}
+                value={
+                  values.passportExpiryDate
+                    ? new Date(values.passportExpiryDate)
+                        .toISOString()
+                        .split("T")[0]
+                    : ""
+                }
                 name="passportExpiryDate"
                 error={
                   !!touched.passportExpiryDate && !!errors.passportExpiryDate
@@ -249,16 +259,28 @@ const DriverProfile = ({ driverId }) => {
               <TextField
                 fullWidth
                 variant="filled"
-                type="text"
-                label="Contract"
+                type="date"
+                label="Contract Expiry Date"
                 onBlur={handleBlur}
                 onChange={handleChange}
-                value={values.contractNumber}
-                name="contractNumber"
-                error={!!touched.contractNumber && !!errors.contractNumber}
-                helperText={touched.contractNumber && errors.contractNumber}
+                // Convert the date string to a valid date string (YYYY-MM-DD)
+                value={
+                  values.contractExpiryDate
+                    ? new Date(values.contractExpiryDate)
+                        .toISOString()
+                        .split("T")[0]
+                    : ""
+                }
+                name="contractExpiryDate"
+                error={
+                  !!touched.contractExpiryDate && !!errors.contractExpiryDate
+                }
+                helperText={
+                  touched.contractExpiryDate && errors.contractExpiryDate
+                }
                 sx={{ gridColumn: "span 2" }}
               />
+
               <TextField
                 fullWidth
                 variant="filled"
@@ -318,7 +340,13 @@ const DriverProfile = ({ driverId }) => {
                 label="Health Insurance Date"
                 onBlur={handleBlur}
                 onChange={handleChange}
-                value={values.healthInsuranceDate}
+                value={
+                  values.healthInsuranceDate
+                    ? new Date(values.healthInsuranceDate)
+                        .toISOString()
+                        .split("T")[0]
+                    : ""
+                }
                 name="healthInsuranceDate"
                 error={
                   !!touched.healthInsuranceDate && !!errors.healthInsuranceDate
@@ -335,7 +363,13 @@ const DriverProfile = ({ driverId }) => {
                 label="Health Insurance Expiry Date"
                 onBlur={handleBlur}
                 onChange={handleChange}
-                value={values.healthInsuranceExpiryDate}
+                value={
+                  values.healthInsuranceExpiryDate
+                    ? new Date(values.healthInsuranceExpiryDate)
+                        .toISOString()
+                        .split("T")[0]
+                    : ""
+                }
                 name="healthInsuranceExpiryDate"
                 error={
                   !!touched.healthInsuranceExpiryDate &&

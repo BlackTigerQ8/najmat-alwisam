@@ -19,7 +19,6 @@ const initialState = {
 export const registerUser = createAsyncThunk(
   "user/registerUser",
   async (userData) => {
-    console.log("register user token", localStorage.getItem("token"));
     try {
       // Inside the code where you make API requests
       const response = await axios.post(`${API_URL}/users`, userData, {

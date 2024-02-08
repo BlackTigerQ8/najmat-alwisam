@@ -13,11 +13,11 @@ const router = express.Router();
 router
   .route("/")
   .get(protect, getAllDrivers)
-  .post(protect, restrictTo("Admin", "Employee"), createDriver);
+  .post(protect, restrictTo("Admin", "Manager", "Employee"), createDriver);
 router
   .route("/:id")
   .get(protect, getDriver)
   .patch(protect, updateDriver)
-  .delete(protect, restrictTo("Admin", "Employee"), deleteDriver);
+  .delete(protect, restrictTo("Admin", "Manager"), deleteDriver);
 
 module.exports = router;

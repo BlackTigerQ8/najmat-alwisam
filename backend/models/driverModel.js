@@ -45,8 +45,8 @@ const driverSchema = new mongoose.Schema({
     type: String,
     required: [true, "Please enter VISA number"],
   },
-  contractNumber: {
-    type: String,
+  contractExpiryDate: {
+    type: Date,
     required: [true, "Please enter contract number"],
   },
   carInsurance: {
