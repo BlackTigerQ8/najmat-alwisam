@@ -2,12 +2,9 @@ const jwt = require("jsonwebtoken");
 const User = require("../models/userModel");
 
 const protect = async (req, res, next) => {
-  let token;
+  let token = req.headers?.authorization || "";
 
-  if (
-    req.headers.authorization &&
-    req.headers.authorization.startsWith("Bearer")
-  ) {
+  if (token && token.startsWith("Bearer")) {
     try {
       // Get token from header
       token = req.headers.authorization.split(" ")[1];
@@ -23,7 +20,7 @@ const protect = async (req, res, next) => {
       console.error(error);
       return res.status(401).json({
         status: "Error",
-        message: "Not authorized to access this route",
+        message: "Not authorized to access this route error",
       });
     }
   }

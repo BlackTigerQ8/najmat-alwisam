@@ -1,53 +1,181 @@
-import React from "react";
-import { Box, Typography, useTheme } from "@mui/material";
+import React, { useEffect, useState, useCallback } from "react";
+import { Box, Typography, Button, useTheme } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import { tokens } from "../theme";
-import { mockDataInvoices } from "../data/mockData";
 import Header from "../components/Header";
+import UpdateIcon from "@mui/icons-material/Update";
+import { useSelector, useDispatch } from "react-redux";
+import { fetchDrivers, updateDriver } from "../redux/driversSlice";
+import { pulsar } from "ldrs";
 
 const Invoices = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
+  const dispatch = useDispatch();
+  const drivers = useSelector((state) => state.drivers.drivers);
+  const status = useSelector((state) => state.drivers.status);
+  const error = useSelector((state) => state.drivers.error);
+  const token =
+    useSelector((state) => state.drivers.token) ||
+    localStorage.getItem("token");
+
+  const invoices = useSelector((state) => state.invoices?.invoices || []);
+
+  const [editRowsModel, setEditRowsModel] = useState({});
+  const [selectedRowIds, setSelectedRowIds] = useState([]);
+
+  const getInvoiceData = useCallback(
+    (driverId) => {
+      const driverInvoices = invoices.filter(
+        (invoice) => invoice.driver === driverId
+      );
+    },
+    [invoices]
+  );
 
   const columns = [
     {
-      field: "id",
-      headerName: "ID",
+      field: "sequenceNumber",
+      headerName: "NO.",
     },
-
     {
       field: "name",
       headerName: "Name",
-      flex: 1,
+      flex: 0.75,
       cellClassName: "name-column--cell",
+      renderCell: ({ row: { firstName, lastName } }) => {
+        return (
+          <Box
+            width="60%"
+            m="0 auto"
+            display="flex"
+            justifyContent="center"
+            borderRadius="4px"
+          >
+            {firstName} {lastName}
+          </Box>
+        );
+      },
     },
     {
       field: "email",
       headerName: "Email",
-      flex: 1,
     },
-
     {
       field: "phone",
       headerName: "Phone Number",
-      flex: 1,
     },
     {
-      field: "cost",
-      headerName: "Cost",
-      flex: 1,
-      renderCell: (params) => (
-        <Typography color={colors.greenAccent[500]}>
-          ${params.row.cost}
-        </Typography>
-      ),
+      field: "idNumber",
+      headerName: "Civil ID",
+      type: Number,
+      headerAlign: "left",
+      align: "left",
     },
     {
-      field: "date",
-      headerName: "Date",
-      flex: 1,
+      field: "cash",
+      headerName: "Cash",
+      editable: true,
+      type: Number,
+    },
+    {
+      field: "hour",
+      headerName: "Hours",
+      editable: true,
+    },
+    {
+      field: "order",
+      headerName: "Orders",
+      editable: true,
+    },
+    {
+      field: "actions",
+      headerName: "Actions",
+      width: 150,
+      headerAlign: "center",
+      align: "center",
+      sortable: false,
+      filterable: false,
+      renderCell: (params) => {
+        return (
+          <Box display="flex" justifyContent="center">
+            <Button
+              variant="contained"
+              color="primary"
+              size="small"
+              style={{ marginRight: 8 }}
+              onClick={() => handleUpdate(params.row)}
+              startIcon={<UpdateIcon />}
+            ></Button>
+          </Box>
+        );
+      },
     },
   ];
+
+  useEffect(() => {
+    //if (status === "succeeded") {
+    dispatch(fetchDrivers(token));
+    //}
+  }, [token]);
+
+  pulsar.register();
+  if (status === "loading") {
+    return (
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100vh",
+        }}
+      >
+        <l-pulsar
+          size="70"
+          speed="1.75"
+          color={colors.greenAccent[500]}
+        ></l-pulsar>
+      </div>
+    );
+  }
+
+  if (status === "failed") {
+    return (
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100vh",
+          fontSize: "18px",
+        }}
+      >
+        Error: {error}
+      </div>
+    );
+  }
+
+  const handleUpdate = (row) => {
+    try {
+      const { cost, order, hour } = row;
+      dispatch(
+        updateDriver({ driverId: row._id, values: { cost, order, hour } })
+      );
+    } catch (error) {
+      console.error("Row does not have a valid _id field:", row);
+    }
+  };
+
+  const handleUpdateAll = () => {
+    // Update all rows in the DataGrid
+    selectedRowIds.forEach((id) => {
+      const row = drivers.find((driver) => driver._id === id);
+      if (row) {
+        console.log(row);
+        handleUpdate(row);
+      }
+    });
+  };
 
   return (
     <Box m="20px">
@@ -84,7 +212,23 @@ const Invoices = () => {
           },
         }}
       >
-        <DataGrid checkboxSelection rows={mockDataInvoices} columns={columns} />
+        <DataGrid
+          // checkboxSelection
+          rows={Array.isArray(drivers) ? drivers : []}
+          columns={columns}
+          getRowId={(row) => row._id}
+          editRowsModel={editRowsModel}
+          onEditRowsModelChange={(newModel) => setEditRowsModel(newModel)}
+        />
+        <Button
+          variant="contained"
+          color="secondary"
+          size="large"
+          style={{ marginTop: 8 }}
+          onClick={handleUpdateAll}
+        >
+          Update All
+        </Button>
       </Box>
     </Box>
   );

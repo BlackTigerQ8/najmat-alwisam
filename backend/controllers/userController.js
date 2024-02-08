@@ -32,6 +32,14 @@ const getUser = async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
 
+    // Check if the user exists
+    if (!user) {
+      return res.status(404).json({
+        status: "Error",
+        message: "User not found",
+      });
+    }
+
     // Check if the user is accessing their own data or is an admin
     if (req.user.id !== req.params.id && req.user.role !== "Admin") {
       return res.status(403).json({
@@ -43,7 +51,10 @@ const getUser = async (req, res) => {
     res.status(200).json({
       status: "Success",
       data: {
-        user,
+        user: {
+          ...user._doc,
+          imagePath: user.image,
+        },
       },
     });
   } catch (error) {
@@ -158,7 +169,7 @@ const loginUser = async (req, res) => {
     const { firstName, lastName, email: userEmail, _id, role } = userObj;
 
     // Create token
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+    const token = jwt.sign({ id: user._id, role }, process.env.JWT_SECRET, {
       expiresIn: process.env.JWT_EXPIRE,
     });
 

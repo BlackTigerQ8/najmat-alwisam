@@ -1,27 +1,24 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState } from "react";
 import { ProSidebar, Menu, MenuItem } from "react-pro-sidebar";
 import "react-pro-sidebar/dist/css/styles.css";
 import { Box, IconButton, Typography, useTheme } from "@mui/material";
 import { Link } from "react-router-dom";
 import { tokens } from "../../theme";
 import ProfileImage from "../../assets/aa1.png";
-import HomeOutlinedIcon from "@mui/icons-material/HomeOutlined";
-import PeopleOutlinedIcon from "@mui/icons-material/PeopleOutlined";
-import MoneyOffIcon from "@mui/icons-material/MoneyOff";
-import ReceiptOutlinedIcon from "@mui/icons-material/ReceiptOutlined";
-import PersonOutlinedIcon from "@mui/icons-material/PersonOutlined";
-import NotificationsOutlinedIcon from "@mui/icons-material/NotificationsOutlined";
-import BarChartOutlinedIcon from "@mui/icons-material/BarChartOutlined";
-import PieChartOutlineOutlinedIcon from "@mui/icons-material/PieChartOutlineOutlined";
-import TimelineOutlinedIcon from "@mui/icons-material/TimelineOutlined";
+import PointOfSaleOutlinedIcon from "@mui/icons-material/PointOfSaleOutlined";
+import NotificationsActiveOutlinedIcon from "@mui/icons-material/NotificationsActiveOutlined";
 import MenuOutlinedIcon from "@mui/icons-material/MenuOutlined";
-import { useDispatch, useSelector } from "react-redux";
-// import { profileImage } from "../../redux/userSlice";
-import AnonImage from "../../assets/profileImage.png";
+import { useSelector } from "react-redux";
+import LibraryBooksOutlinedIcon from "@mui/icons-material/LibraryBooksOutlined";
+import MoneyOffIcon from "@mui/icons-material/MoneyOff";
+import MonetizationOnOutlinedIcon from "@mui/icons-material/MonetizationOnOutlined";
+import AttachMoneyOutlinedIcon from "@mui/icons-material/AttachMoneyOutlined";
+import ListOutlinedIcon from "@mui/icons-material/ListOutlined";
 
 const Item = ({ title, to, icon, selected, setSelected }) => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
+
   return (
     <MenuItem
       active={selected === title}
@@ -37,36 +34,12 @@ const Item = ({ title, to, icon, selected, setSelected }) => {
   );
 };
 
-const Sidebar = () => {
-  const imageUploadInput = useRef(null);
+const SidebarA = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [selected, setSelected] = useState("Dashboard");
   const userInfo = useSelector((state) => state.user.userInfo);
-  const userProfileImage = useSelector((state) => state.user.userProfileImage);
-  const dispatch = useDispatch();
-
-  useEffect(() => {
-    // Fetch the user's profile image when the component mounts
-    // dispatch(profileImage());
-  }, [dispatch]);
-
-  const handleImageUpload = (event) => {
-    const file = event.target.files[0];
-
-    //TODO: Add validation for correct file type upload
-    // const formData = new FormData();
-    // formData.append("file", file);
-
-    if (
-      file.type === "image/jpeg" ||
-      file.type === "image/jpg" ||
-      file.type === "image/png"
-    ) {
-      // dispatch(profileImage(file));
-    }
-  };
 
   return (
     //!important is because I'm overwritting css styles in the pro-sidebar library
@@ -109,7 +82,7 @@ const Sidebar = () => {
                 ml="15px"
               >
                 <Typography variant="h3" color={colors.grey[100]}>
-                  ADMINS
+                  EMPLOYEE
                 </Typography>
                 <IconButton onClick={() => setIsCollapsed(!isCollapsed)}>
                   <MenuOutlinedIcon />
@@ -119,22 +92,16 @@ const Sidebar = () => {
           </MenuItem>
 
           {!isCollapsed && (
-            <Box mb="25px" onClick={() => imageUploadInput.current.click()}>
+            <Box mb="25px">
               <Box display="flex" justifyContent="center" alignItems="center">
                 <img
                   alt="profile-user"
                   width="100px"
                   height="100px"
-                  src={userProfileImage ? userProfileImage : AnonImage}
+                  src={ProfileImage}
                   style={{ cursor: "pointer", borderRadius: "50%" }}
                 />
               </Box>
-              <input
-                type="file"
-                ref={imageUploadInput}
-                style={{ display: "none" }}
-                onChange={handleImageUpload}
-              />
               <Box textAlign="center">
                 <Typography
                   variant="h2"
@@ -154,135 +121,76 @@ const Sidebar = () => {
           )}
 
           <Box paddingLeft={isCollapsed ? undefined : "10%"}>
-            <Item
-              title="Dashboard"
-              to="/"
-              icon={<HomeOutlinedIcon />}
-              selected={selected}
-              setSelected={setSelected}
-            />
-
             <Typography
               variant="h6"
               color={colors.grey[300]}
               sx={{ m: "15px 0 5px 20px" }}
             >
-              Data
+              Pages
             </Typography>
             <Item
-              title="Manage Team"
-              to="/team"
-              icon={<PeopleOutlinedIcon />}
+              title="Detail"
+              to="/detail"
+              icon={<LibraryBooksOutlinedIcon />}
               selected={selected}
               setSelected={setSelected}
             />
             <Item
-              title="Manage Drivers"
-              to="/drivers"
-              icon={<PeopleOutlinedIcon />}
+              title="Employees Salary"
+              to="/employees-salary"
+              icon={<PointOfSaleOutlinedIcon />}
               selected={selected}
               setSelected={setSelected}
             />
-            {/* <Item
-              title="Contacts Information"
-              to="/contacts"
-              icon={<ContactsOutlinedIcon />}
+            <Item
+              title="Drivers Salary"
+              to="/drivers-salary"
+              icon={<PointOfSaleOutlinedIcon />}
               selected={selected}
               setSelected={setSelected}
-            /> */}
+            />
             <Item
-              title="Invoices Balances"
-              to="/admin-invoices"
-              icon={<ReceiptOutlinedIcon />}
+              title="Drivers Deduction"
+              to="/deduction-salary"
+              icon={<MoneyOffIcon />}
+              selected={selected}
+              setSelected={setSelected}
+            />
+            <Item
+              title="Employees Deduction"
+              to="/deduction-salary"
+              icon={<MoneyOffIcon />}
+              selected={selected}
+              setSelected={setSelected}
+            />
+            <Item
+              title="Company Spends"
+              to="/company-spends"
+              icon={<MonetizationOnOutlinedIcon />}
+              selected={selected}
+              setSelected={setSelected}
+            />
+            <Item
+              title="Petty Cash"
+              to="/pt-cash"
+              icon={<AttachMoneyOutlinedIcon />}
+              selected={selected}
+              setSelected={setSelected}
+            />
+            <Item
+              title="Spends List"
+              to="/spends-list"
+              icon={<ListOutlinedIcon />}
               selected={selected}
               setSelected={setSelected}
             />
             <Item
               title="Notifications"
               to="/notifications"
-              icon={<NotificationsOutlinedIcon />}
+              icon={<NotificationsActiveOutlinedIcon />}
               selected={selected}
               setSelected={setSelected}
             />
-
-            <Typography
-              variant="h6"
-              color={colors.grey[300]}
-              sx={{ m: "15px 0 5px 20px" }}
-            >
-              Forms
-            </Typography>
-            <Item
-              title="Profile Form"
-              to="/form"
-              icon={<PersonOutlinedIcon />}
-              selected={selected}
-              setSelected={setSelected}
-            />
-            <Item
-              title="Drivers Form"
-              to="/driver-form"
-              icon={<PersonOutlinedIcon />}
-              selected={selected}
-              setSelected={setSelected}
-            />
-            <Item
-              title="Deduction"
-              to="/deduction"
-              icon={<MoneyOffIcon />}
-              selected={selected}
-              setSelected={setSelected}
-            />
-            {/* <Item
-              title="Calendar"
-              to="/calendar"
-              icon={<CalendarTodayOutlinedIcon />}
-              selected={selected}
-              setSelected={setSelected}
-            />
-            <Item
-              title="FAQ Page"
-              to="/faq"
-              icon={<HelpOutlineOutlinedIcon />}
-              selected={selected}
-              setSelected={setSelected}
-            /> */}
-
-            <Typography
-              variant="h6"
-              color={colors.grey[300]}
-              sx={{ m: "15px 0 5px 20px" }}
-            >
-              Charts
-            </Typography>
-            <Item
-              title="Bar Chart"
-              to="/bar"
-              icon={<BarChartOutlinedIcon />}
-              selected={selected}
-              setSelected={setSelected}
-            />
-            <Item
-              title="Pie Chart"
-              to="/pie"
-              icon={<PieChartOutlineOutlinedIcon />}
-              selected={selected}
-              setSelected={setSelected}
-            />
-            <Item
-              title="Line Chart"
-              to="/line"
-              icon={<TimelineOutlinedIcon />}
-              selected={selected}
-              setSelected={setSelected}
-            />
-            {/* <Item
-              title="Geography Chart"
-              to="/geography"
-              icon={<MapOutlinedIcon />}
-              selected={selected}
-              setSelected={setSelected}
-            /> */}
           </Box>
         </Menu>
       </ProSidebar>
@@ -290,4 +198,4 @@ const Sidebar = () => {
   );
 };
 
-export default Sidebar;
+export default SidebarA;

@@ -6,37 +6,6 @@ const connectDB = require("./config/db.js");
 
 connectDB();
 
-const createAdmin = async () => {
-  try {
-    // Check if admin already exists
-    const admin = await User.findOne({ role: "Admin" });
-    if (admin) {
-      console.log("Admin account already exists");
-      return;
-    }
-
-    // Create new admin user
-    const newAdmin = new User({
-      firstName: "Abdullah",
-      lastName: "Alenezi",
-      email: "admin@gmail.com",
-      password: "66850080",
-      confirmPassword: "66850080",
-      role: "Admin",
-      passport: "P0000",
-      phone: 66850080,
-      identification: "295072100108",
-    });
-
-    await newAdmin.save();
-    console.log("Admin account created successfully");
-  } catch (error) {
-    console.error("Error creating admin account", error);
-  } finally {
-    mongoose.connection.close();
-  }
-};
-
 const createRandomUsers = async () => {
   try {
     // Find the last sequence number in the database
@@ -45,7 +14,7 @@ const createRandomUsers = async () => {
       {},
       { sort: { sequenceNumber: -1 } }
     );
-    let lastSequenceNumber = 1;
+    let lastSequenceNumber = 0;
 
     if (lastUser) {
       lastSequenceNumber = lastUser.sequenceNumber;
@@ -68,6 +37,8 @@ const createRandomUsers = async () => {
       const password = "12341234";
 
       const hashedPassword = await bcrypt.hash(password, 12);
+
+      // Calculate the sequence number based on the last one in the database
       const sequenceNumber = lastSequenceNumber + 1;
 
       const newUser = new User({
@@ -85,9 +56,8 @@ const createRandomUsers = async () => {
 
       await newUser.save();
       console.log(`User ${i + 1}: ${firstName} ${lastName} created`);
-      lastSequenceNumber = sequenceNumber;
+      lastSequenceNumber = sequenceNumber; // Update the last sequence number
     }
-
     mongoose.connection.close();
     console.log("All users created and connection closed");
   } catch (error) {
@@ -96,5 +66,19 @@ const createRandomUsers = async () => {
   }
 };
 
+const deleteAllUsers = async () => {
+  try {
+    // Delete all users
+    await User.deleteMany({});
+    console.log("All users deleted");
+
+    mongoose.connection.close();
+    console.log("Connection closed");
+  } catch (error) {
+    console.error(error);
+    mongoose.connection.close();
+  }
+};
+
 createRandomUsers();
-// createAdmin();
+// deleteAllUsers();

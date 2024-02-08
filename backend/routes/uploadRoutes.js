@@ -3,9 +3,10 @@ const express = require("express");
 const multer = require("multer");
 const router = express.Router();
 
-const storage = multer.diskStorage({
+// First storage configuration
+const talabat = multer.diskStorage({
   destination(req, file, cb) {
-    cb(null, "uploads/");
+    cb(null, path.join(__dirname, "talabat"));
   },
   filename(req, file, cb) {
     cb(
@@ -15,26 +16,93 @@ const storage = multer.diskStorage({
   },
 });
 
-function checkFileType(file, cb) {
-  const filetypes = /pdf/;
+// Second storage configuration
+const others = multer.diskStorage({
+  destination(req, file, cb) {
+    cb(null, path.join(__dirname, "others"));
+  },
+  filename(req, file, cb) {
+    cb(
+      null,
+      `${file.fieldname}-${Date.now()}${path.extname(file.originalname)}`
+    );
+  },
+});
+
+// Third storage configuration
+const images = multer.diskStorage({
+  destination(req, file, cb) {
+    cb(null, "files/images");
+  },
+  filename(req, file, cb) {
+    cb(
+      null,
+      `${file.fieldname}-${Date.now()}${path.extname(file.originalname)}`
+    );
+  },
+});
+
+// First upload instance
+const upload1 = multer({
+  storage: talabat,
+  fileFilter: function (req, file, cb) {
+    checkFileType(file, cb, "talabat");
+  },
+});
+
+// Second upload instance
+const upload2 = multer({
+  storage: others,
+  fileFilter: function (req, file, cb) {
+    checkFileType(file, cb, "others");
+  },
+});
+
+// Third upload instance
+const upload3 = multer({
+  storage: images,
+  fileFilter: function (req, file, cb) {
+    checkFileType(file, cb, "images");
+  },
+});
+
+function checkFileType(file, cb, storageType) {
+  console.log("checkFileType", file);
+
+  const filetypes = /pdf|jpeg|jpg|png/;
   const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
   const mimetype = filetypes.test(file.mimetype);
 
   if (extname && mimetype) {
     return cb(null, true);
   } else {
-    cb({ message: "PDF only!" });
+    cb({
+      message: `Allowed file types for ${storageType}: pdf, jpeg, jpg, png`,
+    });
   }
 }
 
-const upload = multer({
-  storage,
+// Route for uploading to the first storage
+router.post("/talabat", upload1.single("file"), (req, res) => {
+  res.send({
+    message: "File uploaded successfully to talabat",
+    file: `/${req.file.path}`,
+  });
 });
 
-router.post("/", upload.single("pdfFile"), (req, res) => {
+// Route for uploading to the second storage
+router.post("/others", upload2.single("file"), (req, res) => {
   res.send({
-    message: "File uploaded successfully",
-    pdfFile: `/${req.file.path}`,
+    message: "File uploaded successfully to others",
+    file: `/${req.file.path}`,
+  });
+});
+
+// Route for uploading to the third storage
+router.post("/images", upload3.single("file"), (req, res) => {
+  res.send({
+    message: "File uploaded successfully to images",
+    file: `/${req.file.path}`,
   });
 });
 

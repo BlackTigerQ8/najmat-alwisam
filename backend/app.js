@@ -3,6 +3,8 @@ const morgan = require("morgan");
 const cors = require("cors");
 const helmet = require("helmet");
 const userRouter = require("./routes/userRoutes");
+const driverRoutes = require("./routes/driverRoutes");
+const driverInvoiceRoutes = require("./routes/driverInvoiceRoutes");
 const uploadRoutes = require("./routes/uploadRoutes");
 
 const app = express();
@@ -23,6 +25,8 @@ app.use((req, res, next) => {
 });
 
 app.use("/api/users", userRouter);
+app.use("/api/drivers", driverRoutes);
+app.use("/api/driver-invoice", driverInvoiceRoutes);
 app.use("/api/upload", uploadRoutes);
 
 module.exports = app;

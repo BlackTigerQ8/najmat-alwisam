@@ -2,6 +2,10 @@ const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
 
 const userSchema = new mongoose.Schema({
+  sequenceNumber: {
+    type: Number,
+    unique: true,
+  },
   firstName: {
     type: String,
     required: [true, "You need to enter your first name"],
@@ -22,6 +26,7 @@ const userSchema = new mongoose.Schema({
     type: String,
     unique: true,
     trim: true,
+    required: [true, "Email is required for future login"],
   },
   identification: {
     type: Number,
@@ -35,6 +40,9 @@ const userSchema = new mongoose.Schema({
   passport: {
     type: String,
     required: [true, "Passport number is required"],
+  },
+  image: {
+    type: String,
   },
   file: {
     type: String,
@@ -77,6 +85,30 @@ userSchema.pre("save", async function (next) {
     this.identification = this.identification.replace(/,/g, "");
   }
   next();
+});
+
+// Pre-save middleware to generate and assign the sequence number
+userSchema.pre("save", async function (next) {
+  try {
+    if (!this.sequenceNumber) {
+      // Find the last user in the database
+      const lastUser = await mongoose
+        .model("User")
+        .findOne({}, {}, { sort: { sequenceNumber: -1 } });
+
+      let lastSequenceNumber = 0;
+      if (lastUser) {
+        lastSequenceNumber = lastUser.sequenceNumber;
+      }
+
+      // Calculate the sequence number based on the last one in the database
+      this.sequenceNumber = lastSequenceNumber + 1;
+    }
+
+    next();
+  } catch (error) {
+    next(error);
+  }
 });
 
 module.exports = mongoose.model("User", userSchema);

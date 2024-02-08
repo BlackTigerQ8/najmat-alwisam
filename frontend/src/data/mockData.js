@@ -432,163 +432,109 @@ export const mockPieData = [
 
 export const mockLineData = [
   {
-    id: "japan",
-    color: tokens("dark").greenAccent[500],
-    data: [
-      {
-        x: "plane",
-        y: 101,
-      },
-      {
-        x: "helicopter",
-        y: 75,
-      },
-      {
-        x: "boat",
-        y: 36,
-      },
-      {
-        x: "train",
-        y: 216,
-      },
-      {
-        x: "subway",
-        y: 35,
-      },
-      {
-        x: "bus",
-        y: 236,
-      },
-      {
-        x: "car",
-        y: 88,
-      },
-      {
-        x: "moto",
-        y: 232,
-      },
-      {
-        x: "bicycle",
-        y: 281,
-      },
-      {
-        x: "horse",
-        y: 1,
-      },
-      {
-        x: "skateboard",
-        y: 35,
-      },
-      {
-        x: "others",
-        y: 14,
-      },
-    ],
-  },
-  {
-    id: "france",
+    id: "Others",
     color: tokens("dark").blueAccent[300],
     data: [
       {
-        x: "plane",
+        x: "Jan",
         y: 212,
       },
       {
-        x: "helicopter",
+        x: "Feb",
         y: 190,
       },
       {
-        x: "boat",
+        x: "Mar",
         y: 270,
       },
       {
-        x: "train",
+        x: "Apr",
         y: 9,
       },
       {
-        x: "subway",
+        x: "May",
         y: 75,
       },
       {
-        x: "bus",
+        x: "Jun",
         y: 175,
       },
       {
-        x: "car",
+        x: "Jul",
         y: 33,
       },
       {
-        x: "moto",
+        x: "Aug",
         y: 189,
       },
       {
-        x: "bicycle",
+        x: "Sep",
         y: 97,
       },
       {
-        x: "horse",
+        x: "Oct",
         y: 87,
       },
       {
-        x: "skateboard",
+        x: "Nov",
         y: 299,
       },
       {
-        x: "others",
+        x: "Dec",
         y: 251,
       },
     ],
   },
   {
-    id: "us",
+    id: "Talabat",
     color: tokens("dark").redAccent[200],
     data: [
       {
-        x: "plane",
+        x: "Jan",
         y: 191,
       },
       {
-        x: "helicopter",
+        x: "Feb",
         y: 136,
       },
       {
-        x: "boat",
+        x: "Mar",
         y: 91,
       },
       {
-        x: "train",
+        x: "Apr",
         y: 190,
       },
       {
-        x: "subway",
+        x: "May",
         y: 211,
       },
       {
-        x: "bus",
+        x: "Jun",
         y: 152,
       },
       {
-        x: "car",
+        x: "Jul",
         y: 189,
       },
       {
-        x: "moto",
+        x: "Aug",
         y: 152,
       },
       {
-        x: "bicycle",
+        x: "Sep",
         y: 8,
       },
       {
-        x: "horse",
+        x: "Oct",
         y: 197,
       },
       {
-        x: "skateboard",
+        x: "Nov",
         y: 107,
       },
       {
-        x: "others",
+        x: "Dec",
         y: 170,
       },
     ],

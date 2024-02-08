@@ -1,35 +1,37 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { Typography, Box, Button, useTheme } from "@mui/material";
-import { DataGrid } from "@mui/x-data-grid";
+import { DataGrid, GridToolbar } from "@mui/x-data-grid";
 import { tokens } from "../theme";
 // import { mockDataTeam } from "../data/mockData";
-import AdminPanelSettingsOutlinedIcon from "@mui/icons-material/AdminPanelSettingsOutlined";
-import LockOpenOutlinedIcon from "@mui/icons-material/LockOpenOutlined";
-import SecurityOutlinedIcon from "@mui/icons-material/SecurityOutlined";
+// import AdminPanelSettingsOutlinedIcon from "@mui/icons-material/AdminPanelSettingsOutlined";
+// import LockOpenOutlinedIcon from "@mui/icons-material/LockOpenOutlined";
+// import SecurityOutlinedIcon from "@mui/icons-material/SecurityOutlined";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
+import { pulsar } from "ldrs";
 import { useNavigate } from "react-router-dom";
 import Header from "../components/Header";
 import { useSelector, useDispatch } from "react-redux";
-import { fetchUsers, deleteUser } from "../redux/usersSlice";
-import { pulsar } from "ldrs";
+import { fetchDrivers, deleteDriver } from "../redux/driversSlice";
 
-const Team = () => {
+const Drivers = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const dispatch = useDispatch();
-  const users = useSelector((state) => state.users.users); // <-- Select users from state
-  const status = useSelector((state) => state.user.status);
-  const error = useSelector((state) => state.user.error);
-  const navigate = useNavigate();
+  const drivers = useSelector((state) => state.drivers.drivers);
+  const status = useSelector((state) => state.drivers.status);
+  const error = useSelector((state) => state.drivers.error);
 
   const token =
-    useSelector((state) => state.user.token) || localStorage.getItem("token");
+    useSelector((state) => state.drivers.token) ||
+    localStorage.getItem("token");
+
+  const navigate = useNavigate();
 
   const columns = [
     {
       field: "sequenceNumber",
-      headerName: "ID",
+      headerName: "NO.",
     },
     {
       field: "name",
@@ -53,53 +55,36 @@ const Team = () => {
     {
       field: "email",
       headerName: "Email",
-      flex: 1,
     },
     {
       field: "phone",
       headerName: "Phone Number",
-      flex: 1,
     },
     {
-      field: "identification",
+      field: "idNumber",
       headerName: "Civil ID",
       type: Number,
       headerAlign: "left",
       align: "left",
     },
+
     {
-      field: "passport",
-      headerName: "Passport",
+      field: "carPlateNumber",
+      headerName: "Car Plate Number",
     },
     {
-      field: "role",
-      headerName: "Access Level",
-      flex: 1,
-      headerAlign: "center",
-      renderCell: ({ row: { role } }) => {
-        return (
-          <Box
-            width="80%"
-            m="0 auto"
-            display="flex"
-            justifyContent="center"
-            backgroundColor={
-              role === "Admin"
-                ? colors.greenAccent[600]
-                : colors.greenAccent[700]
-            }
-            borderRadius="4px"
-          >
-            {role === "Admin" && <AdminPanelSettingsOutlinedIcon />}
-            {role === "Employee" && <SecurityOutlinedIcon />}
-            {role === "Accountant" && <LockOpenOutlinedIcon />}
-            <Typography color={colors.grey[100]} sx={{ ml: "5px" }}>
-              {role}
-            </Typography>
-          </Box>
-        );
-      },
+      field: "driverLicense",
+      headerName: "Driver License",
     },
+    {
+      field: "workPass",
+      headerName: "Work Pass",
+    },
+    {
+      field: "contractType",
+      headerName: "Contract Type",
+    },
+
     {
       field: "actions",
       headerName: "Actions",
@@ -134,7 +119,7 @@ const Team = () => {
 
   useEffect(() => {
     //if (status === "succeeded") {
-    dispatch(fetchUsers(token));
+    dispatch(fetchDrivers(token));
     //}
   }, [token]);
 
@@ -159,25 +144,37 @@ const Team = () => {
   }
 
   if (status === "failed") {
-    return <div>Error: {error}</div>;
+    return (
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100vh",
+          fontSize: "18px",
+        }}
+      >
+        Error: {error}
+      </div>
+    );
   }
 
   const handleEdit = (rowData) => {
     // Here you can navigate to an edit page with rowData or open an edit modal/dialog
-    navigate(`/user-profile/${rowData._id}`);
+    navigate(`/driver-profile/${rowData._id}`);
   };
 
-  const handleDelete = async (userId) => {
+  const handleDelete = async (driverId) => {
     try {
-      dispatch(deleteUser(userId));
+      dispatch(deleteDriver(driverId));
     } catch (error) {
-      console.error("Error deleting user:", error);
+      console.error("Error deleting driver:", error);
     }
   };
 
   return (
     <Box m="20px">
-      <Header title="TEAM" subtitle="Managing the Team Members" />
+      <Header title="Drivers" subtitle="Managing the Drivers Members" />
       <Box
         mt="40px"
         height="75vh"
@@ -205,7 +202,7 @@ const Team = () => {
         }}
       >
         <DataGrid
-          rows={Array.isArray(users) ? users : []}
+          rows={Array.isArray(drivers) ? drivers : []}
           columns={columns}
           getRowId={(row) => row._id}
         />
@@ -214,4 +211,4 @@ const Team = () => {
   );
 };
 
-export default Team;
+export default Drivers;

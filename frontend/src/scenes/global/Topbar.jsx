@@ -9,18 +9,19 @@ import SettingsOutlinedIcon from "@mui/icons-material/SettingsOutlined";
 import PersonOutlinedIcon from "@mui/icons-material/PersonOutlined";
 import SearchIcon from "@mui/icons-material/Search";
 import { ColorModeContext, tokens } from "../../theme";
+import Badge from "@mui/material/Badge";
 
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 const Topbar = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const colorMode = useContext(ColorModeContext);
-
   const navigate = useNavigate();
 
   const handleProfileClick = () => {
     handleClose();
+    navigate("/profile");
   };
 
   const [anchorEl, setAnchorEl] = useState(null);
@@ -64,9 +65,13 @@ const Topbar = () => {
             <LightModeOutlinedIcon />
           )}
         </IconButton>
-        <IconButton>
-          <NotificationsOutlinedIcon />
-        </IconButton>
+        <Link to="/notifications">
+          <IconButton>
+            <Badge badgeContent={4} color="secondary" max={50}>
+              <NotificationsOutlinedIcon />
+            </Badge>
+          </IconButton>
+        </Link>
         <IconButton>
           <SettingsOutlinedIcon />
         </IconButton>
@@ -87,7 +92,7 @@ const Topbar = () => {
           open={open}
           onClose={handleClose}
         >
-          <MenuItem onClick={handleProfileClick}>Profile</MenuItem>
+          {/* <MenuItem onClick={handleProfileClick}>Profile</MenuItem> */}
           <MenuItem onClick={handleLogout}>Logout</MenuItem>
         </Menu>
       </Box>

@@ -1,89 +1,105 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
+  Typography,
   Button,
-  TextField,
+  useTheme,
   Select,
   MenuItem,
   InputLabel,
   FormControl,
+  TextField,
   Input,
 } from "@mui/material";
-
-import { Formik } from "formik";
-import * as yup from "yup";
-import useMediaQuery from "@mui/material/useMediaQuery";
 import Header from "../components/Header";
-import { registerUser } from "../redux/userSlice";
-import { useDispatch } from "react-redux";
-import { useNavigate } from "react-router-dom";
+import { tokens } from "../theme";
+// import { NewtonsCradle } from "@uiball/loaders";
+import useMediaQuery from "@mui/material/useMediaQuery";
+import { useSelector, useDispatch } from "react-redux";
+// import { trefoil } from "ldrs";
+import { pulsar } from "ldrs";
+import { Formik } from "formik";
+import { updateUser } from "../redux/usersSlice";
+import { useParams } from "react-router-dom";
 
-const initialValues = {
-  firstName: "",
-  lastName: "",
-  email: undefined,
-  phone: "",
-  identification: "",
-  passport: "",
-  visa: "",
-  contract: "",
-  role: "",
-  uploadedFile: null,
-  password: "",
-  confirmPassword: "",
-};
-
-const phoneRegExp =
-  /^((\+[1-9]{1,4}[ -]?)|(\([0-9]{2,3}\)[ -]?)|([0-9]{2,4})[ -]?)*?[0-9]{3,4}[ -]?[0-9]{3,4}$/;
-
-const userSchema = yup.object().shape({
-  firstName: yup.string().required("required"),
-  lastName: yup.string().required("required"),
-  email: yup.string().email("Invalid email!").required("required"),
-  phone: yup
-    .string()
-    .matches(phoneRegExp, "Phone number is not valid!")
-    .required("required"),
-  identification: yup.string().required("required"),
-  passport: yup.string().required("required"),
-  visa: yup.string().required("required"),
-  contract: yup.string().required("required"),
-  role: yup.string().required("required"),
-  password: yup
-    .string()
-    .min(6, "Password must be at least 6 characters")
-    .required("Password is required"),
-  confirmPassword: yup
-    .string()
-    .oneOf([yup.ref("password"), null], "Passwords must match")
-    .required("Confirm Password is required"),
-});
-
-const Form = () => {
+const UserProfile = ({ userId }) => {
   const isNonMobile = useMediaQuery("(min-width: 600px)");
+  const theme = useTheme();
+  const colors = tokens(theme.palette.mode);
   const dispatch = useDispatch();
-  const navigate = useNavigate();
+  const users = useSelector((state) => state.users.users ?? []);
+  const params = useParams();
+  const userInfo = users.find((d) => d._id === params.id);
+
+  const status = useSelector((state) => state.users.status);
+  const error = useSelector((state) => state.users.error);
+
+  const initialValues = userInfo || {
+    sequenceNumber: null,
+    firstName: "",
+    lastName: "",
+    phone: "",
+    email: "",
+    identification: "",
+    role: "",
+    passport: "",
+    password: "",
+    createdAt: Date,
+    file: "",
+  };
+
+  pulsar.register();
+  if (status === "loading") {
+    return (
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100vh",
+        }}
+      >
+        <l-pulsar
+          size="70"
+          speed="1.75"
+          color={colors.greenAccent[500]}
+        ></l-pulsar>
+      </div>
+    );
+  }
+
+  if (status === "failed") {
+    return (
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100vh",
+          fontSize: "18px",
+        }}
+      >
+        Error: {error}
+      </div>
+    );
+  }
 
   const handleFormSubmit = async (values) => {
     try {
-      await dispatch(
-        registerUser({ ...values, email: values.email || undefined })
-      );
-      navigate("/team");
+      if (userInfo && userInfo._id) {
+        await dispatch(updateUser({ userId: userInfo._id, userData: values }));
+      } else {
+        console.error("User information is undefined or does not have _id");
+      }
     } catch (error) {
-      console.error("Error registering user:", error.message);
+      console.error("Error updating user:", error.message);
     }
   };
 
   return (
     <Box m="20px">
-      <Header title="CREATE USER" subtitle="Create a New User Profile" />
-
-      <Formik
-        onSubmit={handleFormSubmit}
-        initialValues={initialValues}
-        validationSchema={userSchema}
-      >
+      <Header title="USER PROFILE" subtitle="View/Update User Information" />
+      <Formik onSubmit={handleFormSubmit} initialValues={initialValues}>
         {({
           values,
           errors,
@@ -102,6 +118,19 @@ const Form = () => {
                 "& > div": { gridColumn: isNonMobile ? undefined : "span 4" },
               }}
             >
+              <TextField
+                fullWidth
+                variant="filled"
+                type="text"
+                label="Sequence Number"
+                onBlur={handleBlur}
+                onChange={handleChange}
+                value={values.sequenceNumber}
+                name="Sequence Number"
+                error={!!touched.sequenceNumber && !!errors.sequenceNumber}
+                helperText={touched.sequenceNumber && errors.sequenceNumber}
+                sx={{ gridColumn: "span 2" }}
+              />
               <TextField
                 fullWidth
                 variant="filled"
@@ -135,7 +164,7 @@ const Form = () => {
                 label="Email"
                 onBlur={handleBlur}
                 onChange={handleChange}
-                value={values.email ?? undefined}
+                value={values.email}
                 name="email"
                 error={!!touched.email && !!errors.email}
                 helperText={touched.email && errors.email}
@@ -167,6 +196,7 @@ const Form = () => {
                 helperText={touched.identification && errors.identification}
                 sx={{ gridColumn: "span 2" }}
               />
+
               <TextField
                 fullWidth
                 variant="filled"
@@ -184,28 +214,50 @@ const Form = () => {
                 fullWidth
                 variant="filled"
                 type="text"
-                label="VISA Number"
+                label="Password"
                 onBlur={handleBlur}
                 onChange={handleChange}
-                value={values.visa}
-                name="visa"
-                error={!!touched.visa && !!errors.visa}
-                helperText={touched.visa && errors.visa}
+                // value={values.password}
+                name="password"
+                error={!!touched.password && !!errors.password}
+                helperText={touched.password && errors.password}
                 sx={{ gridColumn: "span 2" }}
               />
               <TextField
                 fullWidth
                 variant="filled"
                 type="text"
-                label="Contract"
+                label="Created at"
                 onBlur={handleBlur}
                 onChange={handleChange}
-                value={values.contract}
-                name="contract"
-                error={!!touched.contract && !!errors.contract}
-                helperText={touched.contract && errors.contract}
+                value={values.createdAt}
+                name="createdAt"
+                error={!!touched.createdAt && !!errors.createdAt}
+                helperText={touched.createdAt && errors.createdAt}
                 sx={{ gridColumn: "span 2" }}
               />
+
+              <FormControl
+                fullWidth
+                variant="filled"
+                sx={{ gridColumn: "span 2" }}
+              >
+                <InputLabel htmlFor="role">Role</InputLabel>
+                <Select
+                  label="role"
+                  value={values.role}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  name="role"
+                  error={!!touched.role && !!errors.role}
+                  helperText={touched.role && errors.role}
+                >
+                  <MenuItem value={"Admin"}>Admin</MenuItem>
+                  <MenuItem value={"Employee"}>Employee</MenuItem>
+                  <MenuItem value={"Accountant"}>Accountant</MenuItem>
+                </Select>
+              </FormControl>
+
               <FormControl fullWidth sx={{ gridColumn: "span 2" }}>
                 <InputLabel shrink htmlFor="uploadedFile">
                   Upload File
@@ -223,57 +275,10 @@ const Form = () => {
                   helperText={touched.uploadedFile && errors.uploadedFile}
                 />
               </FormControl>
-
-              <FormControl
-                fullWidth
-                variant="filled"
-                sx={{ gridColumn: "span 2" }}
-              >
-                <InputLabel htmlFor="role">Role</InputLabel>
-                <Select
-                  label="Role"
-                  value={values.role}
-                  onChange={handleChange}
-                  onBlur={handleBlur}
-                  name="role"
-                  error={!!touched.role && !!errors.role}
-                  helperText={touched.role && errors.role}
-                >
-                  <MenuItem value={"Admin"}>Admin</MenuItem>
-                  <MenuItem value={"Accountant"}>Accountant</MenuItem>
-                  <MenuItem value={"Employee"}>Employee</MenuItem>
-                </Select>
-              </FormControl>
-              <TextField
-                fullWidth
-                variant="filled"
-                type="password"
-                label="Password"
-                onBlur={handleBlur}
-                onChange={handleChange}
-                value={values.password}
-                name="password"
-                error={!!touched.password && !!errors.password}
-                helperText={touched.password && errors.password}
-                sx={{ gridColumn: "span 2" }}
-              />
-              <TextField
-                fullWidth
-                variant="filled"
-                type="password"
-                label="Confirm Password"
-                onBlur={handleBlur}
-                onChange={handleChange}
-                value={values.confirmPassword}
-                name="confirmPassword"
-                error={!!touched.confirmPassword && !!errors.confirmPassword}
-                helperText={touched.confirmPassword && errors.confirmPassword}
-                sx={{ gridColumn: "span 2" }}
-              />
             </Box>
             <Box display="flex" justifyContent="end" mt="20px">
               <Button type="submit" color="secondary" variant="contained">
-                Create New User
+                Update User
               </Button>
             </Box>
           </form>
@@ -283,4 +288,4 @@ const Form = () => {
   );
 };
 
-export default Form;
+export default UserProfile;
