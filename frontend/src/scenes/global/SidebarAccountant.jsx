@@ -1,19 +1,20 @@
-import React, { useEffect, useState } from "react";
+import React, {  useRef,useState } from "react";
 import { ProSidebar, Menu, MenuItem } from "react-pro-sidebar";
 import "react-pro-sidebar/dist/css/styles.css";
 import { Box, IconButton, Typography, useTheme } from "@mui/material";
 import { Link } from "react-router-dom";
 import { tokens } from "../../theme";
-import ProfileImage from "../../assets/aa1.png";
+import AnonImage from "../../assets/profileImage.png";
 import PointOfSaleOutlinedIcon from "@mui/icons-material/PointOfSaleOutlined";
 import NotificationsActiveOutlinedIcon from "@mui/icons-material/NotificationsActiveOutlined";
 import MenuOutlinedIcon from "@mui/icons-material/MenuOutlined";
-import { useSelector } from "react-redux";
+import { useDispatch,useSelector } from "react-redux";
 import LibraryBooksOutlinedIcon from "@mui/icons-material/LibraryBooksOutlined";
 import MoneyOffIcon from "@mui/icons-material/MoneyOff";
 import MonetizationOnOutlinedIcon from "@mui/icons-material/MonetizationOnOutlined";
 import AttachMoneyOutlinedIcon from "@mui/icons-material/AttachMoneyOutlined";
 import ListOutlinedIcon from "@mui/icons-material/ListOutlined";
+import { profileImage } from "../../redux/userSlice";
 
 const Item = ({ title, to, icon, selected, setSelected }) => {
   const theme = useTheme();
@@ -35,11 +36,30 @@ const Item = ({ title, to, icon, selected, setSelected }) => {
 };
 
 const SidebarA = () => {
+  const imageUploadInput = useRef(null);
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [selected, setSelected] = useState("Dashboard");
   const userInfo = useSelector((state) => state.user.userInfo);
+  const userProfileImage = useSelector((state) => state.user.userProfileImage) || userInfo.image;
+  const dispatch = useDispatch();
+
+  const handleImageUpload = (event) => {
+    const file = event.target.files[0];
+
+    //TODO: Add validation for correct file type upload
+    // const formData = new FormData();
+    // formData.append("file", file);
+
+    if (
+      file.type === "image/jpeg" ||
+      file.type === "image/jpg" ||
+      file.type === "image/png"
+    ) {
+       dispatch(profileImage(file));
+    }
+  };
 
   return (
     //!important is because I'm overwritting css styles in the pro-sidebar library
@@ -92,16 +112,23 @@ const SidebarA = () => {
           </MenuItem>
 
           {!isCollapsed && (
-            <Box mb="25px">
+            <Box mb="25px" onClick={() => imageUploadInput.current.click()}>
               <Box display="flex" justifyContent="center" alignItems="center">
-                <img
+              <img
                   alt="profile-user"
                   width="100px"
                   height="100px"
-                  src={ProfileImage}
+                  src={userProfileImage ? `${process.env.REACT_APP_API_URL}/${userProfileImage}` : AnonImage}
                   style={{ cursor: "pointer", borderRadius: "50%" }}
+                  crossorigin="anonymous"
                 />
               </Box>
+              <input
+                type="file"
+                ref={imageUploadInput}
+                style={{ display: "none" }}
+                onChange={handleImageUpload}
+              />
               <Box textAlign="center">
                 <Typography
                   variant="h2"
