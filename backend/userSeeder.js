@@ -23,7 +23,7 @@ const createRandomUsers = async () => {
     for (let i = 0; i < 10; i++) {
       const firstName = faker.person.firstName();
       const lastName = faker.person.lastName();
-      const roles = ["Accountant", "Employee"];
+      const roles = ["Accountant", "Employee", "Manager"];
       const role = roles[Math.floor(Math.random() * roles.length)];
       const email = faker.internet.email({ firstName, lastName });
       const phone = faker.datatype.number({ min: 10000000, max: 99999999 });

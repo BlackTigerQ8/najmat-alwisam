@@ -3,7 +3,7 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 import { toast } from "react-toastify";
 
-const API_URL = "http://192.168.0.28:8000/api";
+const API_URL = process.env.REACT_APP_API_URL;
 
 const initialState = {
   users: [], // Initialize with stored data if available

@@ -166,7 +166,7 @@ const loginUser = async (req, res) => {
     const userObj = user.toObject();
 
     // Destructure the necessary properties
-    const { firstName, lastName, email: userEmail, _id, role } = userObj;
+    const { firstName, lastName, email: userEmail, _id, role, image } = userObj;
 
     // Create token
     const token = jwt.sign({ id: user._id, role }, process.env.JWT_SECRET, {
@@ -177,7 +177,7 @@ const loginUser = async (req, res) => {
       status: "Success",
       token,
       data: {
-        user: { firstName, lastName, email: userEmail, _id, role },
+        user: { firstName, lastName, email: userEmail, _id, role, image },
       },
     });
   } catch (error) {

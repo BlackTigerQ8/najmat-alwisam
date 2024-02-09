@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
-const Driver = require("./models/DriverModel");
+const Driver = require("./models/driverModel");
 const { faker } = require("@faker-js/faker");
 const connectDB = require("./config/db.js");
 

@@ -3,7 +3,7 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 import { toast } from "react-toastify";
 
-const API_URL = "http://192.168.0.28:8000/api";
+const API_URL = process.env.REACT_APP_API_URL;
 
 // Initial state
 const initialState = {
@@ -52,21 +52,25 @@ export const loginUser = createAsyncThunk(
 );
 
 // Thunk action for profile image upload
-// export const profileImage = createAsyncThunk(
-//   "user/profileImage",
-//   async (formData) => {
-//     try {
-//       const response = await axios.post(`${API_URL}/upload/images`, formData, {
-//         headers: {
-//           "Content-Type": "multipart/form-data",
-//         },
-//       });
-//       return response.data;
-//     } catch (error) {
-//       throw new Error(error.response.data.message || error.message);
-//     }
-//   }
-// );
+export const profileImage = createAsyncThunk(
+  "user/profileImage",
+  async (imageFile) => {
+    const token = localStorage.getItem("token");
+    const formData = new FormData();
+    formData.append("file", imageFile);
+    try {
+      const response = await axios.post(`${API_URL}/upload/images`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response.data.message || error.message);
+    }
+  }
+);
 
 // User slice with reducers and extra reducers
 const userSlice = createSlice({
@@ -124,12 +128,28 @@ const userSlice = createSlice({
           closeOnClick: true,
           pauseOnHover: true,
         });
+      })
+      .addCase(profileImage.fulfilled, (state, action) => {
+        state.status = "succeeded";
+        state.userProfileImage = action.payload.file;
+        toast.success("User profile image is uploaded successfully!", {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+        });
+      })
+      .addCase(profileImage.rejected, (state) => {
+        state.status = "failed";
+        toast.error("Something went wrong! Please try later.", {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+        });
       });
-    ///////////////////
-    // .addCase(profileImage.fulfilled, (state, action) => {
-    //   state.status = "succeeded";
-    //   state.userProfileImage = action.payload.image;
-    // });
   },
 });
 

@@ -2,6 +2,8 @@ const path = require("path");
 const express = require("express");
 const multer = require("multer");
 const router = express.Router();
+const User = require("../models/userModel");
+const { protect } = require("../middleware/authMiddleware");
 
 // First storage configuration
 const talabat = multer.diskStorage({
@@ -31,9 +33,7 @@ const others = multer.diskStorage({
 
 // Third storage configuration
 const images = multer.diskStorage({
-  destination(req, file, cb) {
-    cb(null, "files/images");
-  },
+  destination: "./uploads/images",
   filename(req, file, cb) {
     cb(
       null,
@@ -99,11 +99,27 @@ router.post("/others", upload2.single("file"), (req, res) => {
 });
 
 // Route for uploading to the third storage
-router.post("/images", upload3.single("file"), (req, res) => {
-  res.send({
-    message: "File uploaded successfully to images",
-    file: `/${req.file.path}`,
-  });
+router.post("/images", protect, upload3.single("file"), async (req, res) => {
+  try {
+    const updatedUser = await User.findByIdAndUpdate(
+      req.user.id,
+      { $set: { image: req.file.path } },
+      {
+        new: true,
+        runValidators: true,
+      }
+    );
+
+    res.send({
+      message: "File uploaded successfully to images",
+      file: `${req.file.path}`,
+      user: updatedUser,
+    });
+  } catch (error) {
+    console.log("Error while saving image", error);
+
+    return res.status(500).json({ error });
+  }
 });
 
 module.exports = router;
