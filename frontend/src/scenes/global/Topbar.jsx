@@ -10,19 +10,18 @@ import PersonOutlinedIcon from "@mui/icons-material/PersonOutlined";
 import SearchIcon from "@mui/icons-material/Search";
 import { ColorModeContext, tokens } from "../../theme";
 import Badge from "@mui/material/Badge";
-
 import { Link, useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
+import { getUserRoleFromToken } from "./getUserRoleFromToken";
 
 const Topbar = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const colorMode = useContext(ColorModeContext);
   const navigate = useNavigate();
-
-  const handleProfileClick = () => {
-    handleClose();
-    navigate("/profile");
-  };
+  const userId = useSelector((state) => state.user.userInfo._id);
+  const userRole =
+    useSelector((state) => state.user.userRole) || getUserRoleFromToken();
 
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
@@ -72,9 +71,11 @@ const Topbar = () => {
             </Badge>
           </IconButton>
         </Link>
-        <IconButton>
-          <SettingsOutlinedIcon />
-        </IconButton>
+        {userRole === "Admin" && (
+          <IconButton onClick={() => navigate(`/user-profile/${userId}`)}>
+            <SettingsOutlinedIcon />
+          </IconButton>
+        )}
         <IconButton onClick={handleMenu}>
           <PersonOutlinedIcon />
         </IconButton>

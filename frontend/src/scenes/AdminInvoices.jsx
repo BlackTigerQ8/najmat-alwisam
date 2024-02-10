@@ -61,29 +61,21 @@ const AdminInvoices = () => {
       field: "mainSalary",
       headerName: "Main Salary",
       flex: 1,
-      editable: true,
-      type: Number,
     },
     {
       field: "additionalSalary",
       headerName: "Additional Salary",
       flex: 1,
-      editable: true,
-      type: Number,
     },
     {
       field: "deductionAmount",
       headerName: "Deduction",
       flex: 1,
-      editable: true,
-      type: Number,
     },
     {
       field: "deductionReason",
       headerName: "Deduction Reason",
       flex: 1,
-      editable: true,
-      type: String,
     },
 
     {
