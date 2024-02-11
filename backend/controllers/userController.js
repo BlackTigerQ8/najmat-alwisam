@@ -70,7 +70,10 @@ const getUser = async (req, res) => {
 // @access  Private/Admin
 const createUser = async (req, res) => {
   try {
-    const newUser = await User.create(req.body);
+    const uploadedFile = req.file;
+    const filePath = uploadedFile ? uploadedFile.path : null;
+
+    const newUser = await User.create({ ...req.body, file: filePath });
     res.status(201).json({
       status: "Success",
       data: {

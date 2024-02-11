@@ -42,11 +42,22 @@ const images = multer.diskStorage({
   },
 });
 
+// Fourth storage configuration
+const contracts = multer.diskStorage({
+  destination: "./uploads/users/contracts",
+  filename(req, file, cb) {
+    cb(
+      null,
+      `${file.fieldname}-${Date.now()}${path.extname(file.originalname)}`
+    );
+  },
+});
+
 // First upload instance
 const upload1 = multer({
   storage: talabat,
   fileFilter: function (req, file, cb) {
-    checkFileType(file, cb, "talabat");
+    checkImageFileType(file, cb, "talabat");
   },
 });
 
@@ -54,7 +65,7 @@ const upload1 = multer({
 const upload2 = multer({
   storage: others,
   fileFilter: function (req, file, cb) {
-    checkFileType(file, cb, "others");
+    checkImageFileType(file, cb, "others");
   },
 });
 
@@ -62,14 +73,37 @@ const upload2 = multer({
 const upload3 = multer({
   storage: images,
   fileFilter: function (req, file, cb) {
-    checkFileType(file, cb, "images");
+    checkImageFileType(file, cb, "images");
   },
 });
 
-function checkFileType(file, cb, storageType) {
-  console.log("checkFileType", file);
+const contractUpload = multer({
+  storage: contracts,
+  fileFilter: function (req, file, cb) {
+    checkPdfFileType(file, cb, "contract");
+  },
+});
+
+function checkImageFileType(file, cb, storageType) {
+  console.log("checkImageFileType", file);
 
   const filetypes = /pdf|jpeg|jpg|png/;
+  const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
+  const mimetype = filetypes.test(file.mimetype);
+
+  if (extname && mimetype) {
+    return cb(null, true);
+  } else {
+    cb({
+      message: `Allowed file types for ${storageType}: pdf, jpeg, jpg, png`,
+    });
+  }
+}
+
+function checkPdfFileType(file, cb, storageType) {
+  console.log("checkPdfFileType", file);
+
+  const filetypes = /pdf/;
   const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
   const mimetype = filetypes.test(file.mimetype);
 
@@ -122,4 +156,7 @@ router.post("/images", protect, upload3.single("file"), async (req, res) => {
   }
 });
 
-module.exports = router;
+module.exports = {
+  contractUpload,
+  router,
+};

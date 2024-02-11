@@ -9,13 +9,19 @@ const {
   loginUser,
 } = require("../controllers/userController");
 const { protect, restrictTo } = require("../middleware/authMiddleware");
+const { contractUpload } = require("./uploadRoutes");
 
 const router = express.Router();
 
 router
   .route("/")
   .get(protect, restrictTo("Admin"), getAllUsers)
-  .post(protect, restrictTo("Admin"), createUser);
+  .post(
+    protect,
+    restrictTo("Admin"),
+    contractUpload.single("uploadedFile"),
+    createUser
+  );
 router
   .route("/:id")
   .get(protect, getUser)

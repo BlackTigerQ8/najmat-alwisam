@@ -18,12 +18,13 @@ const initialState = {
 // Thunk action for user registration
 export const registerUser = createAsyncThunk(
   "user/registerUser",
-  async (userData) => {
+  async (userFormData) => {
     try {
       // Inside the code where you make API requests
-      const response = await axios.post(`${API_URL}/users`, userData, {
+      const response = await axios.post(`${API_URL}/users`, userFormData, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
+          "Content-Type": "multipart/form-data",
         },
       });
 

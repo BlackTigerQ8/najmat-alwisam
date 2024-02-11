@@ -46,7 +46,7 @@ const userSchema = new mongoose.Schema({
   },
   file: {
     type: String,
-    // required: [true, "File upload is required"],
+    required: [true, "File upload is required"],
   },
   password: {
     type: String,

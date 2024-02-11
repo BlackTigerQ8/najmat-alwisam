@@ -66,8 +66,20 @@ const Form = () => {
 
   const handleFormSubmit = async (values) => {
     try {
+
+      const formData = new FormData();
+
+      Object.keys(values).forEach((key) => {
+        if (key !== "uploadedFile") {
+          formData.append(key, values[key] || undefined);
+        }
+      });
+
+      formData.append("uploadedFile", values.uploadedFile);
+
+
       await dispatch(
-        registerUser({ ...values, email: values.email || undefined })
+        registerUser(formData)
       );
       navigate("/team");
     } catch (error) {

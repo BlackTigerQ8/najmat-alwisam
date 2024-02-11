@@ -5,7 +5,7 @@ const helmet = require("helmet");
 const userRouter = require("./routes/userRoutes");
 const driverRoutes = require("./routes/driverRoutes");
 const driverInvoiceRoutes = require("./routes/driverInvoiceRoutes");
-const uploadRoutes = require("./routes/uploadRoutes");
+const { router: uploadRoutes } = require("./routes/uploadRoutes");
 
 const app = express();
 app.use(cors());
@@ -15,6 +15,10 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static(`${__dirname}/public`));
 
 app.use("/api/uploads/images", express.static("uploads/images"));
+app.use(
+  "/api/uploads/users/contracts",
+  express.static("uploads/users/contracts")
+);
 
 ///// MIDDLEWARE /////
 if (process.env.NODE_ENV === "development") {
