@@ -7,13 +7,19 @@ const {
   deleteDriver,
 } = require("../controllers/driverController");
 const { protect, restrictTo } = require("../middleware/authMiddleware");
+const { driverContractUpload } = require("./uploadRoutes");
 
 const router = express.Router();
 
 router
   .route("/")
   .get(protect, getAllDrivers)
-  .post(protect, restrictTo("Admin", "Manager", "Employee"), createDriver);
+  .post(
+    protect,
+    restrictTo("Admin", "Manager", "Employee"),
+    driverContractUpload.single("uploadedFile"),
+    createDriver
+  );
 router
   .route("/:id")
   .get(protect, getDriver)

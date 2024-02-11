@@ -102,7 +102,7 @@ const driverSchema = new mongoose.Schema({
   mainSalary: { type: Number, default: 0 },
   file: {
     type: String,
-    // required: [true, "File upload is required"],
+    required: [true, "File upload is required"],
   },
 });
 

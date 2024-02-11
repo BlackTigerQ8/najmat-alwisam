@@ -16,7 +16,6 @@ import useMediaQuery from "@mui/material/useMediaQuery";
 import Header from "../components/Header";
 import { useDispatch } from "react-redux";
 import { registerDriver } from "../redux/driversSlice";
-import { format } from "date-fns";
 
 const formatDate = (date) => {
   const formattedDate = new Date(date);
@@ -80,16 +79,28 @@ const driverSchema = yup.object().shape({
   phoneSerialNumber: yup.string().required("required"),
   phoneContractNumber: yup.string().required("required"),
   referenceNumber: yup.number().required("required"),
-});
+}); 
 
 const DriverForm = () => {
   const isNonMobile = useMediaQuery("(min-width: 600px)");
   const dispatch = useDispatch();
 
   const handleSubmit = async (values) => {
+    const formData = new FormData();
     try {
+
+      Object.keys(values).forEach((key) => {
+        if (key !== "uploadedFile" && values[key]) {
+          formData.append(key, values[key]);
+        }
+      });
+
+      formData.append("uploadedFile", values.uploadedFile);
+
+     
+
       await dispatch(
-        registerDriver({ ...values, email: values.email || undefined })
+        registerDriver(formData)
       );
     } catch (error) {
       console.error("Error registering driver:", error.message);

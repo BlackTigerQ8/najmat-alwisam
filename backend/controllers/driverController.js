@@ -1,9 +1,5 @@
-const multer = require("multer");
-const { protect, restrictTo } = require("../middleware/authMiddleware");
 const Driver = require("../models/driverModel");
 const DriverInvoice = require("../models/driverInvoiceModel");
-const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
 const User = require("../models/userModel");
 
 // @desc    Get all drivers
@@ -52,7 +48,11 @@ const getDriver = async (req, res) => {
 // @access  Private/Admin_and_Employee
 const createDriver = async (req, res) => {
   try {
-    const newDriver = await Driver.create(req.body);
+    const uploadedFile = req.file;
+    const filePath = uploadedFile ? uploadedFile.path : null;
+
+    const newDriver = await Driver.create({ ...req.body, file: filePath });
+
     res.status(201).json({
       status: "Success",
       data: {
