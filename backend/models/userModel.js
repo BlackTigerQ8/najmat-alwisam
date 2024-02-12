@@ -41,6 +41,10 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: [true, "Passport number is required"],
   },
+  contractExpiryDate: {
+    type: Date,
+    required: [true, "Contract number is required"],
+  },
   image: {
     type: String,
   },
@@ -51,7 +55,7 @@ const userSchema = new mongoose.Schema({
   password: {
     type: String,
     required: [true, "Password is required"],
-    minlength: [8, "Password must be at least 8 characters long"],
+    minlength: [6, "Password must be at least 6 characters long"],
   },
   confirmPassword: {
     type: String,

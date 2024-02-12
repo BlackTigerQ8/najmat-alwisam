@@ -195,6 +195,36 @@ const UserProfile = ({ userId }) => {
                 helperText={touched.identification && errors.identification}
                 sx={{ gridColumn: "span 2" }}
               />
+              <TextField
+                fullWidth
+                variant="filled"
+                type="text"
+                label="VISA"
+                onBlur={handleBlur}
+                onChange={handleChange}
+                value={values.visa}
+                name="VISA"
+                error={!!touched.visa && !!errors.visa}
+                helperText={touched.visa && errors.visa}
+                sx={{ gridColumn: "span 2" }}
+              />
+              <TextField
+                fullWidth
+                variant="filled"
+                type="date"
+                label="Contract Expiry Date"
+                onBlur={handleBlur}
+                onChange={handleChange}
+                value={values.contractExpiryDate}
+                name="contractExpiryDate"
+                error={
+                  !!touched.contractExpiryDate && !!errors.contractExpiryDate
+                }
+                helperText={
+                  touched.contractExpiryDate && errors.contractExpiryDate
+                }
+                sx={{ gridColumn: "span 2" }}
+              />
 
               <TextField
                 fullWidth

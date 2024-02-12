@@ -26,7 +26,7 @@ const initialValues = {
   identification: "",
   passport: "",
   visa: "",
-  contract: "",
+  contractExpiryDate: "",
   role: "",
   uploadedFile: null,
   password: "",
@@ -47,7 +47,7 @@ const userSchema = yup.object().shape({
   identification: yup.string().required("required"),
   passport: yup.string().required("required"),
   visa: yup.string().required("required"),
-  contract: yup.string().required("required"),
+  contractExpiryDate: yup.string().required("required"),
   role: yup.string().required("required"),
   password: yup
     .string()
@@ -66,7 +66,6 @@ const Form = () => {
 
   const handleFormSubmit = async (values) => {
     try {
-
       const formData = new FormData();
 
       Object.keys(values).forEach((key) => {
@@ -77,10 +76,7 @@ const Form = () => {
 
       formData.append("uploadedFile", values.uploadedFile);
 
-
-      await dispatch(
-        registerUser(formData)
-      );
+      await dispatch(registerUser(formData));
       navigate("/team");
     } catch (error) {
       console.error("Error registering user:", error.message);
@@ -208,14 +204,18 @@ const Form = () => {
               <TextField
                 fullWidth
                 variant="filled"
-                type="text"
-                label="Contract"
+                type="date"
+                label="Contract Expiry Date"
                 onBlur={handleBlur}
                 onChange={handleChange}
-                value={values.contract}
-                name="contract"
-                error={!!touched.contract && !!errors.contract}
-                helperText={touched.contract && errors.contract}
+                value={values.contractExpiryDate}
+                name="contractExpiryDate"
+                error={
+                  !!touched.contractExpiryDate && !!errors.contractExpiryDate
+                }
+                helperText={
+                  touched.contractExpiryDate && errors.contractExpiryDate
+                }
                 sx={{ gridColumn: "span 2" }}
               />
               <FormControl fullWidth sx={{ gridColumn: "span 2" }}>
@@ -225,7 +225,7 @@ const Form = () => {
                 <Input
                   id="uploadedFile"
                   type="file"
-                  name="uploadedFile"
+                  name={values.firstName + values.lastName}
                   onBlur={handleBlur}
                   onChange={(event) => {
                     // Setting file to Formik state
