@@ -23,7 +23,7 @@ router
 router
   .route("/:id")
   .get(protect, getDriver)
-  .patch(protect, updateDriver)
+  .patch(protect, driverContractUpload.single("uploadedFile"), updateDriver)
   .delete(protect, restrictTo("Admin", "Manager"), deleteDriver);
 
 module.exports = router;
