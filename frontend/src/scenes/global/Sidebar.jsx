@@ -44,7 +44,8 @@ const Sidebar = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [selected, setSelected] = useState("Dashboard");
   const userInfo = useSelector((state) => state.user.userInfo);
-  const userProfileImage = useSelector((state) => state.user.userProfileImage) || userInfo.image;
+  const userProfileImage =
+    useSelector((state) => state.user.userProfileImage) || userInfo.image;
   const dispatch = useDispatch();
 
   useEffect(() => {
@@ -64,8 +65,8 @@ const Sidebar = () => {
       file.type === "image/jpg" ||
       file.type === "image/png"
     ) {
-       dispatch(profileImage(file));
-    }else {
+      dispatch(profileImage(file));
+    } else {
       toast.error("Invalid file selected. Please upload image file", {
         position: "top-right",
         autoClose: 3000,
@@ -133,7 +134,11 @@ const Sidebar = () => {
                   alt="profile-user"
                   width="100px"
                   height="100px"
-                  src={userProfileImage ? `${process.env.REACT_APP_API_URL}/${userProfileImage}` : AnonImage}
+                  src={
+                    userProfileImage
+                      ? `${process.env.REACT_APP_API_URL}/${userProfileImage}`
+                      : AnonImage
+                  }
                   style={{ cursor: "pointer", borderRadius: "50%" }}
                   crossorigin="anonymous"
                 />

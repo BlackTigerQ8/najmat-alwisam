@@ -17,16 +17,12 @@ export const registerDriver = createAsyncThunk(
   async (values) => {
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.post(
-        `${API_URL}/drivers`,
-        values,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
+      const response = await axios.post(`${API_URL}/drivers`, values, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "multipart/form-data",
+        },
+      });
 
       return response.data;
     } catch (error) {

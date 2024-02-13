@@ -40,6 +40,8 @@ const UserProfile = ({ userId }) => {
     phone: "",
     email: "",
     identification: "",
+    visa: "",
+    contractExpiryDate: "",
     role: "",
     passport: "",
     password: "",
@@ -126,6 +128,7 @@ const UserProfile = ({ userId }) => {
                 onChange={handleChange}
                 value={values.sequenceNumber}
                 name="Sequence Number"
+                disabled
                 error={!!touched.sequenceNumber && !!errors.sequenceNumber}
                 helperText={touched.sequenceNumber && errors.sequenceNumber}
                 sx={{ gridColumn: "span 2" }}
@@ -215,7 +218,14 @@ const UserProfile = ({ userId }) => {
                 label="Contract Expiry Date"
                 onBlur={handleBlur}
                 onChange={handleChange}
-                value={values.contractExpiryDate}
+                // Convert the date string to a valid date string (YYYY-MM-DD)
+                value={
+                  values.contractExpiryDate
+                    ? new Date(values.contractExpiryDate)
+                        .toISOString()
+                        .split("T")[0]
+                    : ""
+                }
                 name="contractExpiryDate"
                 error={
                   !!touched.contractExpiryDate && !!errors.contractExpiryDate
@@ -259,8 +269,13 @@ const UserProfile = ({ userId }) => {
                 label="Created at"
                 onBlur={handleBlur}
                 onChange={handleChange}
-                value={values.createdAt}
+                value={
+                  values.createdAt
+                    ? new Date(values.createdAt).toISOString().split("T")[0]
+                    : ""
+                }
                 name="createdAt"
+                disabled
                 error={!!touched.createdAt && !!errors.createdAt}
                 helperText={touched.createdAt && errors.createdAt}
                 sx={{ gridColumn: "span 2" }}
@@ -282,8 +297,9 @@ const UserProfile = ({ userId }) => {
                   helperText={touched.role && errors.role}
                 >
                   <MenuItem value={"Admin"}>Admin</MenuItem>
-                  <MenuItem value={"Employee"}>Employee</MenuItem>
+                  <MenuItem value={"Manager"}>Manager</MenuItem>
                   <MenuItem value={"Accountant"}>Accountant</MenuItem>
+                  <MenuItem value={"Employee"}>Employee</MenuItem>
                 </Select>
               </FormControl>
 

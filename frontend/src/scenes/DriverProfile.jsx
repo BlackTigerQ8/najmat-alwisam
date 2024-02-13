@@ -16,7 +16,6 @@ import { tokens } from "../theme";
 import { NewtonsCradle } from "@uiball/loaders";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import { useSelector, useDispatch } from "react-redux";
-import { trefoil } from "ldrs";
 import { pulsar } from "ldrs";
 import { Formik } from "formik";
 import { updateDriver } from "../redux/driversSlice";
@@ -59,7 +58,6 @@ const DriverProfile = ({ driverId }) => {
     file: "",
   };
 
-  trefoil.register();
   pulsar.register();
   if (status === "loading") {
     return (
@@ -92,9 +90,7 @@ const DriverProfile = ({ driverId }) => {
 
   const handleFormSubmit = async (values) => {
     try {
-      await dispatch(
-        updateDriver({ driverId: driverInfo._id, driverData: values })
-      );
+      await dispatch(updateDriver({ values, driverId: driverInfo._id }));
     } catch (error) {
       console.error("Error updating driver:", error.message);
     }
