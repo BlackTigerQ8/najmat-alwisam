@@ -25,7 +25,7 @@ router
 router
   .route("/:id")
   .get(protect, getUser)
-  .patch(protect, updateUser)
+  .patch(protect,contractUpload.single("uploadedFile"), updateUser)
   .delete(protect, restrictTo("Admin"), deleteUser);
 router.post("/logout", protect, logoutUser);
 router.post("/login", loginUser);

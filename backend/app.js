@@ -20,6 +20,16 @@ app.use(
   express.static("uploads/users/contracts")
 );
 
+app.use(
+  "/api/uploads/drivers/contracts/Others",
+  express.static("uploads/drivers/contracts/Others")
+);
+
+app.use(
+  "/api/uploads/drivers/contracts/Talabat",
+  express.static("uploads/drivers/contracts/Talabat")
+);
+
 ///// MIDDLEWARE /////
 if (process.env.NODE_ENV === "development") {
   app.use(morgan("dev"));

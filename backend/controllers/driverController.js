@@ -72,10 +72,17 @@ const createDriver = async (req, res) => {
 // @access  Private
 const updateDriver = async (req, res) => {
   try {
-    const driver = await Driver.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
-      runValidators: true,
-    });
+    const uploadedFile = req.file;
+    const filePath = uploadedFile ? uploadedFile.path : null;
+
+    const driver = await Driver.findByIdAndUpdate(
+      req.params.id,
+      { ...req.body, file: filePath ?? req.body.file },
+      {
+        new: true,
+        runValidators: true,
+      }
+    );
 
     res.status(200).json({
       status: "Success",

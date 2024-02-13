@@ -21,7 +21,7 @@ import { Formik } from "formik";
 import { updateUser } from "../redux/usersSlice";
 import { useParams } from "react-router-dom";
 
-const UserProfile = ({ userId }) => {
+const UserProfile = () => {
   const isNonMobile = useMediaQuery("(min-width: 600px)");
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
@@ -88,12 +88,33 @@ const UserProfile = ({ userId }) => {
   const handleFormSubmit = async (values) => {
     try {
       if (userInfo && userInfo._id) {
-        await dispatch(updateUser({ userId: userInfo._id, userData: values }));
+        const formData = new FormData();
+        Object.keys(values).forEach((key) => {
+          if (key !== "uploadedFile" && key !== "__v") {
+            formData.append(key, values[key] || undefined);
+          }
+        });
+
+        if (values.uploadedFile)
+          formData.append("uploadedFile", values.uploadedFile);
+
+        await dispatch(updateUser({ userId: userInfo._id, formData }));
       } else {
         console.error("User information is undefined or does not have _id");
       }
     } catch (error) {
       console.error("Error updating user:", error.message);
+    }
+  };
+
+  const handleViewFile = (values) => {
+    if (values.uploadedFile || userInfo.file) {
+      const fileUrl = values.uploadedFile
+        ? URL.createObjectURL(values.uploadedFile)
+        : `${process.env.REACT_APP_API_URL}/${userInfo.file}`;
+
+      // Open the file in a new tab or window
+      window.open(fileUrl, "_blank");
     }
   };
 
@@ -206,7 +227,7 @@ const UserProfile = ({ userId }) => {
                 onBlur={handleBlur}
                 onChange={handleChange}
                 value={values.visa}
-                name="VISA"
+                name="visa"
                 error={!!touched.visa && !!errors.visa}
                 helperText={touched.visa && errors.visa}
                 sx={{ gridColumn: "span 2" }}
@@ -319,6 +340,15 @@ const UserProfile = ({ userId }) => {
                   error={!!touched.uploadedFile && !!errors.uploadedFile}
                   helperText={touched.uploadedFile && errors.uploadedFile}
                 />
+                <Button
+                  variant="contained"
+                  color="secondary"
+                  onClick={() => handleViewFile(values)}
+                  sx={{ gridColumn: "span 2", marginTop: "15px" }}
+                  disabled={!values.uploadedFile && !userInfo.file}
+                >
+                  View Uploaded File
+                </Button>
               </FormControl>
             </Box>
             <Box display="flex" justifyContent="end" mt="20px">

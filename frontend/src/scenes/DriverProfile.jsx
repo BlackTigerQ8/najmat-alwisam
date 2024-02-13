@@ -91,8 +91,31 @@ const DriverProfile = ({ driverId }) => {
   const handleFormSubmit = async (values) => {
     try {
       await dispatch(updateDriver({ values, driverId: driverInfo._id }));
+
+      const formData = new FormData();
+      Object.keys(values).forEach((key) => {
+        if (key !== "uploadedFile" && key !== "__v" && key !== "mainSalary") {
+          formData.append(key, values[key] || undefined);
+        }
+      });
+
+      if (values.uploadedFile)
+        formData.append("uploadedFile", values.uploadedFile);
+
+      await dispatch(updateDriver({ driverId: driverInfo._id, formData }));
     } catch (error) {
       console.error("Error updating driver:", error.message);
+    }
+  };
+
+  const handleViewFile = (values) => {
+    if (values.uploadedFile || driverInfo.file) {
+      const fileUrl = values.uploadedFile
+        ? URL.createObjectURL(values.uploadedFile)
+        : `${process.env.REACT_APP_API_URL}/${driverInfo.file}`;
+
+      // Open the file in a new tab or window
+      window.open(fileUrl, "_blank");
     }
   };
 
@@ -491,6 +514,15 @@ const DriverProfile = ({ driverId }) => {
                   error={!!touched.uploadedFile && !!errors.uploadedFile}
                   helperText={touched.uploadedFile && errors.uploadedFile}
                 />
+                <Button
+                  variant="contained"
+                  color="secondary"
+                  onClick={() => handleViewFile(values)}
+                  sx={{ gridColumn: "span 2", marginTop: "15px" }}
+                  disabled={!values.uploadedFile && !driverInfo.file}
+                >
+                  View Uploaded File
+                </Button>
               </FormControl>
             </Box>
             <Box display="flex" justifyContent="end" mt="20px">
