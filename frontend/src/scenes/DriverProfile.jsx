@@ -17,9 +17,10 @@ import { NewtonsCradle } from "@uiball/loaders";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import { useSelector, useDispatch } from "react-redux";
 import { pulsar } from "ldrs";
-import { Formik } from "formik";
+import { ErrorMessage, Formik } from "formik";
 import { updateDriver } from "../redux/driversSlice";
 import { useParams } from "react-router-dom";
+import * as Yup from "yup";
 
 const DriverProfile = ({ driverId }) => {
   const isNonMobile = useMediaQuery("(min-width: 600px)");
@@ -57,6 +58,17 @@ const DriverProfile = ({ driverId }) => {
     referenceNumber: "",
     file: "",
   };
+
+  const validationSchema = Yup.object().shape({
+    uploadedFile: Yup.mixed().test(
+      "fileType",
+      "Only PDF files are allowed",
+      (value) => {
+        if (!value) return true;
+        return value && value.type === "application/pdf";
+      }
+    ),
+  });
 
   pulsar.register();
   if (status === "loading") {
@@ -125,7 +137,11 @@ const DriverProfile = ({ driverId }) => {
         title="DRIVER PROFILE"
         subtitle="View/Update Driver Information"
       />
-      <Formik onSubmit={handleFormSubmit} initialValues={initialValues}>
+      <Formik
+        onSubmit={handleFormSubmit}
+        initialValues={initialValues}
+        validationSchema={validationSchema}
+      >
         {({
           values,
           errors,
@@ -513,6 +529,14 @@ const DriverProfile = ({ driverId }) => {
                   }}
                   error={!!touched.uploadedFile && !!errors.uploadedFile}
                   helperText={touched.uploadedFile && errors.uploadedFile}
+                />
+                <ErrorMessage
+                  name="uploadedFile"
+                  render={(msg) => (
+                    <Typography variant="caption" color="error">
+                      {msg}
+                    </Typography>
+                  )}
                 />
                 <Button
                   variant="contained"
