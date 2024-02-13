@@ -15,6 +15,7 @@ import MonetizationOnOutlinedIcon from "@mui/icons-material/MonetizationOnOutlin
 import AttachMoneyOutlinedIcon from "@mui/icons-material/AttachMoneyOutlined";
 import ListOutlinedIcon from "@mui/icons-material/ListOutlined";
 import { profileImage } from "../../redux/userSlice";
+import { toast } from "react-toastify";
 
 const Item = ({ title, to, icon, selected, setSelected }) => {
   const theme = useTheme();
@@ -58,6 +59,15 @@ const SidebarA = () => {
       file.type === "image/png"
     ) {
        dispatch(profileImage(file));
+    }
+    else {
+      toast.error("Invalid file selected. Please upload image file", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+      });
     }
   };
 

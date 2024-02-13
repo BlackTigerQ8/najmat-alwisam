@@ -5,23 +5,22 @@ const router = express.Router();
 const User = require("../models/userModel");
 const { protect } = require("../middleware/authMiddleware");
 
+const getUploadFileName = (file) =>
+  `${Date.now()}-${path.parse(file.originalname).name}${path.extname(
+    file.originalname
+  )}`;
+
 const talabatStorage = multer.diskStorage({
   destination: "./uploads/drivers/contracts/Talabat",
   filename: (req, file, cb) => {
-    cb(
-      null,
-      `${file.fieldname}-${Date.now()}${path.extname(file.originalname)}`
-    );
+    cb(null, getUploadFileName(file));
   },
 });
 
 const otherStorage = multer.diskStorage({
   destination: "./uploads/drivers/contracts/Others",
   filename: (req, file, cb) => {
-    cb(
-      null,
-      `${file.fieldname}-${Date.now()}${path.extname(file.originalname)}`
-    );
+    cb(null, getUploadFileName(file));
   },
 });
 
@@ -33,10 +32,7 @@ const driverContracts = multer.diskStorage({
     cb(null, "./uploads/drivers/contracts/" + contractType);
   },
   filename(req, file, cb) {
-    cb(
-      null,
-      `${file.fieldname}-${Date.now()}${path.extname(file.originalname)}`
-    );
+    cb(null, getUploadFileName(file));
   },
 });
 
@@ -44,10 +40,7 @@ const driverContracts = multer.diskStorage({
 const images = multer.diskStorage({
   destination: "./uploads/images",
   filename(req, file, cb) {
-    cb(
-      null,
-      `${file.fieldname}-${Date.now()}${path.extname(file.originalname)}`
-    );
+    cb(null, getUploadFileName(file));
   },
 });
 
@@ -55,10 +48,7 @@ const images = multer.diskStorage({
 const contracts = multer.diskStorage({
   destination: "./uploads/users/contracts",
   filename(req, file, cb) {
-    cb(
-      null,
-      `${file.fieldname}-${Date.now()}${path.extname(file.originalname)}`
-    );
+    cb(null, getUploadFileName(file));
   },
 });
 

@@ -12,6 +12,7 @@ import ReceiptOutlinedIcon from "@mui/icons-material/ReceiptOutlined";
 import { useSelector, useDispatch } from "react-redux";
 import { profileImage } from "../../redux/userSlice";
 import AnonImage from "../../assets/profileImage.png";
+import { toast } from "react-toastify";
 
 const Item = ({ title, to, icon, selected, setSelected }) => {
   const theme = useTheme();
@@ -56,6 +57,15 @@ const SidebarM = () => {
       file.type === "image/png"
     ) {
        dispatch(profileImage(file));
+    }
+    else {
+      toast.error("Invalid file selected. Please upload image file", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+      });
     }
   };
 

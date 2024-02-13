@@ -4,7 +4,6 @@ import "react-pro-sidebar/dist/css/styles.css";
 import { Box, IconButton, Typography, useTheme } from "@mui/material";
 import { Link } from "react-router-dom";
 import { tokens } from "../../theme";
-import ProfileImage from "../../assets/aa1.png";
 import HomeOutlinedIcon from "@mui/icons-material/HomeOutlined";
 import PeopleOutlinedIcon from "@mui/icons-material/PeopleOutlined";
 import MoneyOffIcon from "@mui/icons-material/MoneyOff";
@@ -18,6 +17,7 @@ import MenuOutlinedIcon from "@mui/icons-material/MenuOutlined";
 import { useDispatch, useSelector } from "react-redux";
 import { profileImage } from "../../redux/userSlice";
 import AnonImage from "../../assets/profileImage.png";
+import { toast } from "react-toastify";
 
 const Item = ({ title, to, icon, selected, setSelected }) => {
   const theme = useTheme();
@@ -65,6 +65,14 @@ const Sidebar = () => {
       file.type === "image/png"
     ) {
        dispatch(profileImage(file));
+    }else {
+      toast.error("Invalid file selected. Please upload image file", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+      });
     }
   };
 
