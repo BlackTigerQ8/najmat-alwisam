@@ -8,9 +8,10 @@ import {
   InputLabel,
   FormControl,
   Input,
+  Typography,
 } from "@mui/material";
 
-import { Formik } from "formik";
+import { ErrorMessage, Formik } from "formik";
 import * as yup from "yup";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import Header from "../components/Header";
@@ -28,7 +29,7 @@ const initialValues = {
   visa: "",
   contractExpiryDate: "",
   role: "",
-  uploadedFile: null,
+  uploadedFile: "",
   password: "",
   confirmPassword: "",
 };
@@ -57,6 +58,12 @@ const userSchema = yup.object().shape({
     .string()
     .oneOf([yup.ref("password"), null], "Passwords must match")
     .required("Confirm Password is required"),
+  uploadedFile: yup
+    .mixed()
+    .test("fileType", "Only PDF files are allowed", (value) => {
+      if (!value) return true;
+      return value && value.type === "application/pdf";
+    }),
 });
 
 const Form = () => {
@@ -233,6 +240,14 @@ const Form = () => {
                   }}
                   error={!!touched.uploadedFile && !!errors.uploadedFile}
                   helperText={touched.uploadedFile && errors.uploadedFile}
+                />
+                <ErrorMessage
+                  name="uploadedFile"
+                  render={(msg) => (
+                    <Typography variant="caption" color="error">
+                      {msg}
+                    </Typography>
+                  )}
                 />
               </FormControl>
 

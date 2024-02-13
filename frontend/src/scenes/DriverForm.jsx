@@ -8,9 +8,10 @@ import {
   InputLabel,
   FormControl,
   Input,
+  Typography,
 } from "@mui/material";
 
-import { Formik } from "formik";
+import { ErrorMessage, Formik } from "formik";
 import * as yup from "yup";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import Header from "../components/Header";
@@ -79,7 +80,13 @@ const driverSchema = yup.object().shape({
   phoneSerialNumber: yup.string().required("required"),
   phoneContractNumber: yup.string().required("required"),
   referenceNumber: yup.number().required("required"),
-}); 
+  uploadedFile: yup
+    .mixed()
+    .test("fileType", "Only PDF files are allowed", (value) => {
+      if (!value) return true;
+      return value && value.type === "application/pdf";
+    }),
+});
 
 const DriverForm = () => {
   const isNonMobile = useMediaQuery("(min-width: 600px)");
@@ -88,7 +95,6 @@ const DriverForm = () => {
   const handleSubmit = async (values) => {
     const formData = new FormData();
     try {
-
       Object.keys(values).forEach((key) => {
         if (key !== "uploadedFile" && values[key]) {
           formData.append(key, values[key]);
@@ -97,11 +103,7 @@ const DriverForm = () => {
 
       formData.append("uploadedFile", values.uploadedFile);
 
-     
-
-      await dispatch(
-        registerDriver(formData)
-      );
+      await dispatch(registerDriver(formData));
     } catch (error) {
       console.error("Error registering driver:", error.message);
     }
@@ -473,6 +475,14 @@ const DriverForm = () => {
                   }}
                   error={!!touched.uploadedFile && !!errors.uploadedFile}
                   helperText={touched.uploadedFile && errors.uploadedFile}
+                />
+                <ErrorMessage
+                  name="uploadedFile"
+                  render={(msg) => (
+                    <Typography variant="caption" color="error">
+                      {msg}
+                    </Typography>
+                  )}
                 />
               </FormControl>
             </Box>

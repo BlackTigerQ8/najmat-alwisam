@@ -9,6 +9,7 @@ import {
   FormControl,
   TextField,
   Input,
+  Typography,
 } from "@mui/material";
 import Header from "../components/Header";
 import { tokens } from "../theme";
@@ -17,9 +18,10 @@ import useMediaQuery from "@mui/material/useMediaQuery";
 import { useSelector, useDispatch } from "react-redux";
 // import { trefoil } from "ldrs";
 import { pulsar } from "ldrs";
-import { Formik } from "formik";
+import { ErrorMessage, Formik } from "formik";
 import { updateUser } from "../redux/usersSlice";
 import { useParams } from "react-router-dom";
+import * as Yup from "yup";
 
 const UserProfile = () => {
   const isNonMobile = useMediaQuery("(min-width: 600px)");
@@ -48,6 +50,17 @@ const UserProfile = () => {
     createdAt: Date,
     file: "",
   };
+
+  const validationSchema = Yup.object().shape({
+    uploadedFile: Yup.mixed().test(
+      "fileType",
+      "Only PDF files are allowed",
+      (value) => {
+        if (!value) return true;
+        return value && value.type === "application/pdf";
+      }
+    ),
+  });
 
   pulsar.register();
   if (status === "loading") {
@@ -121,7 +134,11 @@ const UserProfile = () => {
   return (
     <Box m="20px">
       <Header title="USER PROFILE" subtitle="View/Update User Information" />
-      <Formik onSubmit={handleFormSubmit} initialValues={initialValues}>
+      <Formik
+        onSubmit={handleFormSubmit}
+        initialValues={initialValues}
+        validationSchema={validationSchema}
+      >
         {({
           values,
           errors,
@@ -339,6 +356,14 @@ const UserProfile = () => {
                   }}
                   error={!!touched.uploadedFile && !!errors.uploadedFile}
                   helperText={touched.uploadedFile && errors.uploadedFile}
+                />
+                <ErrorMessage
+                  name="uploadedFile"
+                  render={(msg) => (
+                    <Typography variant="caption" color="error">
+                      {msg}
+                    </Typography>
+                  )}
                 />
                 <Button
                   variant="contained"
