@@ -93,11 +93,6 @@ const createUser = async (req, res) => {
 // @access  Private
 const updateUser = async (req, res) => {
   try {
-    const user = await User.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
-      runValidators: true,
-    });
-
     // Check if the user is accessing their own data or is an admin
     if (req.user.id !== req.params.id && req.user.role !== "Admin") {
       return res.status(403).json({
@@ -105,6 +100,17 @@ const updateUser = async (req, res) => {
         message: "You do not have permission to perform this action",
       });
     }
+
+    const uploadedFile = req.file;
+    const filePath = uploadedFile ? uploadedFile.path : null;
+    const user = await User.findByIdAndUpdate(
+      req.params.id,
+      { ...req.body, file: filePath ?? req.body.file },
+      {
+        new: true,
+        runValidators: true,
+      }
+    );
 
     res.status(200).json({
       status: "Success",

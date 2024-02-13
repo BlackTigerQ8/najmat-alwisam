@@ -45,15 +45,16 @@ export const deleteUser = createAsyncThunk(
 
 export const updateUser = createAsyncThunk(
   "user/updateUser",
-  async ({ userId, userData }, { getState }) => {
+  async ({ userId, formData }, { getState }) => {
     try {
       const token = getState().user.token;
       const response = await axios.patch(
         `${API_URL}/users/${userId}`,
-        userData,
+        formData,
         {
           headers: {
             Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data",
           },
         }
       );
@@ -122,7 +123,7 @@ const usersSlice = createSlice({
         state.users = state.users.map((user) =>
           user._id === updatedUser._id ? updatedUser : user
         );
-        toast.info("User Information is updated successfully.", {
+        toast.success("User Information is updated successfully.", {
           position: "top-right",
           autoClose: 3000,
           hideProgressBar: false,
