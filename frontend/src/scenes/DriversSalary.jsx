@@ -29,13 +29,11 @@ const DriversSalary = () => {
     {
       field: "name",
       headerName: "Name",
-      flex: 0.75,
+      flex: 0.25,
       cellClassName: "name-column--cell",
       renderCell: ({ row: { firstName, lastName } }) => {
         return (
           <Box
-            width="60%"
-            m="0 auto"
             display="flex"
             justifyContent="center"
             borderRadius="4px"
@@ -48,6 +46,7 @@ const DriversSalary = () => {
     {
       field: "email",
       headerName: "Email",
+      flex:0.25
     },
     {
       field: "phone",
