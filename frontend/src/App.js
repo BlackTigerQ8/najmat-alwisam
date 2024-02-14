@@ -34,7 +34,7 @@ import UserProfile from "./scenes/UserProfile";
 // import NotFound from "./scenes/NotFound";
 import Notifications from "./scenes/Notifications";
 import Deduction from "./scenes/Deduction";
-import Detail from "./scenes/Detail";
+import Detail from "./scenes/dashboard/Detail";
 import DeductionSalary from "./scenes/DeductionSalary";
 import CoSpends from "./scenes/CoSpends";
 import PettyCash from "./scenes/PettyCash";

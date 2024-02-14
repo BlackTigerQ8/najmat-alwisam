@@ -14,7 +14,8 @@ const driverInvoiceSchema = new mongoose.Schema({
   cash: { type: Number, default: 0 },
   additionalSalary: { type: Number, default: 0 },
   deductionReason: { type: String, default: "" },
-  deductionAmount: { type: Number, default: 0 },
+  talabatDeductionAmount: { type: Number, default: 0 },
+  companyDeductionAmount: { type: Number, default: 0 },
   user: {
     type: mongoose.Schema.Types.ObjectId,
     required: true,

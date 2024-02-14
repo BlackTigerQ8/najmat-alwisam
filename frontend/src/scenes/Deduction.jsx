@@ -18,13 +18,15 @@ import { useDispatch, useSelector } from "react-redux";
 
 const initialValues = {
   deductionReason: "",
-  deductionAmount: "",
+  talabatDeductionAmount: "",
+  companyDeductionAmount: "",
   selectedDriver: "",
 };
 
 const userSchema = yup.object().shape({
   deductionReason: yup.string().required("required"),
-  deductionAmount: yup.string().required("required"),
+  talabatDeductionAmount: yup.string().required("required"),
+  companyDeductionAmount: yup.string().required("required"),
 });
 
 const Deduction = () => {
@@ -109,14 +111,39 @@ const Deduction = () => {
                 fullWidth
                 variant="filled"
                 type="number"
-                label="Amount of deduction (K.D.)"
+                label="Talabat deduction amount (K.D.)"
                 onBlur={handleBlur}
                 onChange={handleChange}
-                value={values.deductionAmount}
-                name="deductionAmount"
-                error={!!touched.deductionAmount && !!errors.deductionAmount}
-                helperText={touched.deductionAmount && errors.deductionAmount}
-                sx={{ gridColumn: "span 4" }}
+                value={values.talabatDeductionAmount}
+                name="talabatDeductionAmount"
+                error={
+                  !!touched.talabatDeductionAmount &&
+                  !!errors.talabatDeductionAmount
+                }
+                helperText={
+                  touched.talabatDeductionAmount &&
+                  errors.talabatDeductionAmount
+                }
+                sx={{ gridColumn: "span 2" }}
+              />
+              <TextField
+                fullWidth
+                variant="filled"
+                type="number"
+                label="Company deduction amount (K.D.)"
+                onBlur={handleBlur}
+                onChange={handleChange}
+                value={values.companyDeductionAmount}
+                name="companyDeductionAmount"
+                error={
+                  !!touched.companyDeductionAmount &&
+                  !!errors.companyDeductionAmount
+                }
+                helperText={
+                  touched.companyDeductionAmount &&
+                  errors.companyDeductionAmount
+                }
+                sx={{ gridColumn: "span 2" }}
               />
             </Box>
             <Box display="flex" justifyContent="end" mt="20px">

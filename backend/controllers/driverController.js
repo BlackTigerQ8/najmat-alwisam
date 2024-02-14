@@ -126,7 +126,8 @@ const createDriverInvoice = async (req, res) => {
       cash = 0,
       additionalSalary = 0,
       deductionReason = "",
-      deductionAmount = 0,
+      talabatDeductionAmount = 0,
+      companyDeductionAmount = 0,
     } = req.body;
 
     /** All invoices should be set using yesterday's date */
@@ -148,7 +149,8 @@ const createDriverInvoice = async (req, res) => {
       hour,
       cash,
       additionalSalary,
-      deductionAmount,
+      talabatDeductionAmount,
+      companyDeductionAmount,
       deductionReason,
       invoiceDate,
       user: req.user.id,
