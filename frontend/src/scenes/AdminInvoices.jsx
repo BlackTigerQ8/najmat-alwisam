@@ -10,7 +10,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { fetchDrivers, updateDriver } from "../redux/driversSlice";
 import {
   fetchInvoices,
-  updateDriverInvoice,
+  createDriverInvoice,
 } from "../redux/driverInvoiceSlice";
 import CloseOutlinedIcon from "@mui/icons-material/CloseOutlined";
 import CheckOutlinedIcon from "@mui/icons-material/CheckOutlined";

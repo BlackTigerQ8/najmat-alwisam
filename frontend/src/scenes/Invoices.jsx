@@ -1,12 +1,16 @@
-import React, { useEffect, useState, useCallback } from "react";
-import { Box, Typography, Button, useTheme } from "@mui/material";
+import React, { useMemo, useEffect, useState, useCallback } from "react";
+import { Box, Button, useTheme } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import { tokens } from "../theme";
 import Header from "../components/Header";
 import UpdateIcon from "@mui/icons-material/Update";
 import { useSelector, useDispatch } from "react-redux";
-import { fetchDrivers, updateDriver } from "../redux/driversSlice";
+import { fetchDrivers } from "../redux/driversSlice";
 import { pulsar } from "ldrs";
+import {
+  fetchInvoices,
+  createDriverInvoice,
+} from "../redux/driverInvoiceSlice";
 
 const Invoices = () => {
   const theme = useTheme();
@@ -19,19 +23,44 @@ const Invoices = () => {
     useSelector((state) => state.drivers.token) ||
     localStorage.getItem("token");
 
-  const invoices = useSelector((state) => state.invoices?.invoices || []);
-
-  const [editRowsModel, setEditRowsModel] = useState({});
-  const [selectedRowIds, setSelectedRowIds] = useState([]);
+  const invoices = useSelector((state) => state.driverInvoice?.driverInvoice || []);
 
   const getInvoiceData = useCallback(
     (driverId) => {
       const driverInvoices = invoices.filter(
-        (invoice) => invoice.driver === driverId
+        (invoice) => invoice.driver._id === driverId
       );
+
+      return driverInvoices.reduce((result, invoice) => {
+        result.order = invoice.order + (result.order || 0);
+        result.hour = invoice.hour + (result.hour || 0);
+        result.cash = invoice.cash + (result.cash || 0);
+        result.additionalSalary = invoice.additionalSalary + (result.additionalSalary || 0);
+        result.deductionAmount = invoice.deductionAmount + (result.deductionAmount || 0);
+
+        return result
+      }, {})
     },
     [invoices]
   );
+
+  const driverWithInvoices = useMemo(() => {
+
+return drivers.map(driver => {
+  const {cash, hour, order} = getInvoiceData(driver._id);
+
+  return {...driver, cash, hour, order}
+})
+
+    
+
+
+  }, [drivers, invoices])
+
+  const [editRowsModel, setEditRowsModel] = useState({});
+  const [selectedRowIds, setSelectedRowIds] = useState([]);
+
+  
 
   const columns = [
     {
@@ -41,13 +70,11 @@ const Invoices = () => {
     {
       field: "name",
       headerName: "Name",
-      flex: 0.75,
+      flex: 0.25,
       cellClassName: "name-column--cell",
       renderCell: ({ row: { firstName, lastName } }) => {
         return (
           <Box
-            width="60%"
-            m="0 auto"
             display="flex"
             justifyContent="center"
             borderRadius="4px"
@@ -60,10 +87,12 @@ const Invoices = () => {
     {
       field: "email",
       headerName: "Email",
+      flex: 0.25,
     },
     {
       field: "phone",
       headerName: "Phone Number",
+      flex:0.1
     },
     {
       field: "idNumber",
@@ -116,6 +145,7 @@ const Invoices = () => {
   useEffect(() => {
     //if (status === "succeeded") {
     dispatch(fetchDrivers(token));
+    dispatch(fetchInvoices(token));
     //}
   }, [token]);
 
@@ -157,9 +187,9 @@ const Invoices = () => {
 
   const handleUpdate = (row) => {
     try {
-      const { cost, order, hour } = row;
+      const { cash, order, hour } = row;
       dispatch(
-        updateDriver({ driverId: row._id, values: { cost, order, hour } })
+        createDriverInvoice({  values: { cash, order, hour,driverId: row._id } })
       );
     } catch (error) {
       console.error("Row does not have a valid _id field:", row);
@@ -214,7 +244,7 @@ const Invoices = () => {
       >
         <DataGrid
           // checkboxSelection
-          rows={Array.isArray(drivers) ? drivers : []}
+          rows={Array.isArray(driverWithInvoices) ? driverWithInvoices : []}
           columns={columns}
           getRowId={(row) => row._id}
           editRowsModel={editRowsModel}

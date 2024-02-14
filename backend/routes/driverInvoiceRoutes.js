@@ -10,6 +10,10 @@ const router = express.Router();
 router
   .route("/invoice")
   .get(protect, getAllInvoices)
-  .post(protect, createDriverInvoice);
+  .post(
+    protect,
+    restrictTo("Admin", "Manager", "Employee"),
+    createDriverInvoice
+  );
 
 module.exports = router;

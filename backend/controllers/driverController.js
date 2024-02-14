@@ -121,14 +121,18 @@ const createDriverInvoice = async (req, res) => {
   try {
     const {
       driverId,
-      hour,
-      order,
-      cash,
-      additionalSalary,
-      deductionReason,
-      deductionAmount,
+      hour = 0,
+      order = 0,
+      cash = 0,
+      additionalSalary = 0,
+      deductionReason = "",
+      deductionAmount = 0,
     } = req.body;
-    const invoiceDate = new Date();
+
+    /** All invoices should be set using yesterday's date */
+    const currentDate = new Date();
+    const invoiceDate = new Date(currentDate.getTime() - 24 * 60 * 60 * 1000);
+
     const driver = await Driver.findById(driverId);
 
     if (!driver)
@@ -155,7 +159,7 @@ const createDriverInvoice = async (req, res) => {
     return res.status(201).json({
       status: "Success",
       data: {
-        driver: newInvoice,
+        invoice: { ...newInvoice._doc, driver: { _id: newInvoice.driver } },
       },
     });
   } catch (error) {
@@ -169,8 +173,28 @@ const createDriverInvoice = async (req, res) => {
 const getAllInvoices = async (req, res) => {
   console.log("In get all invoices method");
   try {
+    const currentDate = new Date();
+
+    // Get the first day of the current month
+    const firstDayOfMonth = new Date(
+      currentDate.getFullYear(),
+      currentDate.getMonth(),
+      1
+    );
+
+    // Get the first day of the next month
+    const firstDayOfNextMonth = new Date(
+      currentDate.getFullYear(),
+      currentDate.getMonth() + 1,
+      1
+    );
+
     const driverInvoices = await DriverInvoice.find({
       status: { $in: ["pending", "approved"] },
+      invoiceDate: {
+        $gte: firstDayOfMonth,
+        $lt: firstDayOfNextMonth,
+      },
     }).populate("driver");
 
     console.log("driverInvoices", driverInvoices);

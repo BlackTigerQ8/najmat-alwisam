@@ -4,6 +4,7 @@ import storage from "redux-persist/lib/storage"; // defaults to localStorage for
 import userReducer from "./userSlice";
 import usersReducer from "./usersSlice";
 import driversReducer from "./driversSlice";
+import driverInvoiceReducer from "./driverInvoiceSlice";
 
 const persistConfig = {
   key: "root",
@@ -14,6 +15,7 @@ const rootReducer = combineReducers({
   user: userReducer,
   users: usersReducer,
   drivers: driversReducer,
+  driverInvoice: driverInvoiceReducer,
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);
