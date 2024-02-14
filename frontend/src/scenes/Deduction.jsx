@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import {
   Box,
   Button,
@@ -15,6 +15,9 @@ import Header from "../components/Header";
 import { fetchDrivers } from "../redux/driversSlice";
 import { fetchUsers } from "../redux/usersSlice";
 import { useDispatch, useSelector } from "react-redux";
+import {
+  createDriverInvoice,
+} from "../redux/driverInvoiceSlice";
 
 const initialValues = {
   deductionReason: "",
@@ -27,6 +30,7 @@ const userSchema = yup.object().shape({
   deductionReason: yup.string().required("required"),
   talabatDeductionAmount: yup.string().required("required"),
   companyDeductionAmount: yup.string().required("required"),
+  selectedDriver: yup.string().required("required")
 });
 
 const Deduction = () => {
@@ -34,8 +38,6 @@ const Deduction = () => {
   const isNonMobile = useMediaQuery("(min-width: 600px)");
 
   const drivers = useSelector((state) => state.drivers.drivers);
-  const users = useSelector((state) => state.users.users);
-  const [selectedDriver, setSelectedDriver] = useState("");
   const token =
     useSelector((state) => state.drivers.token) ||
     localStorage.getItem("token");
@@ -45,13 +47,23 @@ const Deduction = () => {
     dispatch(fetchUsers(token));
   }, [token]);
 
+  async function handleFormSubmit(values){
+    try {
+      dispatch(
+        createDriverInvoice({values: {  ...values,driverId: values.selectedDriver }})
+      );
+    } catch (error) {
+      console.error("Row does not have a valid _id field:");
+    }
+  }
+
   return (
     <Box m="20px">
       <Header
         title="DEDUCT SALARY"
         subtitle="Deduct Salary from Employee/Driver"
       />
-      <Formik initialValues={initialValues}>
+      <Formik initialValues={initialValues} validationSchema={userSchema} onSubmit={handleFormSubmit}>
         {({
           values,
           errors,
@@ -75,8 +87,8 @@ const Deduction = () => {
                 <Select
                   labelId="select-driver-label"
                   id="select-driver"
-                  value={selectedDriver}
-                  onChange={(e) => setSelectedDriver(e.target.value)}
+                  value={values.selectedDriver}
+                  onChange={handleChange}
                   onBlur={handleBlur}
                   error={!!touched.selectedDriver && !!errors.selectedDriver}
                   name="selectedDriver"
@@ -84,14 +96,10 @@ const Deduction = () => {
                 >
                   {drivers.map((driver) => (
                     <MenuItem key={driver._id} value={driver._id}>
-                      {driver.name}
+                      {driver.firstName} {driver.lastName}
                     </MenuItem>
                   ))}
-                  {users.map((user) => (
-                    <MenuItem key={user._id} value={user._id}>
-                      {user.name}
-                    </MenuItem>
-                  ))}
+                 
                 </Select>
               </FormControl>
               <TextField
