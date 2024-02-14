@@ -23,7 +23,9 @@ const Invoices = () => {
     useSelector((state) => state.drivers.token) ||
     localStorage.getItem("token");
 
-  const invoices = useSelector((state) => state.driverInvoice?.driverInvoice || []);
+  const invoices = useSelector(
+    (state) => state.driverInvoice?.driverInvoice || []
+  );
 
   const getInvoiceData = useCallback(
     (driverId) => {
@@ -35,32 +37,27 @@ const Invoices = () => {
         result.order = invoice.order + (result.order || 0);
         result.hour = invoice.hour + (result.hour || 0);
         result.cash = invoice.cash + (result.cash || 0);
-        result.additionalSalary = invoice.additionalSalary + (result.additionalSalary || 0);
-        result.deductionAmount = invoice.deductionAmount + (result.deductionAmount || 0);
+        result.additionalSalary =
+          invoice.additionalSalary + (result.additionalSalary || 0);
+        result.deductionAmount =
+          invoice.deductionAmount + (result.deductionAmount || 0);
 
-        return result
-      }, {})
+        return result;
+      }, {});
     },
     [invoices]
   );
 
   const driverWithInvoices = useMemo(() => {
+    return drivers.map((driver) => {
+      const { cash, hour, order } = getInvoiceData(driver._id);
 
-return drivers.map(driver => {
-  const {cash, hour, order} = getInvoiceData(driver._id);
-
-  return {...driver, cash, hour, order}
-})
-
-    
-
-
-  }, [drivers, invoices])
+      return { ...driver, cash, hour, order };
+    });
+  }, [drivers, invoices]);
 
   const [editRowsModel, setEditRowsModel] = useState({});
   const [selectedRowIds, setSelectedRowIds] = useState([]);
-
-  
 
   const columns = [
     {
@@ -74,11 +71,7 @@ return drivers.map(driver => {
       cellClassName: "name-column--cell",
       renderCell: ({ row: { firstName, lastName } }) => {
         return (
-          <Box
-            display="flex"
-            justifyContent="center"
-            borderRadius="4px"
-          >
+          <Box display="flex" justifyContent="center" borderRadius="4px">
             {firstName} {lastName}
           </Box>
         );
@@ -92,7 +85,7 @@ return drivers.map(driver => {
     {
       field: "phone",
       headerName: "Phone Number",
-      flex:0.1
+      flex: 0.1,
     },
     {
       field: "idNumber",
@@ -189,7 +182,9 @@ return drivers.map(driver => {
     try {
       const { cash, order, hour } = row;
       dispatch(
-        createDriverInvoice({  values: { cash, order, hour,driverId: row._id } })
+        createDriverInvoice({
+          values: { cash, order, hour, driverId: row._id },
+        })
       );
     } catch (error) {
       console.error("Row does not have a valid _id field:", row);
@@ -250,7 +245,7 @@ return drivers.map(driver => {
           editRowsModel={editRowsModel}
           onEditRowsModelChange={(newModel) => setEditRowsModel(newModel)}
         />
-        <Button
+        {/* <Button
           variant="contained"
           color="secondary"
           size="large"
@@ -258,7 +253,7 @@ return drivers.map(driver => {
           onClick={handleUpdateAll}
         >
           Update All
-        </Button>
+        </Button> */}
       </Box>
     </Box>
   );

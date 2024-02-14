@@ -7,7 +7,9 @@ import {
   MenuItem,
   Select,
   TextField,
+  IconButton,
 } from "@mui/material";
+import ClearIcon from "@mui/icons-material/Clear";
 import { Formik } from "formik";
 import * as yup from "yup";
 import useMediaQuery from "@mui/material/useMediaQuery";
@@ -15,29 +17,59 @@ import Header from "../components/Header";
 import { fetchDrivers } from "../redux/driversSlice";
 import { fetchUsers } from "../redux/usersSlice";
 import { useDispatch, useSelector } from "react-redux";
-import {
-  createDriverInvoice,
-} from "../redux/driverInvoiceSlice";
+import { createDriverInvoice } from "../redux/driverInvoiceSlice";
 
 const initialValues = {
   deductionReason: "",
   talabatDeductionAmount: "",
   companyDeductionAmount: "",
   selectedDriver: "",
+  selectedUser: "",
 };
 
-const userSchema = yup.object().shape({
-  deductionReason: yup.string().required("required"),
-  talabatDeductionAmount: yup.string().required("required"),
-  companyDeductionAmount: yup.string().required("required"),
-  selectedDriver: yup.string().required("required")
-});
+const userSchema = yup
+  .object()
+  .shape({
+    deductionReason: yup.string().required("Required"),
+    talabatDeductionAmount: yup.string(),
+    companyDeductionAmount: yup.string(),
+    selectedDriver: yup.string(),
+    selectedUser: yup.string(),
+  })
+  .test({
+    name: "selectedFieldsRequired",
+    test: function (values) {
+      const { selectedDriver, selectedUser } = values;
+      if (!selectedDriver && !selectedUser) {
+        throw this.createError({
+          path: "selectedDriver",
+          message: "Please select a driver or user",
+        });
+      }
+      return true;
+    },
+  })
+  .test({
+    name: "atLeastOneFieldRequired",
+    test: function (values) {
+      const { talabatDeductionAmount, companyDeductionAmount } = values;
+      if (!talabatDeductionAmount && !companyDeductionAmount) {
+        throw this.createError({
+          path: "talabatDeductionAmount",
+          message:
+            "Please fill at least one of Talabat Deduction Amount or Company Deduction Amount",
+        });
+      }
+      return true;
+    },
+  });
 
 const Deduction = () => {
   const dispatch = useDispatch();
   const isNonMobile = useMediaQuery("(min-width: 600px)");
 
   const drivers = useSelector((state) => state.drivers.drivers);
+  const users = useSelector((state) => state.users.users);
   const token =
     useSelector((state) => state.drivers.token) ||
     localStorage.getItem("token");
@@ -47,10 +79,15 @@ const Deduction = () => {
     dispatch(fetchUsers(token));
   }, [token]);
 
-  async function handleFormSubmit(values){
+  async function handleFormSubmit(values) {
     try {
       dispatch(
-        createDriverInvoice({values: {  ...values,driverId: values.selectedDriver }})
+        createDriverInvoice({
+          values: {
+            ...values,
+            driverId: values.selectedDriver,
+          },
+        })
       );
     } catch (error) {
       console.error("Row does not have a valid _id field:");
@@ -63,7 +100,11 @@ const Deduction = () => {
         title="DEDUCT SALARY"
         subtitle="Deduct Salary from Employee/Driver"
       />
-      <Formik initialValues={initialValues} validationSchema={userSchema} onSubmit={handleFormSubmit}>
+      <Formik
+        initialValues={initialValues}
+        validationSchema={userSchema}
+        onSubmit={handleFormSubmit}
+      >
         {({
           values,
           errors,
@@ -82,7 +123,7 @@ const Deduction = () => {
                 "& > div": { gridColumn: isNonMobile ? undefined : "span 4" },
               }}
             >
-              <FormControl fullWidth sx={{ gridColumn: "span 4" }}>
+              <FormControl fullWidth sx={{ gridColumn: "span 2" }}>
                 <InputLabel id="select-driver-label">Select Driver</InputLabel>
                 <Select
                   labelId="select-driver-label"
@@ -93,15 +134,68 @@ const Deduction = () => {
                   error={!!touched.selectedDriver && !!errors.selectedDriver}
                   name="selectedDriver"
                   label="Select Driver"
+                  MenuProps={{
+                    MenuListProps: { disablePadding: true },
+                    PaperProps: {
+                      style: {
+                        maxHeight: 500,
+                      },
+                    },
+                  }}
                 >
                   {drivers.map((driver) => (
                     <MenuItem key={driver._id} value={driver._id}>
                       {driver.firstName} {driver.lastName}
                     </MenuItem>
                   ))}
-                 
                 </Select>
+                {values.selectedDriver && (
+                  <IconButton
+                    onClick={() => setFieldValue("selectedDriver", "")}
+                    sx={{ gridColumn: "span 1" }}
+                    style={{
+                      display: "flex",
+                      width: "30px",
+                      height: "30px",
+                    }}
+                  >
+                    <ClearIcon />
+                  </IconButton>
+                )}
               </FormControl>
+              <FormControl fullWidth sx={{ gridColumn: "span 2" }}>
+                <InputLabel id="select-user-label">Select User</InputLabel>
+                <Select
+                  labelId="select-user-label"
+                  id="select-user"
+                  value={values.selectedUser}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  error={!!touched.selectedUser && !!errors.selectedUser}
+                  name="selectedUser"
+                  label="Select User"
+                >
+                  {users.map((user) => (
+                    <MenuItem key={user._id} value={user._id}>
+                      {user.firstName} {user.lastName}
+                    </MenuItem>
+                  ))}
+                </Select>
+                {values.selectedUser && (
+                  <IconButton
+                    onClick={() => setFieldValue("selectedUser", "")}
+                    sx={{ gridColumn: "span 1" }}
+                    style={{
+                      display: "flex",
+                      width: "30px",
+                      height: "30px",
+                    }}
+                  >
+                    <ClearIcon />
+                  </IconButton>
+                )}
+              </FormControl>
+
               <TextField
                 fullWidth
                 variant="filled"

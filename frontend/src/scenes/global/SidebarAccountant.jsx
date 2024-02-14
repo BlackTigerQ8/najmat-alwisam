@@ -170,8 +170,8 @@ const SidebarA = () => {
               Pages
             </Typography>
             <Item
-              title="Detail"
-              to="/detail"
+              title="Dashboard"
+              to="/accountant-dashboard"
               icon={<LibraryBooksOutlinedIcon />}
               selected={selected}
               setSelected={setSelected}

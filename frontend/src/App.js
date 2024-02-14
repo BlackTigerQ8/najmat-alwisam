@@ -34,7 +34,7 @@ import UserProfile from "./scenes/UserProfile";
 // import NotFound from "./scenes/NotFound";
 import Notifications from "./scenes/Notifications";
 import Deduction from "./scenes/Deduction";
-import Detail from "./scenes/dashboard/Detail";
+import AccountantDashboard from "./scenes/dashboard/AccountantDashboard";
 import DeductionSalary from "./scenes/DeductionSalary";
 import CoSpends from "./scenes/CoSpends";
 import PettyCash from "./scenes/PettyCash";
@@ -42,6 +42,7 @@ import SpendsList from "./scenes/SpendsList";
 import DriversSalary from "./scenes/DriversSalary";
 import EmployeesSalary from "./scenes/EmployeesSalary";
 import AdminInvoices from "./scenes/AdminInvoices";
+import ManagerDashboard from "./scenes/dashboard/ManagerDashboard";
 
 function App() {
   const [theme, colorMode] = useMode();
@@ -124,10 +125,7 @@ function App() {
                     </>
                   )}
                   {userRole === "Manager" && (
-                    <Route exact path="/" element={<Drivers />} />
-                  )}
-                  {userRole === "Accountant" && (
-                    <Route exact path="/" element={<Detail />} />
+                    <Route exact path="/" element={<ManagerDashboard />} />
                   )}
                   {userRole === "Employee" && (
                     <Route exact path="/" element={<Invoices />} />
@@ -147,6 +145,7 @@ function App() {
 
                   {userRole === "Accountant" && (
                     <>
+                      <Route exact path="/" element={<AccountantDashboard />} />
                       <Route
                         exact
                         path="/drivers-salary"
@@ -168,7 +167,11 @@ function App() {
                         path="/spends-list"
                         element={<SpendsList />}
                       />
-                      <Route exact path="/detail" element={<Detail />} />
+                      <Route
+                        exact
+                        path="/accountant-dashboard"
+                        element={<AccountantDashboard />}
+                      />
                     </>
                   )}
 

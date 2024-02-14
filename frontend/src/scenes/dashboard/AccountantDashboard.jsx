@@ -16,12 +16,12 @@ import ProgressCircle from "../../components/ProgressCircle";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 
-const Detail = () => {
+const AccountantDashboard = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
 
   const downloadPDF = async () => {
-    const input = document.getElementById("Detail");
+    const input = document.getElementById("AccountantDashboard");
     const pdf = new jsPDF({
       orientation: "landscape",
     });
@@ -37,14 +37,17 @@ const Detail = () => {
     const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
 
     pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
-    pdf.save("Detail.pdf");
+    pdf.save("AccountantDashboard.pdf");
   };
 
   return (
-    <Box m="20px" id="Detail">
+    <Box m="20px" id="AccountantDashboard">
       {/* HEADER */}
       <Box display="flex" justifyContent="space-between" alignItems="center">
-        <Header title="Detail" subtitle="Welcome to your Detail" />
+        <Header
+          title="Accountant Dashboard"
+          subtitle="Welcome to your Accountant Dashboard"
+        />
 
         <Box>
           <Button
@@ -186,7 +189,7 @@ const Detail = () => {
             </Box>
           </Box>
           <Box height="250px" m="-20px 0 0 0">
-            <LineChart isDetail={true} />
+            <LineChart isAccountantDashboard={true} />
           </Box>
         </Box>
         <Box
@@ -280,7 +283,7 @@ const Detail = () => {
             Sales Quantity
           </Typography>
           <Box height="250px" mt="-20px">
-            <BarChart isDetail={true} />
+            <BarChart isAccountantDashboard={true} />
           </Box>
         </Box>
         {/* <Box
@@ -297,7 +300,7 @@ const Detail = () => {
             Geography Based Traffic
           </Typography>
           <Box height="200px">
-            <GeographyChart isDetail={true} />
+            <GeographyChart isAccountantDashboard={true} />
           </Box>
         </Box> */}
       </Box>
@@ -305,4 +308,4 @@ const Detail = () => {
   );
 };
 
-export default Detail;
+export default AccountantDashboard;
