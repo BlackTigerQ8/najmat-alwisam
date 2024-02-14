@@ -45,8 +45,7 @@ const AdminInvoices = () => {
       renderCell: ({ row: { firstName, lastName } }) => {
         return (
           <Box
-            width="60%"
-            m="0 auto"
+           
             display="flex"
             justifyContent="left"
             alignItems="center"

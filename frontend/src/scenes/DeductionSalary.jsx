@@ -33,13 +33,12 @@ const DeductionSalary = () => {
     {
       field: "name",
       headerName: "Name",
-      flex: 1.75,
+      flex: 1.25,
       cellClassName: "name-column--cell",
       renderCell: ({ row: { firstName, lastName } }) => {
         return (
           <Box
-            width="60%"
-            m="0 auto"
+          
             display="flex"
             justifyContent="left"
             alignItems="center"
