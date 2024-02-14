@@ -9,6 +9,7 @@ import AnonImage from "../../assets/profileImage.png";
 import ContactsOutlinedIcon from "@mui/icons-material/ContactsOutlined";
 import MenuOutlinedIcon from "@mui/icons-material/MenuOutlined";
 import ReceiptOutlinedIcon from "@mui/icons-material/ReceiptOutlined";
+import MoneyOffIcon from "@mui/icons-material/MoneyOff";
 import { useSelector, useDispatch } from "react-redux";
 import { profileImage } from "../../redux/userSlice";
 import { toast } from "react-toastify";
@@ -39,7 +40,8 @@ const SideBarEmployee = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [selected, setSelected] = useState("Dashboard");
   const userInfo = useSelector((state) => state.user.userInfo);
-  const userProfileImage = useSelector((state) => state.user.userProfileImage) || userInfo.image;
+  const userProfileImage =
+    useSelector((state) => state.user.userProfileImage) || userInfo.image;
   const dispatch = useDispatch();
 
   const handleImageUpload = (event) => {
@@ -54,9 +56,8 @@ const SideBarEmployee = () => {
       file.type === "image/jpg" ||
       file.type === "image/png"
     ) {
-       dispatch(profileImage(file));
-    }
-    else {
+      dispatch(profileImage(file));
+    } else {
       toast.error("Invalid file selected. Please upload image file", {
         position: "top-right",
         autoClose: 3000,
@@ -120,11 +121,15 @@ const SideBarEmployee = () => {
           {!isCollapsed && (
             <Box mb="25px" onClick={() => imageUploadInput.current.click()}>
               <Box display="flex" justifyContent="center" alignItems="center">
-              <img
+                <img
                   alt="profile-user"
                   width="100px"
                   height="100px"
-                  src={userProfileImage ? `${process.env.REACT_APP_API_URL}/${userProfileImage}` : AnonImage}
+                  src={
+                    userProfileImage
+                      ? `${process.env.REACT_APP_API_URL}/${userProfileImage}`
+                      : AnonImage
+                  }
                   style={{ cursor: "pointer", borderRadius: "50%" }}
                   crossorigin="anonymous"
                 />
@@ -172,6 +177,13 @@ const SideBarEmployee = () => {
               title="Invoices"
               to="/invoices"
               icon={<ReceiptOutlinedIcon />}
+              selected={selected}
+              setSelected={setSelected}
+            />
+            <Item
+              title="Deduction"
+              to="/deduction"
+              icon={<MoneyOffIcon />}
               selected={selected}
               setSelected={setSelected}
             />
