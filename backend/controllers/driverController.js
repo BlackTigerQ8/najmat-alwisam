@@ -1,6 +1,7 @@
 const Driver = require("../models/driverModel");
 const DriverInvoice = require("../models/driverInvoiceModel");
-const User = require("../models/userModel");
+const { User } = require("../models/userModel");
+const { addSingleDriverNotifications } = require("../services/driverService");
 
 // @desc    Get all drivers
 // @route   GET /api/drivers
@@ -83,6 +84,8 @@ const updateDriver = async (req, res) => {
         runValidators: true,
       }
     );
+
+    if (driver) await addSingleDriverNotifications(driver);
 
     res.status(200).json({
       status: "Success",

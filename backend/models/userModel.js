@@ -1,6 +1,8 @@
 const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
 
+const USER_ROLES = ["Admin", "Manager", "Employee", "Accountant"];
+
 const userSchema = new mongoose.Schema({
   sequenceNumber: {
     type: Number,
@@ -34,7 +36,7 @@ const userSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    enum: ["Admin", "Manager", "Employee", "Accountant"],
+    enum: USER_ROLES,
     required: true,
   },
   passport: {
@@ -119,4 +121,4 @@ userSchema.pre("save", async function (next) {
   }
 });
 
-module.exports = mongoose.model("User", userSchema);
+module.exports = { User: mongoose.model("User", userSchema), USER_ROLES };

@@ -1,4 +1,4 @@
-import React from "react";
+import React, {useEffect, useCallback} from "react";
 import { Box, useTheme, Typography } from "@mui/material";
 import Header from "../components/Header";
 import Accordion from "@mui/material/Accordion";
@@ -6,83 +6,45 @@ import AccordionSummary from "@mui/material/AccordionSummary";
 import AccordionDetails from "@mui/material/AccordionDetails";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { tokens } from "../theme";
+import { useSelector, useDispatch } from "react-redux";
+import { fetchDrivers } from "../redux/driversSlice";
 
 const Notifications = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
+  const dispatch = useDispatch();
+  const token = localStorage.getItem("token");
+  const drivers = useSelector((state) => state.drivers.drivers);
+
+  const getDriverInfo = useCallback((driverId) => drivers.find(driver => driver._id === driverId), [drivers])
+  
+
+  const notifications = useSelector((state) => state.notifications.notifications);
+
+  useEffect(() => {
+    dispatch(fetchDrivers(token));
+  }, [dispatch, token])
+
 
   return (
     <Box m="20px">
       <Header title="NOTIFICATIONS" subtitle="Important Notifications Page" />
-
+    {notifications.map(notification => 
       <Accordion defaultExpanded>
         <AccordionSummary expandIcon={<ExpandMoreIcon />}>
           <Typography color={colors.greenAccent[500]} variant="h5">
-            Passport Expiration Alert!
+            {notification.additionalDetails.fieldName} Expiration Alert!
           </Typography>
         </AccordionSummary>
         <AccordionDetails>
           <Typography>
-            Ahmed's (Driver) passport will expiry in 2 weeks.
+          {getDriverInfo(notification.driverId).firstName} (Driver) {notification.additionalDetails.fieldName} will expire on {new Date(notification.additionalDetails.expiryDate).toDateString()}.
           </Typography>
         </AccordionDetails>
       </Accordion>
+)}
 
-      <Accordion defaultExpanded>
-        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-          <Typography color={colors.greenAccent[500]} variant="h5">
-            ID Expiration Alert!
-          </Typography>
-        </AccordionSummary>
-        <AccordionDetails>
-          <Typography>Khaled's (Driver) ID will expiry in 2 weeks.</Typography>
-        </AccordionDetails>
-      </Accordion>
-
-      <Accordion defaultExpanded>
-        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-          <Typography color={colors.greenAccent[500]} variant="h5">
-            New driver is added!
-          </Typography>
-        </AccordionSummary>
-        <AccordionDetails>
-          <Typography>
-            New driver (Abdullah Ahmed) is added in the system.
-          </Typography>
-        </AccordionDetails>
-      </Accordion>
-
-      <Accordion defaultExpanded>
-        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-          <Typography color={colors.greenAccent[500]} variant="h5">
-            Notification!
-          </Typography>
-        </AccordionSummary>
-        <AccordionDetails>
-          <Typography>
-            Lorem ipsum dolor sit amet consectetur adipisicing elit. Debitis
-            nesciunt fugiat sit eligendi doloribus veritatis, nemo eos incidunt
-            iusto esse fugit nobis quis, mollitia sunt sapiente dolore
-            blanditiis nulla a.
-          </Typography>
-        </AccordionDetails>
-      </Accordion>
-
-      <Accordion defaultExpanded>
-        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-          <Typography color={colors.greenAccent[500]} variant="h5">
-            Notification!
-          </Typography>
-        </AccordionSummary>
-        <AccordionDetails>
-          <Typography>
-            Lorem ipsum dolor sit amet consectetur adipisicing elit. Debitis
-            nesciunt fugiat sit eligendi doloribus veritatis, nemo eos incidunt
-            iusto esse fugit nobis quis, mollitia sunt sapiente dolore
-            blanditiis nulla a.
-          </Typography>
-        </AccordionDetails>
-      </Accordion>
+      
     </Box>
   );
 };

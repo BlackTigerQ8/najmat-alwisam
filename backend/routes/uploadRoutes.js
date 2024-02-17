@@ -2,7 +2,7 @@ const path = require("path");
 const express = require("express");
 const multer = require("multer");
 const router = express.Router();
-const User = require("../models/userModel");
+const { User } = require("../models/userModel");
 const { protect } = require("../middleware/authMiddleware");
 
 const getUploadFileName = (file) =>

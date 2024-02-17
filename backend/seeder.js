@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
-const User = require("./models/userModel");
+const { User } = require("./models/userModel");
 const { faker } = require("@faker-js/faker");
 const connectDB = require("./config/db.js");
 

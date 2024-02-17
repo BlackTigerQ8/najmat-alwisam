@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Box, IconButton, useTheme, Menu, MenuItem } from "@mui/material";
 import { useContext } from "react";
 import InputBase from "@mui/material/InputBase";
@@ -11,8 +11,9 @@ import SearchIcon from "@mui/icons-material/Search";
 import { ColorModeContext, tokens } from "../../theme";
 import Badge from "@mui/material/Badge";
 import { Link, useNavigate } from "react-router-dom";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import { getUserRoleFromToken } from "./getUserRoleFromToken";
+import { fetchNotifications } from "../../redux/notificationSlice";
 
 const Topbar = () => {
   const theme = useTheme();
@@ -22,9 +23,31 @@ const Topbar = () => {
   const userId = useSelector((state) => state.user.userInfo._id);
   const userRole =
     useSelector((state) => state.user.userRole) || getUserRoleFromToken();
+  const notifications = useSelector((state) => state.notifications.notifications);
+  const dispatch = useDispatch();
 
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
+  const intervalRef = useRef(null);
+
+  useEffect(() => {
+    dispatch(fetchNotifications()); 
+}, [dispatch]);
+
+  useEffect(() => {
+    // Fetch notifications every 15 minutes
+    const fetchNotificationsInterval = setInterval(() => {
+      dispatch(fetchNotifications());
+    }, 15 * 60 * 1000);
+
+    // Save the interval reference to clear it when the component unmounts
+    intervalRef.current = fetchNotificationsInterval;
+
+    return () => {
+      // Clear the interval when the component unmounts
+      clearInterval(fetchNotificationsInterval);
+    };
+  }, [dispatch]);
 
   const handleMenu = (event) => {
     setAnchorEl(event.currentTarget);
@@ -66,7 +89,7 @@ const Topbar = () => {
         </IconButton>
         <Link to="/notifications">
           <IconButton>
-            <Badge badgeContent={4} color="secondary" max={50}>
+            <Badge badgeContent={notifications.length ? notifications.length: undefined} color="secondary" max={50}>
               <NotificationsOutlinedIcon />
             </Badge>
           </IconButton>

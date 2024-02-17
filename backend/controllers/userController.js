@@ -1,9 +1,6 @@
-const multer = require("multer");
-const { protect, restrictTo } = require("../middleware/authMiddleware");
-const User = require("../models/userModel");
+const { User } = require("../models/userModel");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const generateToken = require("../utils/generateToken");
 
 // @desc    Get all users
 // @route   GET /api/users

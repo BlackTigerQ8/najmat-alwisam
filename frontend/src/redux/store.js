@@ -5,6 +5,7 @@ import userReducer from "./userSlice";
 import usersReducer from "./usersSlice";
 import driversReducer from "./driversSlice";
 import driverInvoiceReducer from "./driverInvoiceSlice";
+import notificationReducer from "./notificationSlice";
 
 const persistConfig = {
   key: "root",
@@ -16,6 +17,7 @@ const rootReducer = combineReducers({
   users: usersReducer,
   drivers: driversReducer,
   driverInvoice: driverInvoiceReducer,
+  notifications: notificationReducer,
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);

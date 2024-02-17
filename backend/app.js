@@ -6,6 +6,7 @@ const userRouter = require("./routes/userRoutes");
 const driverRoutes = require("./routes/driverRoutes");
 const driverInvoiceRoutes = require("./routes/driverInvoiceRoutes");
 const { router: uploadRoutes } = require("./routes/uploadRoutes");
+const notificationRoutes = require("./routes/notificationRoutes");
 
 const app = express();
 app.use(cors());
@@ -44,5 +45,6 @@ app.use("/api/users", userRouter);
 app.use("/api/drivers", driverRoutes);
 app.use("/api/driver-invoice", driverInvoiceRoutes);
 app.use("/api/upload", uploadRoutes);
+app.use("/api/notifications", notificationRoutes);
 
 module.exports = app;
