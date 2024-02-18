@@ -23,7 +23,9 @@ const Topbar = () => {
   const userId = useSelector((state) => state.user.userInfo._id);
   const userRole =
     useSelector((state) => state.user.userRole) || getUserRoleFromToken();
-  const notifications = useSelector((state) => state.notifications.notifications);
+  const notifications = useSelector(
+    (state) => state.notifications.notifications
+  );
   const dispatch = useDispatch();
 
   const [anchorEl, setAnchorEl] = useState(null);
@@ -31,8 +33,8 @@ const Topbar = () => {
   const intervalRef = useRef(null);
 
   useEffect(() => {
-    dispatch(fetchNotifications()); 
-}, [dispatch]);
+    dispatch(fetchNotifications());
+  }, [dispatch]);
 
   useEffect(() => {
     // Fetch notifications every 15 minutes
@@ -89,7 +91,13 @@ const Topbar = () => {
         </IconButton>
         <Link to="/notifications">
           <IconButton>
-            <Badge badgeContent={notifications.length ? notifications.length: undefined} color="secondary" max={50}>
+            <Badge
+              badgeContent={
+                notifications.length ? notifications.length : undefined
+              }
+              color="secondary"
+              max={50}
+            >
               <NotificationsOutlinedIcon />
             </Badge>
           </IconButton>

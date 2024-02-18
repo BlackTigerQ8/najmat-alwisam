@@ -52,7 +52,7 @@ async function addSingleDriverNotifications(driver) {
   ) {
     await addNotification({
       driverId: driver._id,
-      fieldName: "Id Card",
+      fieldName: "ID Card",
       expiryDate: idExpiryDate,
     });
   }
