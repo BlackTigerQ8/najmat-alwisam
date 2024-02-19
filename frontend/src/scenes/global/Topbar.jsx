@@ -23,9 +23,8 @@ const Topbar = () => {
   const userId = useSelector((state) => state.user.userInfo._id);
   const userRole =
     useSelector((state) => state.user.userRole) || getUserRoleFromToken();
-  const notifications = useSelector(
-    (state) => state.notifications.notifications
-  );
+
+  const notificationsCount = useSelector(state => state.notifications.count);
   const dispatch = useDispatch();
 
   const [anchorEl, setAnchorEl] = useState(null);
@@ -93,7 +92,7 @@ const Topbar = () => {
           <IconButton>
             <Badge
               badgeContent={
-                notifications.length ? notifications.length : undefined
+                notificationsCount ? notificationsCount : undefined
               }
               color="secondary"
               max={50}

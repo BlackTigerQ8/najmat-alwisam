@@ -7,6 +7,7 @@ const initialState = {
   notifications: [],
   status: "",
   error: null,
+  count: 0,
 };
 
 export const fetchNotifications = createAsyncThunk(
@@ -26,7 +27,7 @@ export const fetchNotifications = createAsyncThunk(
   }
 );
 
-// Create driver invoice
+// Create notification
 export const createNotification = createAsyncThunk(
   "notifications/createNotification",
   async ({ values }) => {
@@ -37,6 +38,28 @@ export const createNotification = createAsyncThunk(
           Authorization: `Bearer ${token}`,
         },
       });
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response.data.message || error.message);
+    }
+  }
+);
+
+// Mark all notifications read
+export const markAllNotificationsRead = createAsyncThunk(
+  "notifications/markAllNotificationsRead",
+  async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.post(
+        `${API_URL}/notifications/mark-read`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
       return response.data;
     } catch (error) {
       throw new Error(error.response.data.message || error.message);
@@ -57,12 +80,27 @@ const notificationSlice = createSlice({
       .addCase(fetchNotifications.fulfilled, (state, action) => {
         state.status = "succeeded";
         state.notifications = action.payload.data.notifications;
+        state.count = action.payload.data.notifications.length;
         state.error = null;
       })
       .addCase(fetchNotifications.rejected, (state, action) => {
         state.status = "failed";
         state.error = action.error.message;
       });
+    builder
+      .addCase(markAllNotificationsRead.pending, (state) => {
+        state.status = "loading";
+      })
+      .addCase(markAllNotificationsRead.fulfilled, (state, action) => {
+        state.status = "succeeded";
+        state.count = 0;
+        state.error = null;
+      })
+      .addCase(markAllNotificationsRead.rejected, (state, action) => {
+        state.status = "failed";
+        state.error = action.error.message;
+      });
+
     builder
       .addCase(createNotification.pending, (state) => {
         state.status = "loading";

@@ -8,6 +8,7 @@ import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { tokens } from "../theme";
 import { useSelector, useDispatch } from "react-redux";
 import { fetchDrivers } from "../redux/driversSlice";
+import { markAllNotificationsRead } from '../redux/notificationSlice'
 
 const Notifications = () => {
   const theme = useTheme();
@@ -25,6 +26,13 @@ const Notifications = () => {
     dispatch(fetchDrivers(token));
   }, [dispatch, token])
 
+useEffect(() => {
+  if(notifications.length){
+    dispatch(markAllNotificationsRead());
+  }
+}, [
+  dispatch, notifications.length
+])
 
   return (
     <Box m="20px">
