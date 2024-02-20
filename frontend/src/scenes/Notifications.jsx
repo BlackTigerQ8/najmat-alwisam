@@ -37,8 +37,8 @@ useEffect(() => {
   return (
     <Box m="20px">
       <Header title="NOTIFICATIONS" subtitle="Important Notifications Page" />
-    {notifications.map(notification => 
-      <Accordion defaultExpanded>
+    {notifications.map((notification, index) => 
+      <Accordion defaultExpanded key={index}>
         <AccordionSummary expandIcon={<ExpandMoreIcon />}>
           <Typography color={colors.greenAccent[500]} variant="h5">
             {notification.additionalDetails.fieldName} Expiration Alert!

@@ -27,6 +27,43 @@ export const fetchNotifications = createAsyncThunk(
   }
 );
 
+const getRolesForNotifications = (role) => {
+  if (role === "Admin") {
+    return [];
+  }
+
+  if (role === "Accountant") {
+    return [];
+  }
+
+  if (role === "Employee") {
+    return ["Manager"];
+  }
+
+  if (role === "Manager") {
+    return ["Admin"];
+  }
+};
+
+export const buildNotificationAlert = ({
+  driverId,
+  talabatDeductionAmount,
+  companyDeductionAmount,
+  userRole,
+  notificationRoles = undefined,
+}) => {
+  return {
+    driverId,
+    notification_type: "Deduction_Invoice",
+    additionalDetails: {
+      fieldName: "Deduction invoice",
+      talabatDeductionAmount,
+      companyDeductionAmount,
+    },
+    role: notificationRoles || getRolesForNotifications(userRole),
+  };
+};
+
 // Create notification
 export const createNotification = createAsyncThunk(
   "notifications/createNotification",
@@ -80,7 +117,7 @@ const notificationSlice = createSlice({
       .addCase(fetchNotifications.fulfilled, (state, action) => {
         state.status = "succeeded";
         state.notifications = action.payload.data.notifications;
-        state.count = action.payload.data.notifications.length;
+        state.count = action.payload.data.unreadNotificationsCount;
         state.error = null;
       })
       .addCase(fetchNotifications.rejected, (state, action) => {

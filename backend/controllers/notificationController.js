@@ -6,14 +6,19 @@ const getAllNotifications = async (req, res) => {
     const userRole = req.user.role;
     const userId = req.user.id;
 
+    const notifications = await fetchVisibleNotifications({ userRole });
+
     const unreadNotifications = await fetchUnreadNotifications({
       userRole,
       userId,
     });
 
-    return res
-      .status(200)
-      .json({ data: { notifications: unreadNotifications } });
+    return res.status(200).json({
+      data: {
+        notifications,
+        unreadNotificationsCount: unreadNotifications.length,
+      },
+    });
   } catch (error) {
     console.log("Get all notifications", error);
     res.status(500).json({
@@ -60,7 +65,7 @@ const markAllNotificationsRead = async (req, res) => {
     }));
 
     if (!unreadNotifications.length) {
-      res.status(200).json({
+      return res.status(200).json({
         status: "Success",
         message: "There are no unread notifications",
       });
@@ -68,7 +73,7 @@ const markAllNotificationsRead = async (req, res) => {
 
     await ReadNotification.insertMany(readNotifications);
 
-    res.status(200).json({
+    return res.status(200).json({
       status: "Success",
       message: "All notifications marked as read successfully",
     });
@@ -80,11 +85,15 @@ const markAllNotificationsRead = async (req, res) => {
   }
 };
 
-async function fetchUnreadNotifications({ userRole, userId }) {
-  const notifications = await Notification.find({
+async function fetchVisibleNotifications({ userRole }) {
+  return await Notification.find({
     role: userRole,
     status: "visible",
   }).sort({ createdAt: -1 });
+}
+
+async function fetchUnreadNotifications({ userRole, userId }) {
+  const notifications = await fetchVisibleNotifications({ userRole });
 
   // Fetch read notifications for the user
   const readNotifications = await ReadNotification.find({ userId });

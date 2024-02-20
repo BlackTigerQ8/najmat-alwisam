@@ -18,6 +18,7 @@ import { fetchDrivers } from "../redux/driversSlice";
 import { fetchUsers } from "../redux/usersSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { createDriverInvoice } from "../redux/driverInvoiceSlice";
+import { createNotification, buildNotificationAlert } from '../redux/notificationSlice';
 
 const initialValues = {
   deductionReason: "",
@@ -68,6 +69,8 @@ const Deduction = () => {
   const dispatch = useDispatch();
   const isNonMobile = useMediaQuery("(min-width: 600px)");
 
+  const userInfo = useSelector((state) => state.user.userInfo);
+
   const drivers = useSelector((state) => state.drivers.drivers);
   const users = useSelector((state) => state.users.users);
   const token =
@@ -89,6 +92,15 @@ const Deduction = () => {
           },
         })
       );
+
+      // TODO: Uncomment this later
+
+      // dispatch(createNotification(buildNotificationAlert({
+      //   driverId: values.selectedDriver,
+      //   talabatDeductionAmount: values.talabatDeductionAmount,
+      //   companyDeductionAmount: values.companyDeductionAmount,
+      //   role: userInfo.role
+      // })));
     } catch (error) {
       console.error("Row does not have a valid _id field:");
     }
