@@ -60,6 +60,7 @@ const userSchema = yup.object().shape({
     .required("Confirm Password is required"),
   uploadedFile: yup
     .mixed()
+    .required("required")
     .test("fileType", "Only PDF files are allowed", (value) => {
       if (!value) return true;
       return value && value.type === "application/pdf";
@@ -266,7 +267,7 @@ const Form = () => {
                   error={!!touched.role && !!errors.role}
                   helperText={touched.role && errors.role}
                 >
-                  <MenuItem value={"Admin"}>Admin</MenuItem>
+                  {/* <MenuItem value={"Admin"}>Admin</MenuItem> */}
                   <MenuItem value={"Manager"}>Manager</MenuItem>
                   <MenuItem value={"Accountant"}>Accountant</MenuItem>
                   <MenuItem value={"Employee"}>Employee</MenuItem>
