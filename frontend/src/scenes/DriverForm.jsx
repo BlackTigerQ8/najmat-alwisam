@@ -82,6 +82,7 @@ const driverSchema = yup.object().shape({
   referenceNumber: yup.number().required("required"),
   uploadedFile: yup
     .mixed()
+    .required("required")
     .test("fileType", "Only PDF files are allowed", (value) => {
       if (!value) return true;
       return value && value.type === "application/pdf";
