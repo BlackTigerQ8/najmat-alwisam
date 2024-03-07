@@ -38,7 +38,6 @@ const DeductionSalary = () => {
       renderCell: ({ row: { firstName, lastName } }) => {
         return (
           <Box
-          
             display="flex"
             justifyContent="left"
             alignItems="center"

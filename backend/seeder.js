@@ -20,10 +20,12 @@ const createAdmin = async () => {
       firstName: "Abdullah",
       lastName: "Alenezi",
       email: "admin@gmail.com",
-      password: "66850080",
-      confirmPassword: "66850080",
+      password: "112233",
+      confirmPassword: "112233",
       role: "Admin",
       passport: "P0000",
+      contractExpiryDate: "2/23/2024",
+      visa: "000",
       phone: 66850080,
       identification: "295072100108",
     });
@@ -51,7 +53,7 @@ const createRandomUsers = async () => {
       lastSequenceNumber = lastUser.sequenceNumber;
     }
 
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < 3; i++) {
       const firstName = faker.person.firstName();
       const lastName = faker.person.lastName();
       const roles = ["Accountant", "Employee"];
@@ -62,10 +64,19 @@ const createRandomUsers = async () => {
         min: 1000000000,
         max: 9999999999,
       });
+      const visa = faker.datatype.number({
+        min: 1000000000,
+        max: 9999999999,
+      });
+      const contractExpiryDate = faker.datatype.datetime({
+        min: 1000000000,
+        max: 9999999999,
+      });
       const passport = faker.datatype
         .number({ min: 1000000, max: 9999999 })
         .toString();
-      const password = "12341234";
+      const password = "123123";
+      // const file = User.file;
 
       const hashedPassword = await bcrypt.hash(password, 12);
       const sequenceNumber = lastSequenceNumber + 1;
@@ -77,10 +88,13 @@ const createRandomUsers = async () => {
         email,
         phone,
         identification,
+        visa,
+        contractExpiryDate,
         role,
         passport,
         password: hashedPassword,
         confirmPassword: hashedPassword,
+        // file,
       });
 
       await newUser.save();
@@ -96,5 +110,5 @@ const createRandomUsers = async () => {
   }
 };
 
-createRandomUsers();
-// createAdmin();
+// createRandomUsers();
+createAdmin();

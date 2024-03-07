@@ -157,5 +157,5 @@ const deleteAllDrivers = async () => {
   }
 };
 
-createRandomDrivers();
-// deleteAllDrivers();
+// createRandomDrivers();
+deleteAllDrivers();

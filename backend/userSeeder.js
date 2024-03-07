@@ -80,5 +80,5 @@ const deleteAllUsers = async () => {
   }
 };
 
-createRandomUsers();
-// deleteAllUsers();
+// createRandomUsers();
+deleteAllUsers();

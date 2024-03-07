@@ -25,55 +25,72 @@ const DriversSalary = () => {
     {
       field: "sequenceNumber",
       headerName: "NO.",
+      flex: 0.25,
     },
     {
       field: "name",
       headerName: "Name",
-      flex: 0.25,
+      flex: 0.5,
       cellClassName: "name-column--cell",
       renderCell: ({ row: { firstName, lastName } }) => {
         return (
-          <Box
-            display="flex"
-            justifyContent="center"
-            borderRadius="4px"
-          >
+          <Box display="flex" justifyContent="center" borderRadius="4px">
             {firstName} {lastName}
           </Box>
         );
       },
     },
     {
-      field: "email",
-      headerName: "Email",
-      flex:0.25
+      field: "vehicle",
+      headerName: "Vehicle Type",
+      flex: 0.75,
+      headerAlign: "center",
+      align: "center",
     },
     {
-      field: "phone",
-      headerName: "Phone Number",
+      field: "mainOrders", // NEW
+      headerName: "Main Orders",
+      headerAlign: "center",
+      align: "center",
     },
     {
-      field: "idNumber",
-      headerName: "Civil ID",
+      field: "additionalOrders", // NEW
+      headerName: "Additional Orders",
       type: Number,
-      headerAlign: "left",
-      align: "left",
+      editable: true,
+      headerAlign: "center",
+      align: "center",
     },
     {
-      field: "cost",
-      headerName: "Cost",
-      editable: true,
+      field: "totalOrders", // NEW (main  + additional)
+      headerName: "Total Orders",
       type: Number,
+      flex: 0.75,
+      headerAlign: "center",
+      align: "center",
     },
     {
-      field: "hour",
-      headerName: "Hours",
+      field: "salaryBasedOnMainOrders", // NEW
+      headerName: "Salary (Main Orders)",
       editable: true,
+      flex: 1,
+      headerAlign: "center",
+      align: "center",
     },
     {
-      field: "order",
-      headerName: "Orders",
+      field: "salaryBasedOnAdditionalOrders", // NEW
+      headerName: "Salary (Additional Orders)",
       editable: true,
+      flex: 1,
+      headerAlign: "center",
+      align: "center",
+    },
+    {
+      field: "finalSalary", // NEW
+      headerName: "Final Salary",
+      editable: true,
+      headerAlign: "center",
+      align: "center",
     },
     {
       field: "actions",
@@ -179,12 +196,6 @@ const DriversSalary = () => {
           "& .MuiDataGrid-footerContainer": {
             borderTop: "none",
             backgroundColor: colors.blueAccent[700],
-          },
-          "& .MuiDataGrid-toolbarContainer .MuiButton-text": {
-            color: `${colors.grey[100]} !important`,
-          },
-          "& .MuiCheckbox-root": {
-            color: `${colors.greenAccent[200]} !important`,
           },
         }}
       >

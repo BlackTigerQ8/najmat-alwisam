@@ -52,7 +52,6 @@ const EmployeesSalary = () => {
       field: "mainSalary",
       headerName: "Main Salary",
       flex: 0.75,
-      editable: true,
       type: Number,
     },
     {
