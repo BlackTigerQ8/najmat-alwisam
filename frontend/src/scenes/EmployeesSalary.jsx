@@ -68,13 +68,6 @@ const EmployeesSalary = () => {
       type: Number,
     },
     {
-      field: "talabatDeductionAmount",
-      headerName: "Talabat Deduction",
-      flex: 1,
-      editable: true,
-      type: Number,
-    },
-    {
       field: "companyDeductionAmount",
       headerName: "Company Deduction",
       flex: 1,

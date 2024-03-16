@@ -3,6 +3,7 @@ import { Box, Button, TextField, Typography, useTheme } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
 import { loginUser } from "../redux/userSlice";
 import { tokens } from "../theme";
+import { pulsar } from "ldrs";
 
 const Login = () => {
   const theme = useTheme();
@@ -23,6 +24,26 @@ const Login = () => {
     e.preventDefault();
     dispatch(loginUser(credentials));
   };
+
+  pulsar.register();
+  if (status === "loading") {
+    return (
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100vh",
+        }}
+      >
+        <l-pulsar
+          size="70"
+          speed="1.75"
+          color={colors.greenAccent[500]}
+        ></l-pulsar>
+      </div>
+    );
+  }
 
   return (
     <Box

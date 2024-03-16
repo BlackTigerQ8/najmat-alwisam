@@ -15,7 +15,7 @@ const router = express.Router();
 
 router
   .route("/")
-  .get(protect, restrictTo("Admin", "Manager", "Accountant"), getAllUsers)
+  .get(protect, getAllUsers)
   .post(
     protect,
     restrictTo("Admin", "Manager"),
@@ -25,7 +25,12 @@ router
 router
   .route("/:id")
   .get(protect, getUser)
-  .patch(protect, contractUpload.single("uploadedFile"), updateUser)
+  .patch(
+    protect,
+    restrictTo("Admin", "Manager"),
+    contractUpload.single("uploadedFile"),
+    updateUser
+  )
   .delete(protect, restrictTo("Admin", "Manager"), deleteUser);
 router.post("/logout", protect, logoutUser);
 router.post("/login", loginUser);

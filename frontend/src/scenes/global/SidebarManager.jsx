@@ -7,6 +7,7 @@ import { tokens } from "../../theme";
 import HomeOutlinedIcon from "@mui/icons-material/HomeOutlined";
 import NotificationsActiveOutlinedIcon from "@mui/icons-material/NotificationsActiveOutlined";
 import PeopleOutlinedIcon from "@mui/icons-material/PeopleOutlined";
+import PersonOutlinedIcon from "@mui/icons-material/PersonOutlined";
 import ContactsOutlinedIcon from "@mui/icons-material/ContactsOutlined";
 import MoneyOffIcon from "@mui/icons-material/MoneyOff";
 import MenuOutlinedIcon from "@mui/icons-material/MenuOutlined";
@@ -177,9 +178,30 @@ const SidebarM = () => {
               Pages
             </Typography>
             <Item
+              title="Manage Team"
+              to="/team"
+              icon={<PeopleOutlinedIcon />}
+              selected={selected}
+              setSelected={setSelected}
+            />
+            <Item
               title="Manage Drivers"
               to="/drivers"
               icon={<PeopleOutlinedIcon />}
+              selected={selected}
+              setSelected={setSelected}
+            />
+            <Typography
+              variant="h6"
+              color={colors.grey[300]}
+              sx={{ m: "15px 0 5px 20px" }}
+            >
+              Forms
+            </Typography>
+            <Item
+              title="Profile Form"
+              to="/form"
+              icon={<PersonOutlinedIcon />}
               selected={selected}
               setSelected={setSelected}
             />
@@ -204,6 +226,13 @@ const SidebarM = () => {
               selected={selected}
               setSelected={setSelected}
             />
+            <Typography
+              variant="h6"
+              color={colors.grey[300]}
+              sx={{ m: "15px 0 5px 20px" }}
+            >
+              Notifications
+            </Typography>
             <Item
               title="Notifications"
               to="/notifications"

@@ -9,14 +9,17 @@ import {
   FormControl,
   Input,
   Typography,
+  useTheme,
 } from "@mui/material";
 
 import { ErrorMessage, Formik } from "formik";
 import * as yup from "yup";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import Header from "../components/Header";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { registerDriver } from "../redux/driversSlice";
+import { tokens } from "../theme";
+import { pulsar } from "ldrs";
 
 const formatDate = (date) => {
   const formattedDate = new Date(date);
@@ -92,6 +95,9 @@ const driverSchema = yup.object().shape({
 const DriverForm = () => {
   const isNonMobile = useMediaQuery("(min-width: 600px)");
   const dispatch = useDispatch();
+  const { status, error } = useSelector((state) => state.user);
+  const theme = useTheme();
+  const colors = tokens(theme.palette.mode);
 
   const handleSubmit = async (values) => {
     const formData = new FormData();
@@ -109,6 +115,26 @@ const DriverForm = () => {
       console.error("Error registering driver:", error.message);
     }
   };
+
+  pulsar.register();
+  if (status === "loading") {
+    return (
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100vh",
+        }}
+      >
+        <l-pulsar
+          size="70"
+          speed="1.75"
+          color={colors.greenAccent[500]}
+        ></l-pulsar>
+      </div>
+    );
+  }
 
   return (
     <Box m="20px">

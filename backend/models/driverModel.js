@@ -24,6 +24,7 @@ const driverSchema = new mongoose.Schema({
   email: {
     type: String,
     trim: true,
+    unique: false,
   },
   idNumber: {
     type: Number,
@@ -82,7 +83,7 @@ const driverSchema = new mongoose.Schema({
     required: [true, "Phone Contract Number is required"],
   },
   iban: {
-    type: Number,
+    type: String,
     required: [true, "IBAN is required"],
   },
   vehicle: {

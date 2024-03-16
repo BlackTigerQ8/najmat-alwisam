@@ -35,10 +35,8 @@ import UserProfile from "./scenes/UserProfile";
 import Notifications from "./scenes/Notifications";
 import Deduction from "./scenes/Deduction";
 import AccountantDashboard from "./scenes/dashboard/AccountantDashboard";
-import DeductionSalary from "./scenes/DeductionSalary";
 import CoSpends from "./scenes/CoSpends";
 import PettyCash from "./scenes/PettyCash";
-import SpendsList from "./scenes/SpendsList";
 import DriversSalary from "./scenes/DriversSalary";
 import EmployeesSalary from "./scenes/EmployeesSalary";
 import AdminInvoices from "./scenes/AdminInvoices";
@@ -162,11 +160,7 @@ function App() {
                         element={<CoSpends />}
                       />
                       <Route exact path="/pt-cash" element={<PettyCash />} />
-                      <Route
-                        exact
-                        path="/spends-list"
-                        element={<SpendsList />}
-                      />
+
                       <Route
                         exact
                         path="/accountant-dashboard"
@@ -187,12 +181,6 @@ function App() {
                   <Route exact path="/faq" element={<Faq />} />
                   <Route exact path="/geography" element={<Geography />} />
                   <Route exact path="/calendar" element={<Calendar />} />
-
-                  <Route
-                    exact
-                    path="/deduction-salary"
-                    element={<DeductionSalary />}
-                  />
                 </>
               ) : (
                 <Route path="/login" element={<Login />} />

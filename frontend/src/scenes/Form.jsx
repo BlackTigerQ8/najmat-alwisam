@@ -9,6 +9,7 @@ import {
   FormControl,
   Input,
   Typography,
+  useTheme,
 } from "@mui/material";
 
 import { ErrorMessage, Formik } from "formik";
@@ -16,8 +17,10 @@ import * as yup from "yup";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import Header from "../components/Header";
 import { registerUser } from "../redux/userSlice";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import { tokens } from "../theme";
+import { pulsar } from "ldrs";
 
 const initialValues = {
   firstName: "",
@@ -40,7 +43,7 @@ const phoneRegExp =
 const userSchema = yup.object().shape({
   firstName: yup.string().required("required"),
   lastName: yup.string().required("required"),
-  email: yup.string().email("Invalid email!").required("required"),
+  email: yup.string().email("Invalid email!"),
   phone: yup
     .string()
     .matches(phoneRegExp, "Phone number is not valid!")
@@ -71,6 +74,9 @@ const Form = () => {
   const isNonMobile = useMediaQuery("(min-width: 600px)");
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const { status, error } = useSelector((state) => state.user);
+  const theme = useTheme();
+  const colors = tokens(theme.palette.mode);
 
   const handleFormSubmit = async (values) => {
     try {
@@ -90,6 +96,26 @@ const Form = () => {
       console.error("Error registering user:", error.message);
     }
   };
+
+  pulsar.register();
+  if (status === "loading") {
+    return (
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100vh",
+        }}
+      >
+        <l-pulsar
+          size="70"
+          speed="1.75"
+          color={colors.greenAccent[500]}
+        ></l-pulsar>
+      </div>
+    );
+  }
 
   return (
     <Box m="20px">

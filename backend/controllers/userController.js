@@ -91,7 +91,11 @@ const createUser = async (req, res) => {
 const updateUser = async (req, res) => {
   try {
     // Check if the user is accessing their own data or is an admin
-    if (req.user.id !== req.params.id && req.user.role !== "Admin") {
+    if (
+      req.user.id !== req.params.id &&
+      req.user.role !== "Admin" &&
+      req.user.role !== "Manager"
+    ) {
       return res.status(403).json({
         status: "Error",
         message: "You do not have permission to perform this action",

@@ -191,15 +191,8 @@ const SidebarA = () => {
               setSelected={setSelected}
             />
             <Item
-              title="Drivers Deduction"
-              to="/deduction-salary"
-              icon={<MoneyOffIcon />}
-              selected={selected}
-              setSelected={setSelected}
-            />
-            <Item
-              title="Employees Deduction"
-              to="/deduction-salary"
+              title="Deductions"
+              to="/deduction"
               icon={<MoneyOffIcon />}
               selected={selected}
               setSelected={setSelected}
@@ -215,13 +208,6 @@ const SidebarA = () => {
               title="Petty Cash"
               to="/pt-cash"
               icon={<AttachMoneyOutlinedIcon />}
-              selected={selected}
-              setSelected={setSelected}
-            />
-            <Item
-              title="Spends List"
-              to="/spends-list"
-              icon={<ListOutlinedIcon />}
               selected={selected}
               setSelected={setSelected}
             />

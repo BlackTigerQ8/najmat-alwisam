@@ -334,7 +334,7 @@ const UserProfile = () => {
                   error={!!touched.role && !!errors.role}
                   helperText={touched.role && errors.role}
                 >
-                  <MenuItem value={"Admin"}>Admin</MenuItem>
+                  {/* <MenuItem value={"Admin"}>Admin</MenuItem> */}
                   <MenuItem value={"Manager"}>Manager</MenuItem>
                   <MenuItem value={"Accountant"}>Accountant</MenuItem>
                   <MenuItem value={"Employee"}>Employee</MenuItem>
