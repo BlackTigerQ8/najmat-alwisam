@@ -1,5 +1,7 @@
 const Driver = require("../models/driverModel");
 const DriverInvoice = require("../models/driverInvoiceModel");
+const Notification = require("../models/notificationModel");
+const ReadNotification = require("../models/readNotificationModel");
 const { User } = require("../models/userModel");
 const { addSingleDriverNotifications } = require("../services/driverService");
 
@@ -104,6 +106,21 @@ const updateDriver = async (req, res) => {
 // @access  Private/Admin_and_Employee
 const deleteDriver = async (req, res) => {
   try {
+    const driverId = req.params.id;
+    const notifications = await Notification.find({ driverId });
+
+    const notificationIds = notifications.map(
+      (notification) => notification._id
+    );
+
+    await ReadNotification.deleteMany({
+      notificationId: { $in: notificationIds },
+    });
+
+    await Notification.deleteMany({ driverId });
+
+    await DriverInvoice.deleteMany({ driver: driverId });
+
     await Driver.findByIdAndDelete(req.params.id);
     res.status(204).json({
       status: "Success",
