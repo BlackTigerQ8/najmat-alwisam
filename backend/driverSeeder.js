@@ -44,15 +44,19 @@ const createRandomDrivers = async () => {
         min: 1000000000,
         max: 9999999999,
       });
-      const contractNumber = faker.datatype.number({
-        min: 1000000000,
-        max: 9999999999,
-      });
-      const carInsurance = faker.datatype.number({
+      const driverLicenseExpiryDate = faker.datatype.number({
         min: 1000000000,
         max: 9999999999,
       });
       const carPlateNumber = faker.datatype.number({
+        min: 1000000000,
+        max: 9999999999,
+      });
+      const carRegisteration = faker.datatype.number({
+        min: 1000000000,
+        max: 9999999999,
+      });
+      const carRegisterationExpiryDate = faker.datatype.number({
         min: 1000000000,
         max: 9999999999,
       });
@@ -64,7 +68,7 @@ const createRandomDrivers = async () => {
         min: 1000000000,
         max: 9999999999,
       });
-      const healthInsuranceDate = faker.datatype.number({
+      const gasCard = faker.datatype.number({
         min: 1000000000,
         max: 9999999999,
       });
@@ -81,6 +85,10 @@ const createRandomDrivers = async () => {
         max: 9999999999,
       });
       const iban = faker.datatype.number({
+        min: 1000000000,
+        max: 9999999999,
+      });
+      const talabatId = faker.datatype.number({
         min: 1000000000,
         max: 9999999999,
       });
@@ -114,20 +122,21 @@ const createRandomDrivers = async () => {
         idExpiryDate,
         passportNumber,
         passportExpiryDate,
-        visa,
         contractExpiryDate,
-        carInsurance,
+        driverLicenseExpiryDate,
         carPlateNumber,
+        carRegisteration,
+        carRegisterationExpiryDate,
         driverLicense,
         workPass,
-        healthInsuranceDate,
+        gasCard,
         healthInsuranceExpiryDate,
         phoneSerialNumber,
         phoneContractNumber,
         iban,
         vehicle,
         contractType,
-        referenceNumber,
+        talabatId,
         mainSalary,
       });
 

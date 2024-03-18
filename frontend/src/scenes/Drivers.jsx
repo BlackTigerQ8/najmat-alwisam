@@ -40,11 +40,7 @@ const Drivers = () => {
       cellClassName: "name-column--cell",
       renderCell: ({ row: { firstName, lastName } }) => {
         return (
-          <Box
-            display="flex"
-            justifyContent="center"
-            borderRadius="4px"
-          >
+          <Box display="flex" justifyContent="center" borderRadius="4px">
             {firstName} {lastName}
           </Box>
         );
@@ -153,7 +149,42 @@ const Drivers = () => {
           fontSize: "18px",
         }}
       >
+        <Box
+          display="flex"
+          flexDirection="column"
+          justifyContent="end"
+          mt="20px"
+        >
+          Error: {error}
+          <Button
+            style={{ marginTop: "24px" }}
+            type="submit"
+            color="secondary"
+            variant="contained"
+            onClick={() => navigate("/drivers")}
+          >
+            Back to Drivers page
+          </Button>
+        </Box>
+      </div>
+    );
+  }
+
+  if (status === "failed") {
+    return (
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100vh",
+          fontSize: "18px",
+        }}
+      >
         Error: {error}
+        <Button type="submit" color="secondary" variant="contained">
+          Back to Drivers page
+        </Button>
       </div>
     );
   }

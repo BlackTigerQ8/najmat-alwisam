@@ -24,7 +24,6 @@ const driverSchema = new mongoose.Schema({
   email: {
     type: String,
     trim: true,
-    unique: false,
   },
   idNumber: {
     type: Number,
@@ -42,32 +41,32 @@ const driverSchema = new mongoose.Schema({
     type: Date,
     required: [true, "Please enter passport expiry date"],
   },
-  visa: {
-    type: String,
-    required: [true, "Please enter VISA number"],
-  },
   contractExpiryDate: {
     type: Date,
     required: [true, "Please enter contract number"],
   },
-  carInsurance: {
-    type: String,
+  driverLicenseExpiryDate: {
+    type: Date,
     required: [true, "Car insurance is required"],
   },
   carPlateNumber: {
     type: String,
     required: [true, "Car plate number is required"],
   },
-  driverLicense: {
+  carRegisteration: {
     type: String,
-    required: [true, "Driver license is required"],
+    required: [true, "Car registeration is required"],
+  },
+  carRegisterationExpiryDate: {
+    type: Date,
+    required: [true, "Car registeration expiry date is required"],
   },
   workPass: {
     type: String,
     required: [true, "Work pass is required"],
   },
-  healthInsuranceDate: {
-    type: Date,
+  gasCard: {
+    type: Number,
     required: [true, "Enter Health Insurance Date"],
   },
   healthInsuranceExpiryDate: {
@@ -96,11 +95,15 @@ const driverSchema = new mongoose.Schema({
     enum: ["Talabat", "Others"],
     required: true,
   },
-  referenceNumber: {
-    type: Number,
-    required: [true, "Reference Number is required"],
+  talabatId: {
+    type: String,
+    required: true,
   },
-  mainSalary: { type: Number, default: 0 },
+  mainSalary: {
+    type: Number,
+    default: 0,
+    required: [true, "Main salary is required"],
+  },
   file: {
     type: String,
     required: [true, "File upload is required"],

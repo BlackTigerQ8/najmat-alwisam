@@ -19,7 +19,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { pulsar } from "ldrs";
 import { ErrorMessage, Formik } from "formik";
 import { updateDriver } from "../redux/driversSlice";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import * as Yup from "yup";
 
 const DriverProfile = ({ driverId }) => {
@@ -30,6 +30,7 @@ const DriverProfile = ({ driverId }) => {
   const drivers = useSelector((state) => state.drivers.drivers ?? []);
   const params = useParams();
   const driverInfo = drivers.find((d) => d._id === params.id);
+  const navigate = useNavigate();
 
   const status = useSelector((state) => state.drivers.status);
   const error = useSelector((state) => state.drivers.error);
@@ -37,25 +38,27 @@ const DriverProfile = ({ driverId }) => {
   const initialValues = driverInfo || {
     firstName: "",
     lastName: "",
-    email: undefined,
-    phone: "",
-    idNumber: "",
+    email: "",
+    phone: 0,
+    idNumber: 0,
     idExpiryDate: "",
     passportNumber: "",
     passportExpiryDate: "",
-    visa: "",
     contractExpiryDate: "",
-    carInsurance: "",
+    driverLicenseExpiryDate: "",
     carPlateNumber: "",
+    carRegisteration: "",
+    carRegisterationExpiryDate: "",
     driverLicense: "",
     workPass: "",
-    healthInsuranceDate: "",
+    gasCard: 0,
     healthInsuranceExpiryDate: "",
     phoneSerialNumber: "",
     iban: "",
     vehicle: "",
     contractType: "",
-    referenceNumber: "",
+    talabatId: "",
+    mainSalary: 0,
     file: "",
   };
 
@@ -69,36 +72,6 @@ const DriverProfile = ({ driverId }) => {
       }
     ),
   });
-
-  pulsar.register();
-  if (status === "loading") {
-    return (
-      <l-trefoil
-        size="40"
-        stroke="4"
-        stroke-length="0.15"
-        bg-opacity="0.1"
-        speed="1.4"
-        color="black"
-      ></l-trefoil>
-    );
-  }
-
-  if (status === "failed") {
-    return (
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          height: "100vh",
-          fontSize: "18px",
-        }}
-      >
-        Error: {error}
-      </div>
-    );
-  }
 
   const handleFormSubmit = async (values) => {
     try {
@@ -130,6 +103,58 @@ const DriverProfile = ({ driverId }) => {
       window.open(fileUrl, "_blank");
     }
   };
+
+  pulsar.register();
+  if (status === "loading") {
+    return (
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100vh",
+        }}
+      >
+        <l-pulsar
+          size="70"
+          speed="1.75"
+          color={colors.greenAccent[500]}
+        ></l-pulsar>
+      </div>
+    );
+  }
+
+  if (status === "failed") {
+    return (
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100vh",
+          fontSize: "18px",
+        }}
+      >
+        <Box
+          display="flex"
+          flexDirection="column"
+          justifyContent="end"
+          mt="20px"
+        >
+          Error: {error}
+          <Button
+            style={{ marginTop: "24px" }}
+            type="submit"
+            color="secondary"
+            variant="contained"
+            onClick={() => navigate("/drivers")}
+          >
+            Back to Drivers page
+          </Button>
+        </Box>
+      </div>
+    );
+  }
 
   return (
     <Box m="20px">
@@ -202,7 +227,7 @@ const DriverProfile = ({ driverId }) => {
               <TextField
                 fullWidth
                 variant="filled"
-                type="text"
+                type="number"
                 label="Phone Number"
                 onBlur={handleBlur}
                 onChange={handleChange}
@@ -215,7 +240,7 @@ const DriverProfile = ({ driverId }) => {
               <TextField
                 fullWidth
                 variant="filled"
-                type="text"
+                type="number"
                 label="ID Number"
                 onBlur={handleBlur}
                 onChange={handleChange}
@@ -281,19 +306,6 @@ const DriverProfile = ({ driverId }) => {
               <TextField
                 fullWidth
                 variant="filled"
-                type="text"
-                label="VISA Number"
-                onBlur={handleBlur}
-                onChange={handleChange}
-                value={values.visa}
-                name="visa"
-                error={!!touched.visa && !!errors.visa}
-                helperText={touched.visa && errors.visa}
-                sx={{ gridColumn: "span 2" }}
-              />
-              <TextField
-                fullWidth
-                variant="filled"
                 type="date"
                 label="Contract Expiry Date"
                 onBlur={handleBlur}
@@ -319,14 +331,26 @@ const DriverProfile = ({ driverId }) => {
               <TextField
                 fullWidth
                 variant="filled"
-                type="text"
-                label="Car Insurance"
+                type="date"
+                label="Driver License Expiry Date"
                 onBlur={handleBlur}
                 onChange={handleChange}
-                value={values.carInsurance}
-                name="carInsurance"
-                error={!!touched.carInsurance && !!errors.carInsurance}
-                helperText={touched.carInsurance && errors.carInsurance}
+                value={
+                  values.contractExpiryDate
+                    ? new Date(values.driverLicenseExpiryDate)
+                        .toISOString()
+                        .split("T")[0]
+                    : ""
+                }
+                name="driverLicenseExpiryDate"
+                error={
+                  !!touched.driverLicenseExpiryDate &&
+                  !!errors.driverLicenseExpiryDate
+                }
+                helperText={
+                  touched.driverLicenseExpiryDate &&
+                  errors.driverLicenseExpiryDate
+                }
                 sx={{ gridColumn: "span 2" }}
               />
               <TextField
@@ -346,13 +370,32 @@ const DriverProfile = ({ driverId }) => {
                 fullWidth
                 variant="filled"
                 type="text"
-                label="Driver License"
+                label="Car Registeration"
                 onBlur={handleBlur}
                 onChange={handleChange}
-                value={values.driverLicense}
-                name="driverLicense"
-                error={!!touched.driverLicense && !!errors.driverLicense}
-                helperText={touched.driverLicense && errors.driverLicense}
+                value={values.carRegisteration}
+                name="carRegisteration"
+                error={!!touched.carRegisteration && !!errors.carRegisteration}
+                helperText={touched.carRegisteration && errors.carRegisteration}
+                sx={{ gridColumn: "span 2" }}
+              />
+              <TextField
+                fullWidth
+                variant="filled"
+                type="date"
+                label="Car Registeration Expiry Date"
+                onBlur={handleBlur}
+                onChange={handleChange}
+                value={values.carRegisterationExpiryDate}
+                name="carRegisterationExpiryDate"
+                error={
+                  !!touched.carRegisterationExpiryDate &&
+                  !!errors.carRegisterationExpiryDate
+                }
+                helperText={
+                  touched.carRegisterationExpiryDate &&
+                  errors.carRegisterationExpiryDate
+                }
                 sx={{ gridColumn: "span 2" }}
               />
               <TextField
@@ -371,24 +414,14 @@ const DriverProfile = ({ driverId }) => {
               <TextField
                 fullWidth
                 variant="filled"
-                type="date"
-                label="Health Insurance Date"
+                type="number"
+                label="Gas Card Number"
                 onBlur={handleBlur}
                 onChange={handleChange}
-                value={
-                  values.healthInsuranceDate
-                    ? new Date(values.healthInsuranceDate)
-                        .toISOString()
-                        .split("T")[0]
-                    : ""
-                }
-                name="healthInsuranceDate"
-                error={
-                  !!touched.healthInsuranceDate && !!errors.healthInsuranceDate
-                }
-                helperText={
-                  touched.healthInsuranceDate && errors.healthInsuranceDate
-                }
+                value={values.gasCard}
+                name="gasCard"
+                error={!!touched.gasCard && !!errors.gasCard}
+                helperText={touched.gasCard && errors.gasCard}
                 sx={{ gridColumn: "span 2" }}
               />
               <TextField
@@ -505,13 +538,26 @@ const DriverProfile = ({ driverId }) => {
                 fullWidth
                 variant="filled"
                 type="text"
-                label="Reference Number"
+                label="Talabat ID"
                 onBlur={handleBlur}
                 onChange={handleChange}
-                value={values.referenceNumber}
-                name="referenceNumber"
-                error={!!touched.referenceNumber && !!errors.referenceNumber}
-                helperText={touched.referenceNumber && errors.referenceNumber}
+                value={values.talabatId}
+                name="talabatId"
+                error={!!touched.talabatId && !!errors.talabatId}
+                helperText={touched.talabatId && errors.talabatId}
+                sx={{ gridColumn: "span 2" }}
+              />
+              <TextField
+                fullWidth
+                variant="filled"
+                type="number"
+                label="mainSalary"
+                onBlur={handleBlur}
+                onChange={handleChange}
+                value={values.mainSalary}
+                name="mainSalary"
+                error={!!touched.mainSalary && !!errors.mainSalary}
+                helperText={touched.mainSalary && errors.mainSalary}
                 sx={{ gridColumn: "span 2" }}
               />
               <FormControl fullWidth sx={{ gridColumn: "span 2" }}>

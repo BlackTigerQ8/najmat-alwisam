@@ -38,19 +38,20 @@ const initialValues = {
   idExpiryDate: "",
   passportNumber: "",
   passportExpiryDate: "",
-  visa: "",
   contractExpiryDate: "",
-  carInsurance: "",
+  driverLicenseExpiryDate: "",
   carPlateNumber: "",
-  driverLicense: "",
+  carRegisteration: "",
+  carRegisterationExpiryDate: "",
   workPass: "",
-  healthInsuranceDate: "",
+  gasCard: 0,
   healthInsuranceExpiryDate: "",
   phoneSerialNumber: "",
   iban: "",
   vehicle: "",
   contractType: "",
-  referenceNumber: "",
+  talabatId: "",
+  mainSalary: 0,
   file: "",
 };
 
@@ -69,20 +70,21 @@ const driverSchema = yup.object().shape({
   idExpiryDate: yup.string().required("required"),
   passportNumber: yup.string().required("required"),
   passportExpiryDate: yup.string().required("required"),
-  visa: yup.string().required("required"),
   contractExpiryDate: yup.string().required("required"),
   vehicle: yup.string().required("required"),
-  carInsurance: yup.string().required("required"),
+  driverLicenseExpiryDate: yup.string().required("required"),
   carPlateNumber: yup.string().required("required"),
-  driverLicense: yup.string().required("required"),
+  carRegisteration: yup.string().required("required"),
+  carRegisterationExpiryDate: yup.string().required("required"),
   workPass: yup.string().required("required"),
   contractType: yup.string().required("required"),
-  healthInsuranceDate: yup.string().required("required"),
+  talabatId: yup.string().required("required"),
+  mainSalary: yup.number().required("required"),
+  gasCard: yup.number().required("required"),
   healthInsuranceExpiryDate: yup.string().required("required"),
   iban: yup.string().required("required"),
   phoneSerialNumber: yup.string().required("required"),
   phoneContractNumber: yup.string().required("required"),
-  referenceNumber: yup.number().required("required"),
   uploadedFile: yup
     .mixed()
     .required("required")
@@ -132,6 +134,22 @@ const DriverForm = () => {
           speed="1.75"
           color={colors.greenAccent[500]}
         ></l-pulsar>
+      </div>
+    );
+  }
+
+  if (status === "failed") {
+    return (
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100vh",
+          fontSize: "18px",
+        }}
+      >
+        Error: {error}
       </div>
     );
   }
@@ -205,7 +223,7 @@ const DriverForm = () => {
               <TextField
                 fullWidth
                 variant="filled"
-                type="text"
+                type="number"
                 label="Phone Number"
                 onBlur={handleBlur}
                 onChange={handleChange}
@@ -218,7 +236,7 @@ const DriverForm = () => {
               <TextField
                 fullWidth
                 variant="filled"
-                type="text"
+                type="number"
                 label="ID Number"
                 onBlur={handleBlur}
                 onChange={handleChange}
@@ -274,19 +292,6 @@ const DriverForm = () => {
               <TextField
                 fullWidth
                 variant="filled"
-                type="text"
-                label="VISA Number"
-                onBlur={handleBlur}
-                onChange={handleChange}
-                value={values.visa}
-                name="visa"
-                error={!!touched.visa && !!errors.visa}
-                helperText={touched.visa && errors.visa}
-                sx={{ gridColumn: "span 2" }}
-              />
-              <TextField
-                fullWidth
-                variant="filled"
                 type="date"
                 label="Contract Expiry Date"
                 onBlur={handleBlur}
@@ -304,14 +309,52 @@ const DriverForm = () => {
               <TextField
                 fullWidth
                 variant="filled"
-                type="text"
-                label="Car Insurance"
+                type="date"
+                label="Driver License Expiry Date"
                 onBlur={handleBlur}
                 onChange={handleChange}
-                value={values.carInsurance}
-                name="carInsurance"
-                error={!!touched.carInsurance && !!errors.carInsurance}
-                helperText={touched.carInsurance && errors.carInsurance}
+                value={values.driverLicenseExpiryDate}
+                name="driverLicenseExpiryDate"
+                error={
+                  !!touched.driverLicenseExpiryDate &&
+                  !!errors.driverLicenseExpiryDate
+                }
+                helperText={
+                  touched.driverLicenseExpiryDate &&
+                  errors.driverLicenseExpiryDate
+                }
+                sx={{ gridColumn: "span 2" }}
+              />
+              <TextField
+                fullWidth
+                variant="filled"
+                type="text"
+                label="Car Registeration"
+                onBlur={handleBlur}
+                onChange={handleChange}
+                value={values.carRegisteration}
+                name="carRegisteration"
+                error={!!touched.carRegisteration && !!errors.carRegisteration}
+                helperText={touched.carRegisteration && errors.carRegisteration}
+                sx={{ gridColumn: "span 2" }}
+              />
+              <TextField
+                fullWidth
+                variant="filled"
+                type="date"
+                label="Car Registeration Expiry Date"
+                onBlur={handleBlur}
+                onChange={handleChange}
+                value={values.carRegisterationExpiryDate}
+                name="carRegisterationExpiryDate"
+                error={
+                  !!touched.carRegisterationExpiryDate &&
+                  !!errors.carRegisterationExpiryDate
+                }
+                helperText={
+                  touched.carRegisterationExpiryDate &&
+                  errors.carRegisterationExpiryDate
+                }
                 sx={{ gridColumn: "span 2" }}
               />
               <TextField
@@ -331,19 +374,6 @@ const DriverForm = () => {
                 fullWidth
                 variant="filled"
                 type="text"
-                label="Driver License"
-                onBlur={handleBlur}
-                onChange={handleChange}
-                value={values.driverLicense}
-                name="driverLicense"
-                error={!!touched.driverLicense && !!errors.driverLicense}
-                helperText={touched.driverLicense && errors.driverLicense}
-                sx={{ gridColumn: "span 2" }}
-              />
-              <TextField
-                fullWidth
-                variant="filled"
-                type="text"
                 label="Work Pass"
                 onBlur={handleBlur}
                 onChange={handleChange}
@@ -356,18 +386,14 @@ const DriverForm = () => {
               <TextField
                 fullWidth
                 variant="filled"
-                type="date"
-                label="Health Insurance Date"
+                type="number"
+                label="Gas Card Number"
                 onBlur={handleBlur}
                 onChange={handleChange}
-                value={values.healthInsuranceDate}
-                name="healthInsuranceDate"
-                error={
-                  !!touched.healthInsuranceDate && !!errors.healthInsuranceDate
-                }
-                helperText={
-                  touched.healthInsuranceDate && errors.healthInsuranceDate
-                }
+                value={values.gasCard}
+                name="gasCard"
+                error={!!touched.gasCard && !!errors.gasCard}
+                helperText={touched.gasCard && errors.gasCard}
                 sx={{ gridColumn: "span 2" }}
               />
               <TextField
@@ -436,6 +462,19 @@ const DriverForm = () => {
                 helperText={touched.iban && errors.iban}
                 sx={{ gridColumn: "span 2" }}
               />
+              <TextField
+                fullWidth
+                variant="filled"
+                type="number"
+                label="Main Salary"
+                onBlur={handleBlur}
+                onChange={handleChange}
+                value={values.mainSalary}
+                name="mainSalary"
+                error={!!touched.mainSalary && !!errors.mainSalary}
+                helperText={touched.mainSalary && errors.mainSalary}
+                sx={{ gridColumn: "span 2" }}
+              />
               <FormControl
                 fullWidth
                 variant="filled"
@@ -478,13 +517,13 @@ const DriverForm = () => {
                 fullWidth
                 variant="filled"
                 type="text"
-                label="Reference Number"
+                label="Talabat ID Number"
                 onBlur={handleBlur}
                 onChange={handleChange}
-                value={values.referenceNumber}
-                name="referenceNumber"
-                error={!!touched.referenceNumber && !!errors.referenceNumber}
-                helperText={touched.referenceNumber && errors.referenceNumber}
+                value={values.talabatId}
+                name="talabatId"
+                error={!!touched.talabatId && !!errors.talabatId}
+                helperText={touched.talabatId && errors.talabatId}
                 sx={{ gridColumn: "span 2" }}
               />
               <FormControl fullWidth sx={{ gridColumn: "span 2" }}>
