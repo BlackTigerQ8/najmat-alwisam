@@ -21,17 +21,17 @@ Open [http://localhost:5000](http://localhost:8000) to view it in your browser.
 
 ### Users to test the system:
 
-### admin@gmail.com (Admin)
-### Password: 112233
+admin@gmail.com (Admin)
+Password: 112233
 
-### manager@gmail.com (Manager)
-### Password: 123123
+manager@gmail.com (Manager)
+Password: 123123
 
-### employee@gmail.com (Employee)
-### Password: 123123
+employee@gmail.com (Employee)
+Password: 123123
 
-### accountant@gmail.com (Accountant)
-### Password: 123123
+accountant@gmail.com (Accountant)
+Password: 123123
 
 ### `npm run build`
 
