@@ -206,7 +206,7 @@ const SidebarA = () => {
             />
             <Item
               title="Petty Cash"
-              to="/pt-cash"
+              to="/petty-cash"
               icon={<AttachMoneyOutlinedIcon />}
               selected={selected}
               setSelected={setSelected}

@@ -1,27 +1,29 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Box, useTheme, Button, TextField, Typography } from "@mui/material";
 import { Formik } from "formik";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import { DataGrid } from "@mui/x-data-grid";
-import * as yup from "yup";
 import Header from "../components/Header";
 import { tokens } from "../theme";
 import { useSelector, useDispatch } from "react-redux";
-import { fetchUsers, deleteUser } from "../redux/usersSlice";
+import { fetchPettyCash } from "../redux/pettyCashSlice";
 import { pulsar } from "ldrs";
-
-import AdminPanelSettingsOutlinedIcon from "@mui/icons-material/AdminPanelSettingsOutlined";
-import SecurityOutlinedIcon from "@mui/icons-material/SecurityOutlined";
-import LockOpenOutlinedIcon from "@mui/icons-material/LockOpenOutlined";
 
 const PettyCash = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const isNonMobile = useMediaQuery("(min-width: 600px)");
   const dispatch = useDispatch();
-  const users = useSelector((state) => state.users.users);
-  const status = useSelector((state) => state.user.status);
-  const error = useSelector((state) => state.user.error);
+  const pettyCash = useSelector((state) => state.pettyCash.pettyCash);
+  const status = useSelector((state) => state.pettyCash.status);
+  const error = useSelector((state) => state.pettyCash.error);
+  const token =
+    useSelector((state) => state.pettyCash.token) ||
+    localStorage.getItem("token");
+
+  const [totalSpends, setTotalSpends] = useState(0);
+  const [totalAmountOnWorker, setTotalAmountOnWorker] = useState(0);
+  const [totalAmountOnCompany, setTotalAmountOnCompany] = useState(0);
 
   const columns = [
     {
@@ -59,9 +61,56 @@ const PettyCash = () => {
     },
   ];
 
-  const totalSpends = 630.685;
-  const totalOnWorker = 227.5;
-  const totalOnCompany = totalSpends - totalOnWorker;
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await fetchPettyCash(token);
+        const data = response.payload;
+        setTotalSpends(data.totalSpends);
+        setTotalAmountOnWorker(data.totalAmountOnWorker);
+        setTotalAmountOnCompany(data.totalAmountOnCompany);
+      } catch (error) {
+        console.error("Error fetching petty cash data:", error);
+      }
+    };
+    fetchData();
+  }, [token]);
+
+  pulsar.register();
+  if (status === "loading") {
+    return (
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100vh",
+        }}
+      >
+        <l-pulsar
+          size="70"
+          speed="1.75"
+          color={colors.greenAccent[500]}
+        ></l-pulsar>
+      </div>
+    );
+  }
+
+  if (status === "failed") {
+    return (
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100vh",
+          fontSize: "18px",
+        }}
+      >
+        Error: {error}
+      </div>
+    );
+  }
 
   return (
     <Box m="20px">
@@ -161,7 +210,7 @@ const PettyCash = () => {
         }}
       >
         <DataGrid
-          rows={Array.isArray(users) ? users : []}
+          rows={Array.isArray(pettyCash) ? pettyCash : []}
           columns={columns}
           getRowId={(row) => row._id}
         />
@@ -176,19 +225,19 @@ const PettyCash = () => {
           <Typography variant="h4" color="secondary" mt={4}>
             Total spends:
             <strong>
-              <span> {totalSpends.toFixed(3)}</span> KD
+              <span> {totalSpends} </span> KD
             </strong>
           </Typography>
           <Typography variant="h4" color="secondary" mt={4}>
-            Total amount on wrokers:
+            Total amount on workers:
             <strong>
-              <span> {totalOnWorker.toFixed(3)}</span> KD
+              <span> {totalAmountOnWorker} </span> KD
             </strong>
           </Typography>
           <Typography variant="h4" color="secondary" mt={4}>
             Total amount on company:
             <strong>
-              <span> {totalOnCompany.toFixed(3)}</span> KD
+              <span> {totalAmountOnCompany} </span> KD
             </strong>
           </Typography>
         </Box>

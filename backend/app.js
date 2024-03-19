@@ -7,6 +7,7 @@ const driverRoutes = require("./routes/driverRoutes");
 const driverInvoiceRoutes = require("./routes/driverInvoiceRoutes");
 const { router: uploadRoutes } = require("./routes/uploadRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
+const pettyCash = require("./routes/pettyCashRoutes");
 
 const app = express();
 app.use(cors());
@@ -46,5 +47,6 @@ app.use("/api/drivers", driverRoutes);
 app.use("/api/driver-invoice", driverInvoiceRoutes);
 app.use("/api/upload", uploadRoutes);
 app.use("/api/notifications", notificationRoutes);
+app.use("/api/petty-cash", pettyCash);
 
 module.exports = app;

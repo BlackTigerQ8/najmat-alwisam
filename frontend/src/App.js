@@ -159,7 +159,7 @@ function App() {
                         path="/company-spends"
                         element={<CoSpends />}
                       />
-                      <Route exact path="/pt-cash" element={<PettyCash />} />
+                      <Route exact path="/petty-cash" element={<PettyCash />} />
 
                       <Route
                         exact
