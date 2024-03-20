@@ -9,7 +9,29 @@ const initialState = {
   users: [], // Initialize with stored data if available
   status: "succeeded", // Update status if data is present
   error: null,
+  salaries: [],
+  salariesStatus: "",
+  salariesError: null,
 };
+
+export const fetchSalaries = createAsyncThunk(
+  "user/fetchSalaries",
+  async () => {
+    const token = localStorage.getItem("token");
+    try {
+      // Inside the code where you make API requests
+      const response = await axios.get(`${API_URL}/users/salaries`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response.data.message || error.message);
+    }
+  }
+);
 
 export const fetchUsers = createAsyncThunk("user/fetchUsers", async (token) => {
   try {
@@ -55,6 +77,28 @@ export const updateUser = createAsyncThunk(
           headers: {
             Authorization: `Bearer ${token}`,
             "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response.data.message || error.message);
+    }
+  }
+);
+
+export const updateAdditionalSalary = createAsyncThunk(
+  "user/updateAdditionalSalary",
+  async ({ userId, values }, { getState }) => {
+    try {
+      const token = getState().user.token;
+      const response = await axios.patch(
+        `${API_URL}/users/${userId}/salary`,
+        values,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
           },
         }
       );
@@ -141,6 +185,32 @@ const usersSlice = createSlice({
           closeOnClick: true,
           pauseOnHover: true,
         });
+      })
+      .addCase(fetchSalaries.fulfilled, (state, action) => {
+        state.salariesStatus = "succeeded";
+        state.salaries = Object.values(action.payload.data.employeeSalaries);
+        state.salariesError = null;
+      })
+      .addCase(fetchSalaries.rejected, (state, action) => {
+        state.salariesStatus = "failed";
+      })
+      .addCase(updateAdditionalSalary.fulfilled, (state, action) => {
+        state.salariesStatus = "succeeded";
+        const { _id, remarks, additionalSalary } =
+          action.payload.data.updatedUser;
+        state.salaries = state.salaries.map((user) =>
+          user._id === _id
+            ? {
+                ...user,
+                remarks,
+                additionalSalary,
+              }
+            : user
+        );
+        state.salariesError = null;
+      })
+      .addCase(updateAdditionalSalary.rejected, (state, action) => {
+        state.salariesStatus = "failed";
       });
   },
 });

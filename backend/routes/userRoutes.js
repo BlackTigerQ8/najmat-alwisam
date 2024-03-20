@@ -7,11 +7,29 @@ const {
   deleteUser,
   logoutUser,
   loginUser,
+  getEmployeesSalary,
+  updateEmployeeSalary,
 } = require("../controllers/userController");
 const { protect, restrictTo } = require("../middleware/authMiddleware");
 const { contractUpload } = require("./uploadRoutes");
 
 const router = express.Router();
+
+router
+  .route("/salaries")
+  .get(
+    protect,
+    restrictTo("Admin", "Manager", "Accountant"),
+    getEmployeesSalary
+  );
+
+router
+  .route("/:id/salary")
+  .patch(
+    protect,
+    restrictTo("Admin", "Manager", "Accountant"),
+    updateEmployeeSalary
+  );
 
 router
   .route("/")

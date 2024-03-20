@@ -39,6 +39,7 @@ const userSchema = new mongoose.Schema({
     enum: USER_ROLES,
     required: true,
   },
+  mainSalary: { type: Number, default: 0 },
   passport: {
     type: String,
     required: [true, "Passport number is required"],

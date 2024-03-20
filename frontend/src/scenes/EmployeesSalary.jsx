@@ -1,28 +1,26 @@
-import React, { useEffect, useState } from "react";
-import { Typography, Box, Button, useTheme } from "@mui/material";
+import React, { useEffect } from "react";
+import {  Box, Button, useTheme } from "@mui/material";
 import Header from "../components/Header";
 import { DataGrid } from "@mui/x-data-grid";
 import { tokens } from "../theme";
 import UpdateIcon from "@mui/icons-material/Update";
 import { pulsar } from "ldrs";
-import { useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
-import { fetchUsers, updateUser } from "../redux/usersSlice";
+import { fetchSalaries, updateAdditionalSalary } from "../redux/usersSlice";
 
 const EmployeesSalary = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const dispatch = useDispatch();
-  const users = useSelector((state) => state.users.users);
-  const status = useSelector((state) => state.user.status);
+
+  const status = useSelector((state) => state.user.salariesStatus);
+  const salaries = useSelector((state) => state.users.salaries);
   const error = useSelector((state) => state.user.error);
-  const token =
-    useSelector((state) => state.drivers.token) ||
-    localStorage.getItem("token");
+  
 
-  const navigate = useNavigate();
+  
 
-  const [selectedRowIds, setSelectedRowIds] = useState([]);
+  
 
   const columns = [
     {
@@ -53,6 +51,7 @@ const EmployeesSalary = () => {
       headerName: "Main Salary",
       flex: 0.75,
       type: Number,
+      editable: false,
     },
     {
       field: "additionalSalary",
@@ -65,20 +64,31 @@ const EmployeesSalary = () => {
       field: "totalSalary",
       headerName: "Total Salary",
       flex: 1,
-      type: Number,
+      renderCell: ({ row: { additionalSalary, mainSalary } }) => {
+        return (
+          <Box
+            display="flex"
+            justifyContent="left"
+            alignItems="center"
+            borderRadius="4px"
+          >
+            {Number(additionalSalary) + Number(mainSalary)}
+          </Box>
+        );
+      },
     },
     {
       field: "companyDeductionAmount",
       headerName: "Company Deduction",
       flex: 1,
-      editable: true,
+      //editable: true, //Intentionally commented this as deductions should be done through deduction form only
       type: Number,
     },
     {
       field: "deductionReason",
       headerName: "Deduction Reason",
       flex: 1,
-      editable: true,
+      //editable: true, //Intentionally commented this as deductions should be done through deduction form only
       type: String,
     },
     {
@@ -86,7 +96,6 @@ const EmployeesSalary = () => {
       headerName: "Remarks",
       flex: 1,
       editable: true,
-      type: String,
     },
 
     {
@@ -115,10 +124,10 @@ const EmployeesSalary = () => {
   ];
 
   useEffect(() => {
-    //if (status === "succeeded") {
-    dispatch(fetchUsers(token));
-    //}
-  }, [token]);
+    
+    dispatch(fetchSalaries());
+    
+  }, [dispatch]);
 
   pulsar.register();
   if (status === "loading") {
@@ -158,25 +167,18 @@ const EmployeesSalary = () => {
 
   const handleUpdate = (row) => {
     try {
-      const { cost, order, hour } = row;
+      const { additionalSalary, remarks } = row;
       dispatch(
-        updateUser({ driverId: row._id, values: { cost, order, hour } })
+        updateAdditionalSalary({ userId: row._id, values: { additionalSalary, remarks } })
       );
     } catch (error) {
       console.error("Row does not have a valid _id field:", row);
     }
   };
 
-  // const handleUpdateAll = () => {
-  //   // Update all rows in the DataGrid
-  //   selectedRowIds.forEach((id) => {
-  //     const row = users.find((driver) => driver._id === id);
-  //     if (row) {
-  //       console.log(row);
-  //       handleUpdate(row);
-  //     }
-  //   });
-  // };
+  
+
+  
 
   return (
     <Box m="20px">
@@ -208,7 +210,7 @@ const EmployeesSalary = () => {
         }}
       >
         <DataGrid
-          rows={Array.isArray(users) ? users : []}
+          rows={Array.isArray(salaries) ? salaries : []}
           columns={columns}
           getRowId={(row) => row._id}
         />

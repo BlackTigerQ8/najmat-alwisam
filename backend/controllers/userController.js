@@ -1,6 +1,7 @@
 const { User } = require("../models/userModel");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const EmployeeInvoice = require("../models/employeeInvoiceModel");
 
 // @desc    Get all users
 // @route   GET /api/users
@@ -211,6 +212,165 @@ const logoutUser = (req, res) => {
     .json({ status: "Success", message: "Logged out successfully" });
 };
 
+const getEmployeesSalary = async (_req, res) => {
+  try {
+    const currentDate = new Date();
+
+    // Get the first day of the current month
+    const firstDayOfMonth = new Date(
+      currentDate.getFullYear(),
+      currentDate.getMonth(),
+      1
+    );
+
+    // Get the first day of the next month
+    const firstDayOfNextMonth = new Date(
+      currentDate.getFullYear(),
+      currentDate.getMonth() + 1,
+      1
+    );
+
+    const invoices = await EmployeeInvoice.find({
+      status: { $in: ["pending", "approved"] },
+      invoiceDate: {
+        $gte: firstDayOfMonth,
+        $lt: firstDayOfNextMonth,
+      },
+    }).populate("user");
+
+    if (!invoices.length) {
+      const users = await User.find();
+
+      return res.status(200).json({
+        status: "Success",
+        data: {
+          employeeSalaries: users.map((user) => ({
+            firstName: user.firstName,
+            lastName: user.lastName,
+            mainSalary: user.mainSalary,
+            additionalSalary: 0,
+            companyDeductionAmount: 0,
+            deductionReason: "",
+            totalSalary: user.mainSalary,
+            remarks: "",
+            _id: user._id,
+          })),
+        },
+      });
+    }
+
+    const userData = {};
+
+    for (const invoice of invoices) {
+      const {
+        user,
+        additionalSalary,
+        companyDeductionAmount,
+        deductionReason,
+        remarks,
+      } = invoice;
+
+      // Check if user already exists in userData, if not, create new entry
+      if (!userData[user._id]) {
+        userData[user._id] = {
+          firstName: user.firstName,
+          lastName: user.lastName,
+          _id: user._id,
+          mainSalary: user.mainSalary,
+          totalDeductions: 0,
+          totalSalary: user.mainSalary,
+          totalInvoices: 0,
+          deductionReason: "",
+        };
+      }
+
+      // Update user data with deductions and main salary
+      userData[userId._id].totalDeductions += companyDeductionAmount || 0;
+      userData[userId._id].totalSalary += additionalSalary || 0;
+      userData[userId._id].totalInvoices++;
+      if (deductionReason)
+        userData[userId._id].deductionReason = deductionReason;
+      if (remarks) userData[userId._id].remarks = remarks;
+    }
+
+    res.status(200).json({
+      status: "Success",
+      data: {
+        employeeSalaries: userData,
+      },
+    });
+  } catch (error) {
+    console.log("Get all invoice", error);
+    res.status(500).json({
+      status: "Error",
+      message: error.message,
+    });
+  }
+};
+
+const updateEmployeeSalary = async (req, res) => {
+  const userId = req.params.id;
+  const currentDate = new Date();
+  const { additionalSalary, remarks } = req.body;
+
+  // Get the first day of the current month
+  const firstDayOfMonth = new Date(
+    currentDate.getFullYear(),
+    currentDate.getMonth(),
+    1
+  );
+
+  // Get the first day of the next month
+  const firstDayOfNextMonth = new Date(
+    currentDate.getFullYear(),
+    currentDate.getMonth() + 1,
+    1
+  );
+
+  console.log("userId", userId);
+  const existingInvoice = await EmployeeInvoice.findOne({
+    status: { $in: ["pending", "approved"] },
+    invoiceDate: {
+      $gte: firstDayOfMonth,
+      $lt: firstDayOfNextMonth,
+    },
+    user: userId,
+    additionalSalary: { $gt: 0 },
+  });
+
+  console.log("existingInvoice", existingInvoice);
+
+  /** All invoices should be set using yesterday's date */
+  const invoiceDate = new Date(currentDate.getTime() - 24 * 60 * 60 * 1000);
+
+  if (existingInvoice) {
+    existingInvoice.additionalSalary = additionalSalary;
+    existingInvoice.remarks = remarks;
+    await existingInvoice.save();
+  } else {
+    const newInvoice = new EmployeeInvoice({
+      invoiceDate: invoiceDate,
+      additionalSalary: additionalSalary,
+      remarks: remarks,
+      user: userId,
+      invoiceAddedBy: req.user.id,
+      status: "pending",
+    });
+    await newInvoice.save();
+  }
+
+  res.status(200).json({
+    status: "Success",
+    data: {
+      updatedUser: {
+        _id: userId,
+        additionalSalary,
+        remarks,
+      },
+    },
+  });
+};
+
 module.exports = {
   getAllUsers,
   getUser,
@@ -219,4 +379,6 @@ module.exports = {
   deleteUser,
   logoutUser,
   loginUser,
+  getEmployeesSalary,
+  updateEmployeeSalary,
 };
