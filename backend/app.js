@@ -8,6 +8,7 @@ const driverInvoiceRoutes = require("./routes/driverInvoiceRoutes");
 const { router: uploadRoutes } = require("./routes/uploadRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
 const pettyCash = require("./routes/pettyCashRoutes");
+const bankStatement = require("./routes/bankStatementRoutes");
 
 const app = express();
 app.use(cors());
@@ -48,5 +49,6 @@ app.use("/api/driver-invoice", driverInvoiceRoutes);
 app.use("/api/upload", uploadRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/petty-cash", pettyCash);
+app.use("/api/bank-statement", bankStatement);
 
 module.exports = app;

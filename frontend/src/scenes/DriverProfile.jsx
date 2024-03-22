@@ -336,7 +336,7 @@ const DriverProfile = ({ driverId }) => {
                 onBlur={handleBlur}
                 onChange={handleChange}
                 value={
-                  values.contractExpiryDate
+                  values.driverLicenseExpiryDate
                     ? new Date(values.driverLicenseExpiryDate)
                         .toISOString()
                         .split("T")[0]
@@ -386,7 +386,13 @@ const DriverProfile = ({ driverId }) => {
                 label="Car Registeration Expiry Date"
                 onBlur={handleBlur}
                 onChange={handleChange}
-                value={values.carRegisterationExpiryDate}
+                value={
+                  values.carRegisterationExpiryDate
+                    ? new Date(values.carRegisterationExpiryDate)
+                        .toISOString()
+                        .split("T")[0]
+                    : ""
+                }
                 name="carRegisterationExpiryDate"
                 error={
                   !!touched.carRegisterationExpiryDate &&
@@ -551,7 +557,7 @@ const DriverProfile = ({ driverId }) => {
                 fullWidth
                 variant="filled"
                 type="number"
-                label="mainSalary"
+                label="Main Salary"
                 onBlur={handleBlur}
                 onChange={handleChange}
                 value={values.mainSalary}

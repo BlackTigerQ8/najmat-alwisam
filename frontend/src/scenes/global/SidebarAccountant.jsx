@@ -198,8 +198,8 @@ const SidebarA = () => {
               setSelected={setSelected}
             />
             <Item
-              title="Company Spends"
-              to="/company-spends"
+              title="Bank Statement"
+              to="/bank-statement"
               icon={<MonetizationOnOutlinedIcon />}
               selected={selected}
               setSelected={setSelected}

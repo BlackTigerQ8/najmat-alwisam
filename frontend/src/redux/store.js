@@ -7,6 +7,7 @@ import driversReducer from "./driversSlice";
 import driverInvoiceReducer from "./driverInvoiceSlice";
 import notificationReducer from "./notificationSlice";
 import pettyCashReducer from "./pettyCashSlice";
+import bankStatementReducer from "./bankStatementSlice";
 
 const persistConfig = {
   key: "root",
@@ -20,6 +21,7 @@ const rootReducer = combineReducers({
   driverInvoice: driverInvoiceReducer,
   notifications: notificationReducer,
   pettyCash: pettyCashReducer,
+  bankStatement: bankStatementReducer,
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);
