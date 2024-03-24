@@ -5,19 +5,18 @@ const mongoose = require("mongoose");
 const pettyCashSchema = new mongoose.Schema({
   serialNumber: {
     type: Number,
-    unique: true,
-  },
-  requestApplicant: {
-    type: String,
-    unique: true,
-  },
-  requestDate: {
-    type: Date,
-    unique: true,
+    required: [true, "Serial number is required"],
   },
   sequenceNumber: {
     type: Number,
-    unique: true,
+  },
+  requestApplicant: {
+    type: String,
+    required: [true, "Request applicant is required"],
+  },
+  requestDate: {
+    type: Date,
+    required: [true, "Request date is required"],
   },
   spendsDate: {
     type: Date,
@@ -40,19 +39,13 @@ const pettyCashSchema = new mongoose.Schema({
     type: String,
     required: [true, "Spends remarks is required"],
   },
-  deductedFrom: {
-    type: String,
+  deductedFromUser: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
   },
-  totalSpends: {
-    type: Number,
-    default: 501,
-  },
-  totalAmountOnWorker: {
-    type: Number,
-    default: 100,
-  },
-  totalAmountOnCompany: {
-    type: Number,
+  deductedFromDriver: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Driver",
   },
   previousBalance: {
     type: Number,
@@ -60,32 +53,6 @@ const pettyCashSchema = new mongoose.Schema({
   currentBalance: {
     type: Number,
   },
-});
-
-// Pre-save middleware to generate and assign the sequence number
-pettyCashSchema.pre("save", async function (next) {
-  try {
-    if (!this.sequenceNumber) {
-      // Find the last petty cash entry in the database
-      const lastPettyCash = await this.constructor.findOne(
-        {},
-        {},
-        { sort: { sequenceNumber: -1 } }
-      );
-
-      let lastSequenceNumber = 0;
-      if (lastPettyCash) {
-        lastSequenceNumber = lastPettyCash.sequenceNumber;
-      }
-
-      // Calculate the sequence number based on the last one in the database
-      this.sequenceNumber = lastSequenceNumber + 1;
-    }
-
-    next();
-  } catch (error) {
-    next(error);
-  }
 });
 
 module.exports = mongoose.model("PettyCash", pettyCashSchema);

@@ -2,11 +2,12 @@ const mongoose = require("mongoose");
 const PettyCash = require("./models/pettyCashModel");
 const { faker } = require("@faker-js/faker");
 const connectDB = require("./config/db.js");
+const Driver = require("./models/driverModel.js");
+const { User } = require("./models/userModel.js");
 
 const deleteAllPettyCash = async () => {
   try {
-    await connectDB();
-    // Delete all Petty Cash
+    console.log("Before deleting Petty Cash records");
     await PettyCash.deleteMany({});
     console.log("All Petty Cash deleted");
   } catch (error) {
@@ -19,14 +20,10 @@ const createRandomPettyCash = async () => {
   try {
     await connectDB();
 
-    //await deleteAllPettyCash();
+    await deleteAllPettyCash();
     // Find the last sequence number in the database
-    const lastPettyCash = await PettyCash.findOne({})
-      .sort({ sequenceNumber: -1 })
-      .limit(1)
-      .exec();
-    const roles = ["Accountant", "Employee", "Manager"];
-    let lastSequenceNumber = lastPettyCash?.sequenceNumber || 0;
+    const lastPettyCash = await PettyCash.findOne({});
+
     let lastSerialNumber = lastPettyCash?.serialNumber || 0;
 
     console.log("lastPettyCash", lastPettyCash);
@@ -36,67 +33,55 @@ const createRandomPettyCash = async () => {
       lastSerialNumber = lastSerialNumber + 1;
     }
 
-    console.log("lastSerialNumber", lastSerialNumber);
-
-    let totalSpends = 0;
-    let totalAmountOnWorker = 0;
+    const drivers = await Driver.find();
 
     for (let i = 0; i < 10; i++) {
-      const spendsDate = faker.datatype.number({
-        min: 1000000000,
-        max: 9999999999,
-      });
-      const spendTypes = ["Car Oil", "Bike Oil", "Office Essentials"];
-      const spendType = spendTypes[Math.floor(Math.random() * roles.length)];
-      const spendsReason = faker.datatype.string("Test...");
-      const cashAmount = faker.datatype.number({
-        min: 5,
-        max: 299,
-      });
-      const spendsRemarks = faker.datatype.string("Test...");
-      const deductedFroms = ["Ali", "Khaled", "", "Abdullah"];
-      const deductedFrom =
-        deductedFroms[Math.floor(Math.random() * roles.length)];
-
-      // Add the cashAmount to totalSpends
-      totalSpends += cashAmount;
-
-      // Add cashAmount to totalAmountOnWorker if deductedFrom is not an empty string
-      if (deductedFrom) {
-        totalAmountOnWorker += cashAmount;
-      }
-
-      // Calculate totalAmountOnCompany
-      totalAmountOnCompany = totalSpends - totalAmountOnWorker;
-
-      previousBalance = 662.919;
-      currentBalance = previousBalance - totalSpends;
-
       // Calculate the sequence number based on the last one in the database
-      const sequenceNumber = lastSequenceNumber + 1;
       const serialNumber = lastSerialNumber + 1;
 
+      const driverIndex = faker.number.int({ min: 0, max: drivers.length - 1 });
+      const driverId = drivers[driverIndex]?._id || drivers[0]?._id;
+
+      if (!driverId) continue;
+
+      const pettyCashRawData = buildPettyCash(serialNumber, 2000, 2000);
+
       const newPettyCash = new PettyCash({
-        sequenceNumber,
-        serialNumber,
-        spendsDate,
-        spendsReason,
-        cashAmount,
-        spendType,
-        spendsRemarks,
-        deductedFrom,
-        totalSpends,
-        totalAmountOnWorker,
-        totalAmountOnCompany,
-        previousBalance,
-        currentBalance,
+        ...pettyCashRawData,
+        deductedFromDriver: driverId,
+        sequenceNumber: serialNumber,
+      });
+
+      console.log("newPettyCash", newPettyCash);
+
+      await newPettyCash.save();
+
+      lastSerialNumber = serialNumber;
+    }
+
+    const users = await User.find();
+    for (let j = 0; j < 4; j++) {
+      // Calculate the sequence number based on the last one in the database
+      const serialNumber = lastSerialNumber + 1;
+
+      const userIndex = faker.number.int({ min: 0, max: users.length - 1 });
+      const userId = users[userIndex]?._id || users[0]?._id;
+
+      if (!userId) continue;
+
+      const pettyCashRawData = buildPettyCash(serialNumber, 2000, 2000);
+
+      const newPettyCash = new PettyCash({
+        ...pettyCashRawData,
+        deductedFromUser: userId,
+        sequenceNumber: serialNumber,
       });
 
       await newPettyCash.save();
 
       lastSerialNumber = serialNumber;
-      lastSequenceNumber = sequenceNumber; // Update the last sequence number
     }
+
     mongoose.connection.close();
     console.log("All Petty Cash created and connection closed");
   } catch (error) {
@@ -104,5 +89,33 @@ const createRandomPettyCash = async () => {
     mongoose.connection.close();
   }
 };
+
+function buildPettyCash(serialNumber, currentBalance, previousBalance) {
+  const requestApplicant = faker.person.fullName();
+  const spendsDate = faker.date.between("2020-01-01", "2024-01-01");
+  const requestDate = faker.date.between("2020-01-01", "2024-01-01");
+  const spendsReason = faker.finance.transactionDescription();
+  const cashAmount = faker.datatype.number({
+    min: 5,
+    max: 299,
+  });
+
+  const spendTypes = ["Car Oil", "Bike Oil", "Office Essentials"];
+  const spendType = spendTypes[Math.floor(Math.random() * spendTypes.length)];
+  const spendsRemarks = faker.string.sample({ min: 5, max: 10 });
+
+  return {
+    serialNumber,
+    requestApplicant,
+    spendsDate,
+    requestDate,
+    spendsReason,
+    cashAmount,
+    spendType,
+    spendsRemarks,
+    currentBalance,
+    previousBalance,
+  };
+}
 
 createRandomPettyCash();
