@@ -49,6 +49,7 @@ const UserProfile = () => {
     password: "",
     createdAt: Date,
     file: "",
+    mainSalary: 0
   };
 
   const validationSchema = Yup.object().shape({
@@ -285,6 +286,19 @@ const UserProfile = () => {
                 name="passport"
                 error={!!touched.passport && !!errors.passport}
                 helperText={touched.passport && errors.passport}
+                sx={{ gridColumn: "span 2" }}
+              />
+               <TextField
+                fullWidth
+                variant="filled"
+                type="number"
+                label="Main Salary"
+                onBlur={handleBlur}
+                onChange={handleChange}
+                value={values.mainSalary}
+                name="mainSalary"
+                error={!!touched.mainSalary && !!errors.mainSalary}
+                helperText={touched.mainSalary && errors.mainSalary}
                 sx={{ gridColumn: "span 2" }}
               />
               <TextField

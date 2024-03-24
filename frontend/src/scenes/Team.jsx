@@ -72,6 +72,11 @@ const Team = () => {
       headerName: "Passport",
     },
     {
+      field: "mainSalary",
+      headerName: "Main Salary",
+      type: Number,
+    },
+    {
       field: "role",
       headerName: "Access Level",
       flex: 1,

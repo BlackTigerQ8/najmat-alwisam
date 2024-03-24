@@ -35,6 +35,7 @@ const initialValues = {
   uploadedFile: "",
   password: "",
   confirmPassword: "",
+  mainSalary: ""
 };
 
 const phoneRegExp =
@@ -53,6 +54,7 @@ const userSchema = yup.object().shape({
   visa: yup.string().required("required"),
   contractExpiryDate: yup.string().required("required"),
   role: yup.string().required("required"),
+  mainSalary: yup.number().required("required"),
   password: yup
     .string()
     .min(6, "Password must be at least 6 characters")
@@ -220,6 +222,19 @@ const Form = () => {
                 name="passport"
                 error={!!touched.passport && !!errors.passport}
                 helperText={touched.passport && errors.passport}
+                sx={{ gridColumn: "span 2" }}
+              />
+              <TextField
+                fullWidth
+                variant="filled"
+                type="number"
+                label="Main Salary"
+                onBlur={handleBlur}
+                onChange={handleChange}
+                value={values.mainSalary}
+                name="mainSalary"
+                error={!!touched.mainSalary && !!errors.mainSalary}
+                helperText={touched.mainSalary && errors.mainSalary}
                 sx={{ gridColumn: "span 2" }}
               />
               <TextField
