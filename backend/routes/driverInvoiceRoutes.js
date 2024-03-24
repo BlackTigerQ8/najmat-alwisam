@@ -12,8 +12,8 @@ router
   .get(protect, getAllInvoices)
   .post(
     protect,
-    restrictTo("Admin", "Manager", "Employee"),
+    restrictTo("Admin", "Manager", "Employee", "Accountant"),
     createDriverInvoice
-  );
+  );  
 
 module.exports = router;

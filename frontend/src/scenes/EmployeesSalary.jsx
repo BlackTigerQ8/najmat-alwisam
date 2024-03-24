@@ -64,7 +64,7 @@ const EmployeesSalary = () => {
       field: "totalSalary",
       headerName: "Total Salary",
       flex: 1,
-      renderCell: ({ row: { additionalSalary, mainSalary } }) => {
+      renderCell: ({ row: { additionalSalary, mainSalary, companyDeductionAmount } }) => {
         return (
           <Box
             display="flex"
@@ -72,7 +72,7 @@ const EmployeesSalary = () => {
             alignItems="center"
             borderRadius="4px"
           >
-            {Number(additionalSalary) + Number(mainSalary)}
+            {Number(additionalSalary) + Number(mainSalary) - Number(companyDeductionAmount)}
           </Box>
         );
       },

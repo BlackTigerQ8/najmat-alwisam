@@ -327,7 +327,6 @@ const updateEmployeeSalary = async (req, res) => {
     1
   );
 
-  console.log("userId", userId);
   const existingInvoice = await EmployeeInvoice.findOne({
     status: { $in: ["pending", "approved"] },
     invoiceDate: {
@@ -349,9 +348,9 @@ const updateEmployeeSalary = async (req, res) => {
     await existingInvoice.save();
   } else {
     const newInvoice = new EmployeeInvoice({
-      invoiceDate: invoiceDate,
-      additionalSalary: additionalSalary,
-      remarks: remarks,
+      invoiceDate,
+      additionalSalary,
+      remarks,
       user: userId,
       invoiceAddedBy: req.user.id,
       status: "pending",
@@ -371,6 +370,47 @@ const updateEmployeeSalary = async (req, res) => {
   });
 };
 
+const createEmployeeDeductionInvoice = async (req, res) => {
+  try {
+    const {
+      userId,
+      deductionReason = "",
+      companyDeductionAmount = 0,
+    } = req.body;
+
+    /** All invoices should be set using yesterday's date */
+    const currentDate = new Date();
+    const invoiceDate = new Date(currentDate.getTime() - 24 * 60 * 60 * 1000);
+
+    const user = await User.findById(userId);
+
+    if (!user) return res.status(404).json({ message: "User does not exist" });
+
+    const newInvoice = new EmployeeInvoice({
+      user: userId,
+      companyDeductionAmount,
+      deductionReason,
+      invoiceDate,
+      invoiceAddedBy: req.user.id,
+      status: "pending",
+    });
+
+    await newInvoice.save();
+
+    return res.status(201).json({
+      status: "Success",
+      data: {
+        invoice: { ...newInvoice._doc, user: { _id: newInvoice.user } },
+      },
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: "Error",
+      message: error.message,
+    });
+  }
+};
+
 module.exports = {
   getAllUsers,
   getUser,
@@ -381,4 +421,5 @@ module.exports = {
   loginUser,
   getEmployeesSalary,
   updateEmployeeSalary,
+  createEmployeeDeductionInvoice,
 };
