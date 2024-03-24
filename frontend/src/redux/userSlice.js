@@ -13,6 +13,8 @@ const initialState = {
   token: "",
   userRole: "",
   userProfileImage: "",
+  deductionInvoice: "",
+  invoice: null,
 };
 
 // Thunk action for user registration
@@ -66,6 +68,28 @@ export const profileImage = createAsyncThunk(
           Authorization: `Bearer ${token}`,
         },
       });
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response.data.message || error.message);
+    }
+  }
+);
+
+// Create user invoice
+export const createUserInvoice = createAsyncThunk(
+  "user/createUserInvoice",
+  async ({ values }) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.post(
+        `${API_URL}/users/${values.selectedUser}/invoice`,
+        values,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
       return response.data;
     } catch (error) {
       throw new Error(error.response.data.message || error.message);
@@ -142,6 +166,27 @@ const userSlice = createSlice({
         });
       })
       .addCase(profileImage.rejected, (state) => {
+        state.status = "failed";
+        toast.error("Something went wrong! Please try later.", {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+        });
+      })
+      .addCase(createUserInvoice.fulfilled, (state, action) => {
+        state.status = "succeeded";
+        state.invoice = action.payload.data.invoice;
+        toast.success("Employee invoice is added successfully!", {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+        });
+      })
+      .addCase(createUserInvoice.rejected, (state) => {
         state.status = "failed";
         toast.error("Something went wrong! Please try later.", {
           position: "top-right",

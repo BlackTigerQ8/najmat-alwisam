@@ -261,6 +261,25 @@ const getEmployeesSalary = async (_req, res) => {
 
     const userData = {};
 
+    const users = await User.find();
+
+    // Check if user already exists in userData, if not, create new entry
+    for (const userInfo of users) {
+      const userId = userInfo._id;
+
+      userData[userId] = {
+        firstName: userInfo.firstName,
+        lastName: userInfo.lastName,
+        _id: userId,
+        mainSalary: userInfo.mainSalary,
+        companyDeductionAmount: 0,
+        totalSalary: userInfo.mainSalary,
+        totalInvoices: 0,
+        deductionReason: "",
+        additionalSalary: 0,
+      };
+    }
+
     for (const invoice of invoices) {
       const {
         user,
@@ -269,28 +288,14 @@ const getEmployeesSalary = async (_req, res) => {
         deductionReason,
         remarks,
       } = invoice;
-
-      // Check if user already exists in userData, if not, create new entry
-      if (!userData[user._id]) {
-        userData[user._id] = {
-          firstName: user.firstName,
-          lastName: user.lastName,
-          _id: user._id,
-          mainSalary: user.mainSalary,
-          totalDeductions: 0,
-          totalSalary: user.mainSalary,
-          totalInvoices: 0,
-          deductionReason: "",
-        };
-      }
+      const userId = user._id;
 
       // Update user data with deductions and main salary
-      userData[userId._id].totalDeductions += companyDeductionAmount || 0;
-      userData[userId._id].totalSalary += additionalSalary || 0;
-      userData[userId._id].totalInvoices++;
-      if (deductionReason)
-        userData[userId._id].deductionReason = deductionReason;
-      if (remarks) userData[userId._id].remarks = remarks;
+      userData[userId].companyDeductionAmount += companyDeductionAmount || 0;
+      userData[userId].additionalSalary += additionalSalary || 0;
+      userData[userId].totalInvoices++;
+      if (deductionReason) userData[userId].deductionReason = deductionReason;
+      if (remarks) userData[userId].remarks = remarks;
     }
 
     res.status(200).json({
@@ -373,7 +378,7 @@ const updateEmployeeSalary = async (req, res) => {
 const createEmployeeDeductionInvoice = async (req, res) => {
   try {
     const {
-      userId,
+      selectedUser: userId,
       deductionReason = "",
       companyDeductionAmount = 0,
     } = req.body;

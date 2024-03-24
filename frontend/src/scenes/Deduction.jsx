@@ -18,6 +18,7 @@ import { fetchDrivers } from "../redux/driversSlice";
 import { fetchUsers } from "../redux/usersSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { createDriverInvoice } from "../redux/driverInvoiceSlice";
+import {createUserInvoice} from '../redux/userSlice';
 import { createNotification, buildNotificationAlert } from '../redux/notificationSlice';
 
 const initialValues = {
@@ -69,8 +70,6 @@ const Deduction = () => {
   const dispatch = useDispatch();
   const isNonMobile = useMediaQuery("(min-width: 600px)");
 
-  const userInfo = useSelector((state) => state.user.userInfo);
-
   const drivers = useSelector((state) => state.drivers.drivers);
   const users = useSelector((state) => state.users.users);
   const token =
@@ -84,6 +83,8 @@ const Deduction = () => {
 
   async function handleFormSubmit(values) {
     try {
+
+      if(values.selectedDriver){
       dispatch(
         createDriverInvoice({
           values: {
@@ -92,6 +93,17 @@ const Deduction = () => {
           },
         })
       );
+      }
+      else if(values.selectedUser){
+        dispatch(
+          createUserInvoice({
+            values: {
+              ...values,
+              driverId: values.selectedDriver,
+            },
+          })
+        );
+      }
 
       // TODO: Uncomment this later
 
@@ -146,6 +158,7 @@ const Deduction = () => {
                   error={!!touched.selectedDriver && !!errors.selectedDriver}
                   name="selectedDriver"
                   label="Select Driver"
+                  disabled={values.selectedUser}
                   MenuProps={{
                     MenuListProps: { disablePadding: true },
                     PaperProps: {
@@ -186,6 +199,7 @@ const Deduction = () => {
                   error={!!touched.selectedUser && !!errors.selectedUser}
                   name="selectedUser"
                   label="Select User"
+                  disabled={values.selectedDriver}
                 >
                   {users.map((user) => (
                     <MenuItem key={user._id} value={user._id}>
@@ -239,6 +253,7 @@ const Deduction = () => {
                   errors.talabatDeductionAmount
                 }
                 sx={{ gridColumn: "span 2" }}
+                disabled={values.selectedUser}
               />
               <TextField
                 fullWidth
