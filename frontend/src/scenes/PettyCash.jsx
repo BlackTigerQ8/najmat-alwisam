@@ -28,10 +28,17 @@ const PettyCash = () => {
   const columns = [
     {
       field: "sequenceNumber",
-      headerName: "ID",
+      headerName: "NO.",
     },
     {
       field: "spendsDate",
+      valueFormatter: (params) => {
+        const date = new Date(params.value);
+        const formattedDate = `${date.getDate()}/${
+          date.getMonth() + 1
+        }/${date.getFullYear()}`;
+        return formattedDate;
+      },
       headerName: "Spends Date",
       flex: 1,
     },
