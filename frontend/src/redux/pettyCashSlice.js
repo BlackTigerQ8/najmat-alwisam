@@ -11,13 +11,12 @@ const initialState = {
 
 export const fetchPettyCash = createAsyncThunk(
   "pettyCash/fetchPettyCash",
-  async (values) => {
+  async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.get(`${API_URL}/petty-cash`, values, {
+      const response = await axios.get(`${API_URL}/petty-cash`, {
         headers: {
           Authorization: `Bearer ${token}`,
-          "Content-Type": "multipart/form-data",
         },
       });
       return response.data;
@@ -38,7 +37,7 @@ const pettyCashSlice = createSlice({
       })
       .addCase(fetchPettyCash.fulfilled, (state, action) => {
         state.status = "succeeded";
-        state.pettyCash = action.payload;
+        state.pettyCash = action.payload.data.pettyCash;
       })
       .addCase(fetchPettyCash.rejected, (state, action) => {
         state.status = "failed";

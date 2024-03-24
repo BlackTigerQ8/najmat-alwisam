@@ -62,19 +62,8 @@ const PettyCash = () => {
   ];
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await fetchPettyCash(token);
-        const data = response.payload;
-        setTotalSpends(data.totalSpends);
-        setTotalAmountOnWorker(data.totalAmountOnWorker);
-        setTotalAmountOnCompany(data.totalAmountOnCompany);
-      } catch (error) {
-        console.error("Error fetching petty cash data:", error);
-      }
-    };
-    fetchData();
-  }, [token]);
+    dispatch(fetchPettyCash());
+  }, [dispatch]);
 
   pulsar.register();
   if (status === "loading") {

@@ -208,9 +208,23 @@ const usersSlice = createSlice({
             : user
         );
         state.salariesError = null;
+        toast.success("User data is updated successfully.", {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+        });
       })
       .addCase(updateAdditionalSalary.rejected, (state, action) => {
         state.salariesStatus = "failed";
+        toast.error("Something went wrong! Please try later.", {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+        });
       });
   },
 });
