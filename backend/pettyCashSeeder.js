@@ -4,6 +4,7 @@ const { faker } = require("@faker-js/faker");
 const connectDB = require("./config/db.js");
 const Driver = require("./models/driverModel.js");
 const { User } = require("./models/userModel.js");
+const SpendType = require("./models/spendTypeModel.js");
 
 const deleteAllPettyCash = async () => {
   try {
@@ -34,6 +35,7 @@ const createRandomPettyCash = async () => {
     }
 
     const drivers = await Driver.find();
+    const spendTypes = await SpendType.find();
 
     for (let i = 0; i < 10; i++) {
       // Calculate the sequence number based on the last one in the database
@@ -42,7 +44,14 @@ const createRandomPettyCash = async () => {
       const driverIndex = faker.number.int({ min: 0, max: drivers.length - 1 });
       const driverId = drivers[driverIndex]?._id || drivers[0]?._id;
 
-      if (!driverId) continue;
+      const spendTypeIndex = faker.number.int({
+        min: 0,
+        max: spendTypes.length - 1,
+      });
+
+      const spendTypeId = spendTypes[spendTypeIndex]?._id || spendTypes[0]?._id;
+
+      if (!driverId || !spendTypeId) continue;
 
       const pettyCashRawData = buildPettyCash(serialNumber, 2000, 2000);
 
@@ -50,6 +59,7 @@ const createRandomPettyCash = async () => {
         ...pettyCashRawData,
         deductedFromDriver: driverId,
         sequenceNumber: serialNumber,
+        spendType: spendTypeId,
       });
 
       console.log("newPettyCash", newPettyCash);
@@ -67,7 +77,14 @@ const createRandomPettyCash = async () => {
       const userIndex = faker.number.int({ min: 0, max: users.length - 1 });
       const userId = users[userIndex]?._id || users[0]?._id;
 
-      if (!userId) continue;
+      const spendTypeIndex = faker.number.int({
+        min: 0,
+        max: spendTypes.length - 1,
+      });
+
+      const spendTypeId = spendTypes[spendTypeIndex]?._id || spendTypes[0]?._id;
+
+      if (!userId || !spendTypeId) continue;
 
       const pettyCashRawData = buildPettyCash(serialNumber, 2000, 2000);
 
@@ -75,6 +92,7 @@ const createRandomPettyCash = async () => {
         ...pettyCashRawData,
         deductedFromUser: userId,
         sequenceNumber: serialNumber,
+        spendType: spendTypeId,
       });
 
       await newPettyCash.save();

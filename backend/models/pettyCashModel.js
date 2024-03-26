@@ -32,8 +32,9 @@ const pettyCashSchema = new mongoose.Schema({
     default: 0,
   },
   spendType: {
-    type: String,
-    required: [true, "Spends type is required"],
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "SpendType",
+    required: [true, "Spend type is required"],
   },
   spendsRemarks: {
     type: String,
