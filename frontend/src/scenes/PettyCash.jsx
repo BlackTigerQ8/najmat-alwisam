@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo } from "react";
+import * as yup from "yup";
 import { Box, useTheme, Button, TextField, Typography } from "@mui/material";
 import { Formik } from "formik";
 import useMediaQuery from "@mui/material/useMediaQuery";
@@ -9,6 +10,18 @@ import { useSelector, useDispatch } from "react-redux";
 import { fetchPettyCash } from "../redux/pettyCashSlice";
 import { pulsar } from "ldrs";
 
+const initialValues ={
+  serialNumber: "",
+  requestApplicant: "",
+  requestDate: ""
+}
+
+const pettyCashRequestSchema = yup.object().shape({
+  serialNumber: yup.number(),
+  requestApplicant: yup.string(),
+  requestDate: yup.string(),
+});
+
 const PettyCash = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
@@ -17,13 +30,15 @@ const PettyCash = () => {
   const pettyCash = useSelector((state) => state.pettyCash.pettyCash);
   const status = useSelector((state) => state.pettyCash.status);
   const error = useSelector((state) => state.pettyCash.error);
-  const token =
-    useSelector((state) => state.pettyCash.token) ||
-    localStorage.getItem("token");
+  
 
-  const [totalSpends, setTotalSpends] = useState(0);
-  const [totalAmountOnWorker, setTotalAmountOnWorker] = useState(0);
-  const [totalAmountOnCompany, setTotalAmountOnCompany] = useState(0);
+  
+const totalSpends =useMemo(() => pettyCash.reduce((sum, pettyCash) => sum + pettyCash.cashAmount, 0), [pettyCash]);
+const totalAmountOnWorker =useMemo(() => pettyCash.reduce((sum, pettyCash) => sum +  (pettyCash.deductedFromDriver || pettyCash.deductedFromUser ? pettyCash.cashAmount : 0), 0), [pettyCash]);
+const totalAmountOnCompany = totalSpends - totalAmountOnWorker; 
+
+  
+  
 
   const columns = [
     {
@@ -56,6 +71,16 @@ const PettyCash = () => {
       field: "spendType",
       headerName: "spendType",
       flex: 1,
+      renderCell: ({ row: { spendType } }) => {
+
+        const {name} = spendType;
+
+        return (
+          <Box display="flex" justifyContent="center" borderRadius="4px">
+            {name} 
+          </Box>
+        );
+      },
     },
     {
       field: "spendsRemarks",
@@ -65,6 +90,18 @@ const PettyCash = () => {
     {
       field: "deductedFrom",
       headerName: "Deducted From",
+      renderCell: ({ row: { deductedFromDriver, deductedFromUser } }) => {
+
+        if(!deductedFromDriver && !deductedFromUser) return null
+
+        const {firstName, lastName} = deductedFromDriver ?? deductedFromUser;
+
+        return (
+          <Box display="flex" justifyContent="center" borderRadius="4px">
+            {firstName} {lastName}
+          </Box>
+        );
+      },
     },
   ];
 
@@ -111,7 +148,7 @@ const PettyCash = () => {
   return (
     <Box m="20px">
       <Header title="PETTY CASH" subtitle="Petty Cash Page" />
-      <Formik>
+      <Formik initialValues={initialValues} validationSchema={pettyCashRequestSchema}>
         {({
           values,
           errors,
@@ -137,7 +174,7 @@ const PettyCash = () => {
                 label="Serial Number"
                 onBlur={handleBlur}
                 onChange={handleChange}
-                value={values}
+                value={values.serialNumber}
                 name="serialNumber"
                 error={!!touched.serialNumber && !!errors.serialNumber}
                 helperText={touched.serialNumber && errors.serialNumber}
@@ -150,10 +187,10 @@ const PettyCash = () => {
                 label="Request Applicant"
                 onBlur={handleBlur}
                 onChange={handleChange}
-                value={values}
+                value={values.requestApplicant}
                 name="applicant"
-                error={!!touched.requestApplicant && !!errors.applicant}
-                helperText={touched.applicant && errors.applicant}
+                error={!!touched.requestApplicant && !!errors.requestApplicant}
+                helperText={touched.requestApplicant && errors.requestApplicant}
                 sx={{ gridColumn: "span 1" }}
               />
               <TextField
@@ -163,7 +200,7 @@ const PettyCash = () => {
                 label="Resquest Date"
                 onBlur={handleBlur}
                 onChange={handleChange}
-                value={values}
+                value={values.requestDate}
                 name="requestDate"
                 error={!!touched.requestDate && !!errors.requestDate}
                 helperText={touched.requestDate && errors.requestDate}
@@ -221,19 +258,19 @@ const PettyCash = () => {
           <Typography variant="h4" color="secondary" mt={4}>
             Total spends:
             <strong>
-              <span> {totalSpends} </span> KD
+              <span> {totalSpends/1000} </span> KD
             </strong>
           </Typography>
           <Typography variant="h4" color="secondary" mt={4}>
             Total amount on workers:
             <strong>
-              <span> {totalAmountOnWorker} </span> KD
+              <span> {totalAmountOnWorker/1000} </span> KD
             </strong>
           </Typography>
           <Typography variant="h4" color="secondary" mt={4}>
-            Total amount on company:
+            Net amount on company:
             <strong>
-              <span> {totalAmountOnCompany} </span> KD
+              <span> {totalAmountOnCompany/1000} </span> KD
             </strong>
           </Typography>
         </Box>

@@ -70,7 +70,7 @@ const createRandomPettyCash = async () => {
     }
 
     const users = await User.find();
-    for (let j = 0; j < 4; j++) {
+    for (let j = 0; j < 6; j++) {
       // Calculate the sequence number based on the last one in the database
       const serialNumber = lastSerialNumber + 1;
 
@@ -92,6 +92,32 @@ const createRandomPettyCash = async () => {
         ...pettyCashRawData,
         deductedFromUser: userId,
         sequenceNumber: serialNumber,
+        spendType: spendTypeId,
+      });
+
+      await newPettyCash.save();
+
+      lastSerialNumber = serialNumber;
+    }
+
+    for (let k = 0; k < 5; k++) {
+      // Calculate the sequence number based on the last one in the database
+      const serialNumber = lastSerialNumber + 1;
+
+      const spendTypeIndex = faker.number.int({
+        min: 0,
+        max: spendTypes.length - 1,
+      });
+
+      const spendTypeId = spendTypes[spendTypeIndex]?._id || spendTypes[0]?._id;
+
+      if (!spendTypeId) continue;
+
+      const pettyCashRawData = buildPettyCash(serialNumber, 2000, 2000);
+
+      const newPettyCash = new PettyCash({
+        ...pettyCashRawData,
+        sequenceNumber: serialNumber,        
         spendType: spendTypeId,
       });
 
