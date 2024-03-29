@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Box, Button, useTheme } from "@mui/material";
+import { Box, Button, Typography, useTheme } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import { tokens } from "../theme";
 import Header from "../components/Header";
@@ -52,6 +52,7 @@ const DriversSalary = () => {
       headerName: "Main Orders",
       headerAlign: "center",
       align: "center",
+      editable: true,
     },
     {
       field: "additionalOrders", // NEW
@@ -88,7 +89,39 @@ const DriversSalary = () => {
     {
       field: "finalSalary", // NEW
       headerName: "Final Salary",
+      headerAlign: "center",
+      align: "center",
+    },
+    {
+      field: "talabatDeductionAmount",
+      headerName: "Talabat Deduction",
+      headerAlign: "center",
+      align: "center",
       editable: true,
+    },
+    {
+      field: "companyDeductionAmount",
+      headerName: "Company Deduction",
+      headerAlign: "center",
+      align: "center",
+      editable: true,
+    },
+    {
+      field: "cashAmount",
+      headerName: "Petty Cash Deduction",
+      headerAlign: "center",
+      align: "center",
+      editable: true,
+    },
+    {
+      field: "netSalary", // NEW
+      headerName: "Net Salary",
+      headerAlign: "center",
+      align: "center",
+    },
+    {
+      field: "remarks", // NEW
+      headerName: "Remarks",
       headerAlign: "center",
       align: "center",
     },
@@ -101,21 +134,58 @@ const DriversSalary = () => {
       sortable: false,
       filterable: false,
       renderCell: (params) => {
+        const isSumRow = params.row._id === "sum-row";
         return (
           <Box display="flex" justifyContent="center">
-            <Button
-              variant="contained"
-              color="primary"
-              size="small"
-              style={{ marginRight: 8 }}
-              onClick={() => handleUpdate(params.row)}
-              startIcon={<UpdateIcon />}
-            ></Button>
+            {isSumRow ? null : (
+              <Button
+                variant="contained"
+                color="primary"
+                size="small"
+                style={{ marginRight: 8 }}
+                onClick={() => handleUpdate(params.row)}
+                startIcon={<UpdateIcon />}
+              ></Button>
+            )}
           </Box>
         );
       },
     },
   ];
+
+  let totalNetSalary = {
+    carDrivers: 150,
+    bikeDrivers: 120,
+  };
+
+  const calculateColumnSum = (fieldName) => {
+    return drivers.reduce((total, driver) => {
+      return total + (driver[fieldName] || 0);
+    }, 0);
+  };
+
+  const sumRow = {
+    _id: "sum-row",
+    sequenceNumber: "Total",
+    name: "",
+    vehicle: "",
+    mainOrders: calculateColumnSum("mainOrders"),
+    additionalOrders: calculateColumnSum("additionalOrders"),
+    totalOrders: calculateColumnSum("totalOrders"),
+    salaryBasedOnMainOrders: calculateColumnSum("salaryBasedOnMainOrders"),
+    salaryBasedOnAdditionalOrders: calculateColumnSum(
+      "salaryBasedOnAdditionalOrders"
+    ),
+    finalSalary: calculateColumnSum("finalSalary"),
+    talabatDeductionAmount: calculateColumnSum("talabatDeductionAmount"),
+    companyDeductionAmount: calculateColumnSum("companyDeductionAmount"),
+    cashAmount: calculateColumnSum("cashAmount"),
+    netSalary: calculateColumnSum("netSalary"),
+    remarks: "",
+    actions: "",
+  };
+
+  const rowsWithSum = [...drivers, sumRow];
 
   useEffect(() => {
     //if (status === "succeeded") {
@@ -201,12 +271,23 @@ const DriversSalary = () => {
       >
         <DataGrid
           // checkboxSelection
-          rows={Array.isArray(drivers) ? drivers : []}
+          rows={rowsWithSum}
           columns={columns}
           getRowId={(row) => row._id}
           editRowsModel={editRowsModel}
           onEditRowsModelChange={(newModel) => setEditRowsModel(newModel)}
         />
+        <Box mt="20px">
+          <Header title="NOTES" />
+          <Typography color={colors.greenAccent[500]} fontSize={24}>
+            Total net salary for car drivers:
+            <strong> ${totalNetSalary.carDrivers}</strong>
+          </Typography>
+          <Typography color={colors.greenAccent[500]} fontSize={24}>
+            Total net salary for bike drivers:
+            <strong> ${totalNetSalary.bikeDrivers}</strong>
+          </Typography>
+        </Box>
       </Box>
     </Box>
   );
