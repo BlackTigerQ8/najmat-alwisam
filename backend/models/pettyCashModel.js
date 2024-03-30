@@ -2,13 +2,12 @@
 
 const mongoose = require("mongoose");
 
+const status = ["pending", "approved", "rejected", "archived"];
+
 const pettyCashSchema = new mongoose.Schema({
   serialNumber: {
     type: Number,
     required: [true, "Serial number is required"],
-  },
-  sequenceNumber: {
-    type: Number,
   },
   requestApplicant: {
     type: String,
@@ -38,7 +37,6 @@ const pettyCashSchema = new mongoose.Schema({
   },
   spendsRemarks: {
     type: String,
-    required: [true, "Spends remarks is required"],
   },
   deductedFromUser: {
     type: mongoose.Schema.Types.ObjectId,
@@ -50,9 +48,19 @@ const pettyCashSchema = new mongoose.Schema({
   },
   previousBalance: {
     type: Number,
+    default: 0,
   },
   currentBalance: {
     type: Number,
+  },
+  status: {
+    type: String,
+    enum: status,
+    default: "pending",
+  },
+  addedByUser: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
   },
 });
 

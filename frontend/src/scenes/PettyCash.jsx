@@ -1,14 +1,19 @@
-import React, { useEffect, useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import * as yup from "yup";
-import { Box, useTheme, Button, TextField, Typography } from "@mui/material";
+import { Box, useTheme, Button, TextField, Typography,MenuItem,IconButton, FormControl,InputLabel, Select } from "@mui/material";
+import ClearIcon from "@mui/icons-material/Clear";
 import { Formik } from "formik";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import { DataGrid } from "@mui/x-data-grid";
 import Header from "../components/Header";
 import { tokens } from "../theme";
 import { useSelector, useDispatch } from "react-redux";
-import { fetchPettyCash } from "../redux/pettyCashSlice";
+import { fetchPettyCash,createPettyCash } from "../redux/pettyCashSlice";
 import { pulsar } from "ldrs";
+import { fetchDrivers } from "../redux/driversSlice";
+import { fetchUsers } from "../redux/usersSlice";
+import {fetchAllSpendTypes} from '../redux/spendTypeSlice';
+
 
 const initialValues ={
   serialNumber: "",
@@ -16,10 +21,36 @@ const initialValues ={
   requestDate: ""
 }
 
+const newPettyCashInitialValues = {
+  requestApplicant:"",
+  requestDate:"",
+  spendsDate: "",
+  spendsReason: "",
+  cashAmount: "",
+  spendType: "",
+  spendsRemarks:"",
+  deductedFromUser: "",
+  deductedFromDriver: "",
+  currentBalance: ""
+}
+
 const pettyCashRequestSchema = yup.object().shape({
   serialNumber: yup.number(),
   requestApplicant: yup.string(),
   requestDate: yup.string(),
+});
+
+const addNewPettyCashSchema = yup.object().shape({
+  requestApplicant: yup.string().required(),
+  requestDate: yup.string().required(),
+  spendsDate: yup.string().required(),
+  spendsReason: yup.string().required(),
+  cashAmount: yup.string().required(),
+  spendType:yup.string().required(),
+  spendsRemarks: yup.string(),
+  deductedFromUser: yup.string(),
+  deductedFromDriver: yup.string(),
+  currentBalance: yup.number()
 });
 
 const PettyCash = () => {
@@ -30,6 +61,45 @@ const PettyCash = () => {
   const pettyCash = useSelector((state) => state.pettyCash.pettyCash);
   const status = useSelector((state) => state.pettyCash.status);
   const error = useSelector((state) => state.pettyCash.error);
+
+  const drivers = useSelector((state) => state.drivers.drivers);
+  const users = useSelector((state) => state.users.users);
+  const spendTypes = useSelector((state) => state.spendType.spendTypes);
+
+  const token =
+  useSelector((state) => state.drivers.token) ||
+  localStorage.getItem("token");
+
+
+  async function handleFormSubmit(values) {
+    try {
+
+
+      console.log(
+        'form values',values
+      )
+      
+        dispatch(
+          createPettyCash({
+          values
+        })
+      );
+      
+      
+
+      // TODO: Uncomment this later
+
+      // dispatch(createNotification(buildNotificationAlert({
+      //   driverId: values.selectedDriver,
+      //   talabatDeductionAmount: values.talabatDeductionAmount,
+      //   companyDeductionAmount: values.companyDeductionAmount,
+      //   role: userInfo.role
+      // })));
+    } catch (error) {
+      console.error("Row does not have a valid _id field:");
+    }
+  }
+  
   
 
   
@@ -37,12 +107,18 @@ const totalSpends =useMemo(() => pettyCash.reduce((sum, pettyCash) => sum + pett
 const totalAmountOnWorker =useMemo(() => pettyCash.reduce((sum, pettyCash) => sum +  (pettyCash.deductedFromDriver || pettyCash.deductedFromUser ? pettyCash.cashAmount : 0), 0), [pettyCash]);
 const totalAmountOnCompany = totalSpends - totalAmountOnWorker; 
 
+
+useEffect(() => {
+  dispatch(fetchDrivers(token));
+  dispatch(fetchUsers(token));
+  dispatch(fetchAllSpendTypes(token));
+}, [token]);
   
   
 
   const columns = [
     {
-      field: "sequenceNumber",
+      field: "serialNumber",
       headerName: "NO.",
     },
     {
@@ -73,7 +149,7 @@ const totalAmountOnCompany = totalSpends - totalAmountOnWorker;
       flex: 1,
       renderCell: ({ row: { spendType } }) => {
 
-        const {name} = spendType;
+        const {name= undefined} = spendTypes.find(s =>s._id === spendType);
 
         return (
           <Box display="flex" justifyContent="center" borderRadius="4px">
@@ -94,7 +170,8 @@ const totalAmountOnCompany = totalSpends - totalAmountOnWorker;
 
         if(!deductedFromDriver && !deductedFromUser) return null
 
-        const {firstName, lastName} = deductedFromDriver ?? deductedFromUser;
+
+        const {firstName = undefined, lastName = undefined} = deductedFromDriver ? drivers.find(d => d._id === deductedFromDriver): users.find(u => u._id === deductedFromUser);
 
         return (
           <Box display="flex" justifyContent="center" borderRadius="4px">
@@ -145,10 +222,13 @@ const totalAmountOnCompany = totalSpends - totalAmountOnWorker;
     );
   }
 
+  
+
+
   return (
     <Box m="20px">
       <Header title="PETTY CASH" subtitle="Petty Cash Page" />
-      <Formik initialValues={initialValues} validationSchema={pettyCashRequestSchema}>
+      <Formik initialValues={initialValues} validationSchema={pettyCashRequestSchema} onSubmit={handleFormSubmit}>
         {({
           values,
           errors,
@@ -162,9 +242,9 @@ const totalAmountOnCompany = totalSpends - totalAmountOnWorker;
             <Box
               display="grid"
               gap="30px"
-              gridTemplateColumns="repeat(4, minmax(0, 1fr))"
+              gridTemplateColumns="repeat(5, minmax(0, 1fr))"
               sx={{
-                "& > div": { gridColumn: isNonMobile ? undefined : "span 4" },
+                "& > div": { gridColumn: isNonMobile ? undefined : "span 5" },
               }}
             >
               <TextField
@@ -206,15 +286,18 @@ const totalAmountOnCompany = totalSpends - totalAmountOnWorker;
                 helperText={touched.requestDate && errors.requestDate}
                 sx={{ gridColumn: "span 1" }}
               />
-            </Box>
-            <Box display="flex" justifyContent="end" mt="20px">
-              <Button type="submit" color="secondary" variant="contained">
-                Submit
+                <Button type="submit" color="secondary" variant="contained">
+                Search 
               </Button>
+
+             
             </Box>
+           
           </form>
         )}
       </Formik>
+
+      {<Box mt="50px"><PettyCashForm  /></Box>}
       <Box
         mt="40px"
         mb="40px"
@@ -286,5 +369,281 @@ const totalAmountOnCompany = totalSpends - totalAmountOnWorker;
     </Box>
   );
 };
+
+function PettyCashForm({isNonMobile}){
+
+  const drivers = useSelector((state) => state.drivers.drivers);
+  const users = useSelector((state) => state.users.users);
+  const spendTypes = useSelector((state) => state.spendType.spendTypes);
+  const pettyCash = useSelector((state) => state.pettyCash.pettyCash);
+
+  const dispatch = useDispatch();
+
+
+  async function handleFormSubmit(values,  options ) {
+    try {
+
+console.log('on submit',options.resetForm)
+        dispatch(
+          createPettyCash({
+          values: {
+            ...values,
+            deductedFromUser:values.deductedFromUser|| undefined,
+            deductedFromDriver:values.deductedFromDriver|| undefined,
+          }
+        })
+      );
+      
+      options.resetForm();
+      
+
+      // TODO: Uncomment this later
+
+      // dispatch(createNotification(buildNotificationAlert({
+      //   driverId: values.selectedDriver,
+      //   talabatDeductionAmount: values.talabatDeductionAmount,
+      //   companyDeductionAmount: values.companyDeductionAmount,
+      //   role: userInfo.role
+      // })));
+    } catch (error) {
+      console.error("Row does not have a valid _id field:");
+    }
+  }
+
+return <Formik initialValues={newPettyCashInitialValues} validationSchema={addNewPettyCashSchema} onSubmit={handleFormSubmit}>
+{({
+  values,
+  errors,
+  touched,
+  handleBlur,
+  handleChange,
+  handleSubmit,
+  setFieldValue,
+}) => (
+  <form onSubmit={handleSubmit}>
+    <Header title="Add new petty cash"  />
+    <Box
+      display="grid"
+      gap="30px"
+      
+      gridTemplateColumns="repeat(4, minmax(0, 1fr))"
+      sx={{
+        "& > div": { gridColumn: isNonMobile ? undefined : "span 2" },
+      }}
+    >
+      <FormControl fullWidth sx={{ gridColumn: "span 2" }}>
+                <InputLabel id="select-user-label">Select User</InputLabel>
+                <Select
+                  labelId="select-user-label"
+                  id="select-user"
+                  value={values.deductedFromUser}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  error={!!touched.deductedFromUser && !!errors.deductedFromUser}
+                  name="deductedFromUser"
+                  label="Select User"
+                  disabled={!!values.deductedFromDriver}
+                >
+                  {users.map((user) => (
+                    <MenuItem key={user._id} value={user._id}>
+                      {user.firstName} {user.lastName}
+                    </MenuItem>
+                  ))}
+                </Select>
+                {values.deductedFromUser && (
+                  <IconButton
+                    onClick={() => setFieldValue("deductedFromUser", "")}
+                    sx={{ gridColumn: "span 1" }}
+                    style={{
+                      display: "flex",
+                      width: "30px",
+                      height: "30px",
+                    }}
+                  >
+                    <ClearIcon />
+                  </IconButton>
+                )}
+              </FormControl>
+
+<FormControl fullWidth sx={{ gridColumn: "span 2" }}>
+                <InputLabel id="select-driver-label">Select Driver</InputLabel>
+                <Select
+                  labelId="select-driver-label"
+                  id="select-driver"
+                  value={values.deductedFromDriver}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  error={!!touched.deductedFromDriver && !!errors.deductedFromDriver}
+                  name="deductedFromDriver"
+                  label="Select Driver"
+                  disabled={!!values.deductedFromUser}
+                  MenuProps={{
+                    MenuListProps: { disablePadding: true },
+                    PaperProps: {
+                      style: {
+                        maxHeight: 500,
+                      },
+                    },
+                  }}
+                >
+                  {drivers.map((driver) => (
+                    <MenuItem key={driver._id} value={driver._id}>
+                      {driver.firstName} {driver.lastName}
+                    </MenuItem>
+                  ))}
+                </Select>
+                {values.deductedFromDriver && (
+                  <IconButton
+                    onClick={() => setFieldValue("deductedFromDriver", "")}
+                    sx={{ gridColumn: "span 1" }}
+                    style={{
+                      display: "flex",
+                      width: "30px",
+                      height: "30px",
+                    }}
+                  >
+                    <ClearIcon />
+                  </IconButton>
+                )}
+              </FormControl>
+
+              <FormControl fullWidth sx={{ gridColumn: "span 2" }}>
+                <InputLabel id="select-user-label">Select spend type</InputLabel>
+                <Select
+                  labelId="select-spendType-label"
+                  id="select-spendType"
+                  value={values.spendType}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  error={!!touched.spendType && !!errors.spendType}
+                  name="spendType"
+                  label="Select spend type"
+                  
+                >
+                  {spendTypes.map((spendType) => (
+                    <MenuItem key={spendType._id} value={spendType._id}>
+                      {spendType.name}
+                    </MenuItem>
+                  ))}
+                </Select>
+                {values.selectedSpendType && (
+                  <IconButton
+                    onClick={() => setFieldValue("selectedSpendType", "")}
+                    sx={{ gridColumn: "span 1" }}
+                    style={{
+                      display: "flex",
+                      width: "30px",
+                      height: "30px",
+                    }}
+                  >
+                    <ClearIcon />
+                  </IconButton>
+                )}
+              </FormControl>
+    
+              <TextField
+        fullWidth
+        variant="filled"
+        type="text"
+        label="Spends reason"
+        onBlur={handleBlur}
+        onChange={handleChange}
+        value={values.spendsReason}
+        name="spendsReason"
+        error={!!touched.spendsReason && !!errors.spendsReason}
+        helperText={touched.spendsReason && errors.spendsReason}
+        sx={{ gridColumn: "span 1" }}
+      />
+        <TextField
+        fullWidth
+        variant="filled"
+        type="number"
+        label="Cash amount"
+        onBlur={handleBlur}
+        onChange={handleChange}
+        value={values.cashAmount}
+        name="cashAmount"
+        error={!!touched.cashAmount && !!errors.cashAmount}
+        helperText={touched.cashAmount && errors.cashAmount}
+        sx={{ gridColumn: "span 1" }}
+      />
+       <TextField
+        fullWidth
+        variant="filled"
+        type="text"
+        label="Spends remarks"
+        onBlur={handleBlur}
+        onChange={handleChange}
+        value={values.spendsRemarks}
+        name="spendsRemarks"
+        error={!!touched.spendsRemarks && !!errors.spendsRemarks}
+        helperText={touched.spendsRemarks && errors.spendsRemarks}
+        sx={{ gridColumn: "span 1" }}
+      />
+      <TextField
+        fullWidth
+        variant="filled"
+        type="text"
+        label="Request Applicant"
+        onBlur={handleBlur}
+        onChange={handleChange}
+        value={values.requestApplicant}
+        name="requestApplicant"
+        error={!!touched.requestApplicant && !!errors.requestApplicant}
+        helperText={touched.requestApplicant && errors.requestApplicant}
+        sx={{ gridColumn: "span 1" }}
+      />
+      <TextField
+        fullWidth
+        variant="filled"
+        type="date"
+        label="Resquest Date"
+        onBlur={handleBlur}
+        onChange={handleChange}
+        value={values.requestDate}
+        name="requestDate"
+        error={!!touched.requestDate && !!errors.requestDate}
+        helperText={touched.requestDate && errors.requestDate}
+        sx={{ gridColumn: "span 1" }}
+      />
+      <TextField
+        fullWidth
+        variant="filled"
+        type="date"
+        label="Spends Date"
+        onBlur={handleBlur}
+        onChange={handleChange}
+        value={values.spendsDate}
+        name="spendsDate"
+        error={!!touched.spendsDate && !!errors.spendsDate}
+        helperText={touched.spendsDate && errors.spendsDate}
+        sx={{ gridColumn: "span 1" }}
+      />
+      {!pettyCash.length &&  <TextField
+        fullWidth
+        variant="filled"
+        type="number"
+        label="Starting balance"
+        onBlur={handleBlur}
+        onChange={handleChange}
+        value={values.currentBalance}
+        name="currentBalance"
+        error={!!touched.currentBalance && !!errors.currentBalance}
+        helperText={touched.currentBalance && errors.currentBalance}
+        sx={{ gridColumn: "span 1" }}
+      />}
+
+        <Button type="submit" color="secondary" variant="contained">
+        Save Data 
+      </Button>
+
+     
+    </Box>
+   
+  </form>
+)}
+</Formik>
+
+}
 
 export default PettyCash;
