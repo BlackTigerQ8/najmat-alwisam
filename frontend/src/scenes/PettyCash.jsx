@@ -8,7 +8,7 @@ import { DataGrid } from "@mui/x-data-grid";
 import Header from "../components/Header";
 import { tokens } from "../theme";
 import { useSelector, useDispatch } from "react-redux";
-import { fetchPettyCash,createPettyCash } from "../redux/pettyCashSlice";
+import { fetchPettyCash,createPettyCash,searchPettyCash } from "../redux/pettyCashSlice";
 import { pulsar } from "ldrs";
 import { fetchDrivers } from "../redux/driversSlice";
 import { fetchUsers } from "../redux/usersSlice";
@@ -59,8 +59,13 @@ const PettyCash = () => {
   const isNonMobile = useMediaQuery("(min-width: 600px)");
   const dispatch = useDispatch();
   const pettyCash = useSelector((state) => state.pettyCash.pettyCash);
-  const status = useSelector((state) => state.pettyCash.status);
+  const pageStatus = useSelector((state) => state.pettyCash.status);
   const error = useSelector((state) => state.pettyCash.error);
+
+  const pettyCashSearchResults = useSelector((state) => state.pettyCash.searchResults);
+  const searchStatus = useSelector((state) => state.pettyCash.searchStatus);
+
+  const status = searchStatus || pageStatus;
 
   const drivers = useSelector((state) => state.drivers.drivers);
   const users = useSelector((state) => state.users.users);
@@ -80,7 +85,7 @@ const PettyCash = () => {
       )
       
         dispatch(
-          createPettyCash({
+          searchPettyCash({
           values
         })
       );
@@ -268,7 +273,7 @@ useEffect(() => {
                 onBlur={handleBlur}
                 onChange={handleChange}
                 value={values.requestApplicant}
-                name="applicant"
+                name="requestApplicant"
                 error={!!touched.requestApplicant && !!errors.requestApplicant}
                 helperText={touched.requestApplicant && errors.requestApplicant}
                 sx={{ gridColumn: "span 1" }}
@@ -277,7 +282,7 @@ useEffect(() => {
                 fullWidth
                 variant="filled"
                 type="date"
-                label="Resquest Date"
+                label="Request Date"
                 onBlur={handleBlur}
                 onChange={handleChange}
                 value={values.requestDate}
@@ -326,7 +331,7 @@ useEffect(() => {
         }}
       >
         <DataGrid
-          rows={Array.isArray(pettyCash) ? pettyCash : []}
+          rows={searchStatus ? pettyCashSearchResults : pettyCash}
           columns={columns}
           getRowId={(row) => row._id}
         />

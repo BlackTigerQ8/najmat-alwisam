@@ -135,7 +135,37 @@ const createPettyCash = async (req, res) => {
   }
 };
 
+const searchPettyCash = async (req, res) => {
+  const { serialNumber, requestApplicant, requestDate } = req.body;
+
+  let query = {};
+
+  if (serialNumber) {
+    query.serialNumber = serialNumber;
+  }
+  if (requestApplicant) {
+    query.requestApplicant = new RegExp(requestApplicant, "i"); // Case-insensitive search
+  }
+  if (requestDate) {
+    query.requestDate = new Date(requestDate);
+  }
+
+  try {
+    const results = await PettyCash.find(query);
+    res.status(200).json({
+      status: "Success",
+      data: {
+        results,
+      },
+    });
+  } catch (error) {
+    console.error("Error searching petty cash records:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
 module.exports = {
   getAllPettyCash,
   createPettyCash,
+  searchPettyCash,
 };

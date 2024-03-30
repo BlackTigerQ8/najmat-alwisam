@@ -8,6 +8,9 @@ const initialState = {
   pettyCash: [],
   status: "",
   error: null,
+  searchResults: [],
+  searchStatus: "",
+  searchError: null,
 };
 
 export const fetchPettyCash = createAsyncThunk(
@@ -44,6 +47,27 @@ export const createPettyCash = createAsyncThunk(
   }
 );
 
+export const searchPettyCash = createAsyncThunk(
+  "pettyCash/searchPettyCash",
+  async ({ values }) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.post(
+        `${API_URL}/petty-cash/search`,
+        values,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  }
+);
+
 const pettyCashSlice = createSlice({
   name: "pettyCash",
   initialState,
@@ -59,6 +83,17 @@ const pettyCashSlice = createSlice({
       })
       .addCase(fetchPettyCash.rejected, (state, action) => {
         state.status = "failed";
+        state.error = action.error.message;
+      })
+      .addCase(searchPettyCash.pending, (state) => {
+        state.searchStatus = "loading";
+      })
+      .addCase(searchPettyCash.fulfilled, (state, action) => {
+        state.searchStatus = "succeeded";
+        state.searchResults = action.payload.data.results;
+      })
+      .addCase(searchPettyCash.rejected, (state, action) => {
+        state.searchStatus = "failed";
         state.error = action.error.message;
       })
       .addCase(createPettyCash.fulfilled, (state, action) => {
