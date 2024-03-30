@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Typography, Box, Button, useTheme } from "@mui/material";
-import { DataGrid } from "@mui/x-data-grid";
+import { DataGrid, GridToolbar } from "@mui/x-data-grid";
 import { tokens } from "../theme";
 // import { mockDataTeam } from "../data/mockData";
 import AdminPanelSettingsOutlinedIcon from "@mui/icons-material/AdminPanelSettingsOutlined";
@@ -214,6 +214,7 @@ const Team = () => {
           rows={Array.isArray(users) ? users : []}
           columns={columns}
           getRowId={(row) => row._id}
+          // components={{ Toolbar: GridToolbar }}
         />
       </Box>
     </Box>

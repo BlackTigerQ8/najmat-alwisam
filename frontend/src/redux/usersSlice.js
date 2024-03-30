@@ -12,6 +12,7 @@ const initialState = {
   salaries: [],
   salariesStatus: "",
   salariesError: null,
+  message: "",
 };
 
 export const fetchSalaries = createAsyncThunk(
@@ -81,6 +82,28 @@ export const updateUser = createAsyncThunk(
         }
       );
 
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response.data.message || error.message);
+    }
+  }
+);
+
+export const sendMessage = createAsyncThunk(
+  "user/sendMessage",
+  async ({ selectedUsers, message }) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.post(
+        `${API_URL}/users/send-message`,
+        { selectedUsers, message },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
       return response.data;
     } catch (error) {
       throw new Error(error.response.data.message || error.message);
@@ -219,6 +242,33 @@ const usersSlice = createSlice({
       .addCase(updateAdditionalSalary.rejected, (state, action) => {
         state.salariesStatus = "failed";
         toast.error("Something went wrong! Please try later.", {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+        });
+      });
+    // Send Message
+    builder
+      .addCase(sendMessage.pending, (state) => {
+        state.status = "loading";
+      })
+      .addCase(sendMessage.fulfilled, (state, action) => {
+        // Update state accordingly, but do not filter users
+        state.status = "succeeded";
+        toast.success("Message is successfully sent!", {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+        });
+      })
+      .addCase(sendMessage.rejected, (state, action) => {
+        state.status = "failed";
+        state.error = action.error.message;
+        toast.error("Can't send a message, you can try later!", {
           position: "top-right",
           autoClose: 3000,
           hideProgressBar: false,

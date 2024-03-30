@@ -13,7 +13,7 @@ import LibraryBooksOutlinedIcon from "@mui/icons-material/LibraryBooksOutlined";
 import MoneyOffIcon from "@mui/icons-material/MoneyOff";
 import MonetizationOnOutlinedIcon from "@mui/icons-material/MonetizationOnOutlined";
 import AttachMoneyOutlinedIcon from "@mui/icons-material/AttachMoneyOutlined";
-import ListOutlinedIcon from "@mui/icons-material/ListOutlined";
+import ContactsOutlinedIcon from "@mui/icons-material/ContactsOutlined";
 import { profileImage } from "../../redux/userSlice";
 import { toast } from "react-toastify";
 
@@ -215,6 +215,13 @@ const SidebarA = () => {
               title="Notifications"
               to="/notifications"
               icon={<NotificationsActiveOutlinedIcon />}
+              selected={selected}
+              setSelected={setSelected}
+            />
+            <Item
+              title="Contact"
+              to="/contact"
+              icon={<ContactsOutlinedIcon />}
               selected={selected}
               setSelected={setSelected}
             />

@@ -6,6 +6,7 @@ import { Link } from "react-router-dom";
 import { tokens } from "../../theme";
 import HomeOutlinedIcon from "@mui/icons-material/HomeOutlined";
 import PeopleOutlinedIcon from "@mui/icons-material/PeopleOutlined";
+import ContactsOutlinedIcon from "@mui/icons-material/ContactsOutlined";
 import MoneyOffIcon from "@mui/icons-material/MoneyOff";
 import ReceiptOutlinedIcon from "@mui/icons-material/ReceiptOutlined";
 import PersonOutlinedIcon from "@mui/icons-material/PersonOutlined";
@@ -197,13 +198,6 @@ const Sidebar = () => {
               selected={selected}
               setSelected={setSelected}
             />
-            {/* <Item
-              title="Contacts Information"
-              to="/contacts"
-              icon={<ContactsOutlinedIcon />}
-              selected={selected}
-              setSelected={setSelected}
-            /> */}
             <Item
               title="Invoices Balances"
               to="/admin-invoices"
@@ -244,6 +238,13 @@ const Sidebar = () => {
               title="Deduction"
               to="/deduction"
               icon={<MoneyOffIcon />}
+              selected={selected}
+              setSelected={setSelected}
+            />
+            <Item
+              title="Contact"
+              to="/contact"
+              icon={<ContactsOutlinedIcon />}
               selected={selected}
               setSelected={setSelected}
             />

@@ -13,7 +13,7 @@ import SidebarE from "./scenes/global/SidebarEmployee";
 import Dashboard from "./scenes/dashboard";
 import Team from "./scenes/Team";
 import Invoices from "./scenes/Invoices";
-import Contacts from "./scenes/Contacts";
+import Contact from "./scenes/Contact";
 import Bar from "./scenes/Bar";
 import Form from "./scenes/Form";
 import Line from "./scenes/Line";
@@ -169,7 +169,7 @@ function App() {
                     </>
                   )}
 
-                  <Route exact path="/contacts" element={<Contacts />} />
+                  <Route exact path="/contact" element={<Contact />} />
                   <Route exact path="/bar" element={<Bar />} />
                   <Route exact path="/form" element={<Form />} />
                   <Route exact path="/driver-form" element={<DriverForm />} />

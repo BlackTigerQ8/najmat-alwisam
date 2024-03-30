@@ -194,6 +194,13 @@ const SideBarEmployee = () => {
               selected={selected}
               setSelected={setSelected}
             />
+            <Item
+              title="Contact"
+              to="/contact"
+              icon={<ContactsOutlinedIcon />}
+              selected={selected}
+              setSelected={setSelected}
+            />
           </Box>
         </Menu>
       </ProSidebar>

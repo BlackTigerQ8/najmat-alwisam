@@ -26,6 +26,7 @@ const driverInvoiceSchema = new mongoose.Schema({
     enum: invoiceStatus,
     default: "pending",
   },
+  remarks: { type: String },
 });
 
 module.exports = mongoose.model("DriverInvoice", driverInvoiceSchema);

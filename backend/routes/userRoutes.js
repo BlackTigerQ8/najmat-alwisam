@@ -10,6 +10,7 @@ const {
   getEmployeesSalary,
   updateEmployeeSalary,
   createEmployeeDeductionInvoice,
+  sendMessage,
 } = require("../controllers/userController");
 const { protect, restrictTo } = require("../middleware/authMiddleware");
 const { contractUpload } = require("./uploadRoutes");
@@ -39,6 +40,8 @@ router
     restrictTo("Admin", "Manager", "Accountant"),
     createEmployeeDeductionInvoice
   );
+
+router.route("/send-message").post(protect, sendMessage);
 
 router
   .route("/")
