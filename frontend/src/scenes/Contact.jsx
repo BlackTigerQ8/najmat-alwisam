@@ -16,7 +16,7 @@ import { tokens } from "../theme";
 import Header from "../components/Header";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import { pulsar } from "ldrs";
-import { ErrorMessage, Formik } from "formik";
+import {  Formik } from "formik";
 import { fetchUsers, sendMessage } from "../redux/usersSlice";
 import { useDispatch, useSelector } from "react-redux";
 
@@ -36,7 +36,7 @@ const messageSchema = yup.object().shape({
 const Contact = () => {
   const isNonMobile = useMediaQuery("(min-width: 600px)");
   const dispatch = useDispatch();
-  const { status, error } = useSelector((state) => state.user);
+  const { status } = useSelector((state) => state.user);
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const users = useSelector((state) => state.users.users);
@@ -45,7 +45,7 @@ const Contact = () => {
     localStorage.getItem("token");
 
   useEffect(() => {
-    dispatch(fetchUsers(token), sendMessage(token));
+    dispatch(fetchUsers(token));
   }, [token]);
 
   pulsar.register();

@@ -431,44 +431,19 @@ const sendMessage = async (req, res) => {
 
     // Create a new message instance
     const newMessage = new Message({
-      sender: req.user._id, // Assuming the sender is the currently logged-in user
-      content: message,
+      sender: req.user.id, // Assuming the sender is the currently logged-in user
+      message,
       timestamp: Date.now(), // Add timestamp
+      receivers: selectedUsers,
     });
 
     // Save the new message
     await newMessage.save();
 
-    // Loop through each selected user and send the message
-    for (const userId of selectedUsers) {
-      const user = await User.findById(userId);
-
-      // Check if the user exists
-      if (!user) {
-        return res.status(404).json({
-          status: "Error",
-          message: `User with ID ${userId} not found`,
-        });
-      }
-
-      console.log("User before adding message:", user);
-
-      // Check if the user has a messages array
-      if (!user.messages) {
-        user.messages = [];
-      }
-
-      // Push the message ID into the user's messages array
-      user.messages.push(newMessage._id);
-      await user.save();
-
-      console.log("User after adding message:", user);
-    }
-
     // Return success response if all messages are sent successfully
     res.status(200).json({
       status: "Success",
-      message: "Messages sent successfully",
+      message: newMessage,
     });
   } catch (error) {
     console.error("Error sending messages:", error);
