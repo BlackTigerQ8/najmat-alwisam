@@ -76,6 +76,8 @@ const pettyCashSlice = createSlice({
     builder
       .addCase(fetchPettyCash.pending, (state) => {
         state.status = "loading";
+        state.searchStatus = "";
+        state.searchResults = [];
       })
       .addCase(fetchPettyCash.fulfilled, (state, action) => {
         state.status = "succeeded";
@@ -95,6 +97,10 @@ const pettyCashSlice = createSlice({
       .addCase(searchPettyCash.rejected, (state, action) => {
         state.searchStatus = "failed";
         state.error = action.error.message;
+      })
+      .addCase(createPettyCash.pending, (state) => {
+        state.status = "loading";
+        state.searchStatus = "";
       })
       .addCase(createPettyCash.fulfilled, (state, action) => {
         state.status = "succeeded";
