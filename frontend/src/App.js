@@ -14,6 +14,7 @@ import Dashboard from "./scenes/dashboard";
 import Team from "./scenes/Team";
 import Invoices from "./scenes/Invoices";
 import Contact from "./scenes/Contact";
+import SpendType from "./scenes/SpendType";
 import Bar from "./scenes/Bar";
 import Form from "./scenes/Form";
 import Line from "./scenes/Line";
@@ -166,6 +167,8 @@ function App() {
                         path="/accountant-dashboard"
                         element={<AccountantDashboard />}
                       />
+
+                      <Route exact path="/spend-type" element={<SpendType />} />
                     </>
                   )}
 

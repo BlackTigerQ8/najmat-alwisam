@@ -225,6 +225,13 @@ const SidebarA = () => {
               selected={selected}
               setSelected={setSelected}
             />
+            <Item
+              title="Spend type"
+              to="/spend-type"
+              icon={<PointOfSaleOutlinedIcon />}
+              selected={selected}
+              setSelected={setSelected}
+            />
           </Box>
         </Menu>
       </ProSidebar>

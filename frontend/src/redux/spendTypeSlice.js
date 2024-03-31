@@ -7,7 +7,7 @@ const API_URL = process.env.REACT_APP_API_URL;
 
 const initialState = {
   spendTypes: [], // Initialize with stored data if available
-  status: "succeeded", // Update status if data is present
+  status: "",
   error: null,
 };
 
@@ -30,10 +30,10 @@ export const fetchAllSpendTypes = createAsyncThunk(
 
 export const addSpendType = createAsyncThunk(
   "spendType/addSpendType",
-  async () => {
+  async (values) => {
     try {
       const token = localStorage.getItem("token"); // Assuming 'user' slice has the token
-      const response = await axios.post(`${API_URL}/spend-types`, {
+      const response = await axios.post(`${API_URL}/spend-types`, values, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -63,9 +63,13 @@ const spendTypeSlice = createSlice({
         state.status = "failed";
         state.error = action.error.message;
       });
-    // delete user
+
     builder
+      .addCase(addSpendType.pending, (state) => {
+        state.status = "loading";
+      })
       .addCase(addSpendType.fulfilled, (state, action) => {
+        state.status = "succeeded";
         state.spendTypes = [...state.spendTypes, action.payload.data.spendType];
         toast.success("Spend type is successfully added!", {
           position: "top-right",
