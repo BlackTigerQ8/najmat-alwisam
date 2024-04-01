@@ -42,6 +42,7 @@ import DriversSalary from "./scenes/DriversSalary";
 import EmployeesSalary from "./scenes/EmployeesSalary";
 import AdminInvoices from "./scenes/AdminInvoices";
 import ManagerDashboard from "./scenes/dashboard/ManagerDashboard";
+import Messages from "./scenes/Messages";
 
 function App() {
   const [theme, colorMode] = useMode();
@@ -173,6 +174,7 @@ function App() {
                   )}
 
                   <Route exact path="/contact" element={<Contact />} />
+                  <Route exact path="/messages" element={<Messages />} />
                   <Route exact path="/bar" element={<Bar />} />
                   <Route exact path="/form" element={<Form />} />
                   <Route exact path="/driver-form" element={<DriverForm />} />

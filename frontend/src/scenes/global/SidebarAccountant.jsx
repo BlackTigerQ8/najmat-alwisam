@@ -226,6 +226,13 @@ const SidebarA = () => {
               setSelected={setSelected}
             />
             <Item
+              title="Messages"
+              to="/messages"
+              icon={<ContactsOutlinedIcon />}
+              selected={selected}
+              setSelected={setSelected}
+            />
+            <Item
               title="Spend type"
               to="/spend-type"
               icon={<PointOfSaleOutlinedIcon />}

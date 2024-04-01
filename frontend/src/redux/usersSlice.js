@@ -111,6 +111,23 @@ export const sendMessage = createAsyncThunk(
   }
 );
 
+export const fetchSentMessages = createAsyncThunk(
+  "user/fetchSentMessages",
+  async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.get(`${API_URL}/users/sent-messages`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response.data.message || error.message);
+    }
+  }
+);
+
 export const updateAdditionalSalary = createAsyncThunk(
   "user/updateAdditionalSalary",
   async ({ userId, values }, { getState }) => {
@@ -275,6 +292,19 @@ const usersSlice = createSlice({
           closeOnClick: true,
           pauseOnHover: true,
         });
+      });
+    // Fetch Messages
+    builder
+      .addCase(fetchSentMessages.pending, (state) => {
+        state.status = "loading";
+      })
+      .addCase(fetchSentMessages.fulfilled, (state, action) => {
+        state.status = "succeeded";
+        state.sentMessages = action.payload.data.sentMessages;
+      })
+      .addCase(fetchSentMessages.rejected, (state, action) => {
+        state.status = "failed";
+        state.error = action.error.message;
       });
   },
 });
