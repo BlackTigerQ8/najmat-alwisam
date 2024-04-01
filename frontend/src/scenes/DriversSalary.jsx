@@ -5,16 +5,16 @@ import { tokens } from "../theme";
 import Header from "../components/Header";
 import UpdateIcon from "@mui/icons-material/Update";
 import { useSelector, useDispatch } from "react-redux";
-import { fetchDrivers, updateDriver } from "../redux/driversSlice";
+import {  updateDriver, fetchSalaries } from "../redux/driversSlice";
 import { pulsar } from "ldrs";
 
 const DriversSalary = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const dispatch = useDispatch();
-  const drivers = useSelector((state) => state.drivers.drivers);
-  const status = useSelector((state) => state.drivers.status);
-  const error = useSelector((state) => state.drivers.error);
+  const driversSalaries = useSelector((state) => state.drivers.salaries) || [];
+  const status = useSelector((state) => state.drivers.salariesStatus);
+  const error = useSelector((state) => state.drivers.salariesError);
   const token =
     useSelector((state) => state.drivers.token) ||
     localStorage.getItem("token");
@@ -48,14 +48,14 @@ const DriversSalary = () => {
       align: "center",
     },
     {
-      field: "mainOrders", // NEW
+      field: "mainOrder", // NEW
       headerName: "Main Orders",
       headerAlign: "center",
       align: "center",
       editable: true,
     },
     {
-      field: "additionalOrders", // NEW
+      field: "additionalOrder", // NEW
       headerName: "Additional Orders",
       type: Number,
       editable: true,
@@ -69,9 +69,16 @@ const DriversSalary = () => {
       flex: 0.75,
       headerAlign: "center",
       align: "center",
+      renderCell: ({ row: { additionalOrder, mainOrder } }) => {
+        return (
+          <Box display="flex" justifyContent="center" borderRadius="4px">
+            {mainOrder + additionalOrder}
+          </Box>
+        );
+      },
     },
     {
-      field: "salaryBasedOnMainOrders", // NEW
+      field: "salaryMainOrders", // NEW
       headerName: "Salary (Main Orders)",
       editable: true,
       flex: 1,
@@ -79,7 +86,7 @@ const DriversSalary = () => {
       align: "center",
     },
     {
-      field: "salaryBasedOnAdditionalOrders", // NEW
+      field: "salaryAdditionalOrders", // NEW
       headerName: "Salary (Additional Orders)",
       editable: true,
       flex: 1,
@@ -91,6 +98,13 @@ const DriversSalary = () => {
       headerName: "Final Salary",
       headerAlign: "center",
       align: "center",
+      renderCell: ({ row: { salaryAdditionalOrders, salaryMainOrders } }) => {
+        return (
+          <Box display="flex" justifyContent="center" borderRadius="4px">
+            {salaryMainOrders + salaryAdditionalOrders}
+          </Box>
+        );
+      },
     },
     {
       field: "talabatDeductionAmount",
@@ -107,7 +121,7 @@ const DriversSalary = () => {
       editable: true,
     },
     {
-      field: "cashAmount",
+      field: "pettyCashDeductionAmount",
       headerName: "Petty Cash Deduction",
       headerAlign: "center",
       align: "center",
@@ -118,6 +132,13 @@ const DriversSalary = () => {
       headerName: "Net Salary",
       headerAlign: "center",
       align: "center",
+      renderCell: ({ row: { salaryAdditionalOrders, salaryMainOrders, pettyCashDeductionAmount, companyDeductionAmount,talabatDeductionAmount } }) => {
+        return (
+          <Box display="flex" justifyContent="center" borderRadius="4px">
+            {salaryMainOrders + salaryAdditionalOrders - pettyCashDeductionAmount -companyDeductionAmount -talabatDeductionAmount }
+          </Box>
+        );
+      },
     },
     {
       field: "remarks", // NEW
@@ -159,9 +180,9 @@ const DriversSalary = () => {
   };
 
   const calculateColumnSum = (fieldName) => {
-    return drivers.reduce((total, driver) => {
-      return total + (driver[fieldName] || 0);
-    }, 0);
+    // return driversSalaries.reduce((total, driver) => {
+    //   return total + (driver[fieldName] || 0);
+    // }, 0);
   };
 
   const sumRow = {
@@ -185,13 +206,13 @@ const DriversSalary = () => {
     actions: "",
   };
 
-  const rowsWithSum = [...drivers, sumRow];
+  const rowsWithSum = [...driversSalaries, sumRow];
 
   useEffect(() => {
     //if (status === "succeeded") {
-    dispatch(fetchDrivers(token));
+    dispatch(fetchSalaries(token));
     //}
-  }, [token]);
+  }, [token,dispatch]);
 
   pulsar.register();
   if (status === "loading") {

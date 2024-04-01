@@ -9,6 +9,9 @@ const initialState = {
   drivers: [],
   status: "",
   error: null,
+  salaries: [],
+  salariesStatus: "",
+  salariesError: null,
 };
 
 // Create a new driver
@@ -88,6 +91,25 @@ export const updateDriver = createAsyncThunk(
   }
 );
 
+export const fetchSalaries = createAsyncThunk(
+  "driver/fetchSalaries",
+  async () => {
+    const token = localStorage.getItem("token");
+    try {
+      // Inside the code where you make API requests
+      const response = await axios.get(`${API_URL}/drivers/salaries`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response.data.message || error.message);
+    }
+  }
+);
+
 const driversSlice = createSlice({
   name: "drivers",
   initialState,
@@ -125,14 +147,14 @@ const driversSlice = createSlice({
     // Fetch drivers
     builder
       .addCase(fetchDrivers.pending, (state) => {
-        state.status = "loading";
+        state.salariesStatus = "loading";
       })
       .addCase(fetchDrivers.fulfilled, (state, action) => {
-        state.status = "succeeded";
+        state.salariesStatus = "succeeded";
         state.drivers = action.payload.data.drivers;
       })
       .addCase(fetchDrivers.rejected, (state, action) => {
-        state.status = "failed";
+        state.salariesStatus = "failed";
         state.error = action.error.message;
       });
     // delete driver
@@ -167,6 +189,18 @@ const driversSlice = createSlice({
       });
     // update driver
     builder
+      .addCase(fetchSalaries.pending, (state) => {
+        state.status = "loading";
+      })
+      .addCase(fetchSalaries.fulfilled, (state, action) => {
+        state.salariesStatus = "succeeded";
+        state.salaries = Object.values(action.payload.data.driverSalaries);
+        state.salariesError = null;
+      })
+      .addCase(fetchSalaries.rejected, (state, action) => {
+        state.salariesStatus = "failed";
+        state.salariesError = action.error.message;
+      })
       .addCase(updateDriver.pending, (state) => {
         state.status = "loading";
       })

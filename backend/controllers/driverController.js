@@ -4,6 +4,7 @@ const Notification = require("../models/notificationModel");
 const ReadNotification = require("../models/readNotificationModel");
 const { User } = require("../models/userModel");
 const { addSingleDriverNotifications } = require("../services/driverService");
+const { fetchCurrentMonthPettyCash } = require("./pettyCashController");
 
 // @desc    Get all drivers
 // @route   GET /api/drivers
@@ -195,31 +196,7 @@ const createDriverInvoice = async (req, res) => {
 const getAllInvoices = async (req, res) => {
   console.log("In get all invoices method");
   try {
-    const currentDate = new Date();
-
-    // Get the first day of the current month
-    const firstDayOfMonth = new Date(
-      currentDate.getFullYear(),
-      currentDate.getMonth(),
-      1
-    );
-
-    // Get the first day of the next month
-    const firstDayOfNextMonth = new Date(
-      currentDate.getFullYear(),
-      currentDate.getMonth() + 1,
-      1
-    );
-
-    const driverInvoices = await DriverInvoice.find({
-      status: { $in: ["pending", "approved"] },
-      invoiceDate: {
-        $gte: firstDayOfMonth,
-        $lt: firstDayOfNextMonth,
-      },
-    }).populate("driver");
-
-    console.log("driverInvoices", driverInvoices);
+    const driverInvoices = await getDriverInvoices();
 
     res.status(200).json({
       status: "Success",
@@ -236,8 +213,36 @@ const getAllInvoices = async (req, res) => {
   }
 };
 
+const getDriverInvoices = async () => {
+  const currentDate = new Date();
+
+  // Get the first day of the current month
+  const firstDayOfMonth = new Date(
+    currentDate.getFullYear(),
+    currentDate.getMonth(),
+    1
+  );
+
+  // Get the first day of the next month
+  const firstDayOfNextMonth = new Date(
+    currentDate.getFullYear(),
+    currentDate.getMonth() + 1,
+    1
+  );
+
+  const driverInvoices = await DriverInvoice.find({
+    status: { $in: ["pending", "approved"] },
+    invoiceDate: {
+      $gte: firstDayOfMonth,
+      $lt: firstDayOfNextMonth,
+    },
+  }).populate("driver");
+
+  return driverInvoices;
+};
+
 // Salary calculations based on the number of main and additional orders for CAR drivers
-const carDriverSalary = () => {
+const carDriverSalary = (orders, mainSalary, additionalSalary) => {
   if (orders <= 399) {
     mainSalary = mainSalary + 0.3;
   } else if (orders >= 400 && orders <= 449) {
@@ -249,6 +254,8 @@ const carDriverSalary = () => {
     mainSalary = mainSalary + 0.5;
     additionalSalary = additionalSalary + 0.3;
   }
+
+  return { mainSalary, additionalSalary };
 };
 
 // Salary calculations based on the number of main and additional orders for BIKE drivers
@@ -268,6 +275,80 @@ const bikeDriverSalary = () => {
   }
 };
 
+const getDriverSalaries = async (req, res) => {
+  const drivers = await Driver.find({});
+
+  const driversData = {};
+
+  // Check if user already exists in userData, if not, create new entry
+  for (const driver of drivers) {
+    const driverId = driver._id;
+
+    driversData[driverId] = {
+      firstName: driver.firstName,
+      lastName: driver.lastName,
+      _id: driverId,
+      vehicle: driver.vehicle,
+      sequenceNumber: driver.sequenceNumber,
+      mainOrder: 0,
+      additionalOrder: 0,
+
+      salaryMainOrders: 0,
+      salaryAdditionalOrders: 0,
+
+      talabatDeductionAmount: 0,
+      companyDeductionAmount: 0,
+      pettyCashDeductionAmount: 0,
+
+      totalInvoices: 0,
+    };
+  }
+
+  const driverInvoices = await getDriverInvoices();
+
+  for (const invoice of driverInvoices) {
+    const {
+      mainOrder = 0,
+      additionalOrder = 0,
+      talabatDeductionAmount = 0,
+      companyDeductionAmount = 0,
+      driver,
+    } = invoice;
+
+    const driverData = driversData[driver.id];
+
+    if (!driverData) continue;
+
+    driverData.mainOrder += mainOrder;
+    driverData.additionalOrder += additionalOrder;
+    driverData.talabatDeductionAmount += talabatDeductionAmount;
+    driverData.companyDeductionAmount += companyDeductionAmount;
+
+    //TODO: ADD salary calculation here
+  }
+
+  const pettyCashResults = await fetchCurrentMonthPettyCash();
+
+  for (const pettyCash of pettyCashResults) {
+    if (!pettyCash.deductedFromDriver) continue;
+
+    const driverData = driversData[pettyCash.deductedFromDriver.id];
+
+    if (!driverData) continue;
+
+    const { cashAmount } = pettyCash;
+
+    driverData.pettyCashDeductionAmount += cashAmount;
+  }
+
+  res.status(200).json({
+    status: "Success",
+    data: {
+      driverSalaries: driversData,
+    },
+  });
+};
+
 module.exports = {
   getAllDrivers,
   getDriver,
@@ -276,4 +357,5 @@ module.exports = {
   deleteDriver,
   createDriverInvoice,
   getAllInvoices,
+  getDriverSalaries,
 };

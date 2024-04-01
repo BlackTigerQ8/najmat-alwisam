@@ -5,11 +5,16 @@ const {
   createDriver,
   updateDriver,
   deleteDriver,
+  getDriverSalaries,
 } = require("../controllers/driverController");
 const { protect, restrictTo } = require("../middleware/authMiddleware");
 const { driverContractUpload } = require("./uploadRoutes");
 
 const router = express.Router();
+
+router
+  .route("/salaries")
+  .get(protect, restrictTo("Admin", "Accountant"), getDriverSalaries);
 
 router
   .route("/")

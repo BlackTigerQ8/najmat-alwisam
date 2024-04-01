@@ -19,11 +19,7 @@ const router = express.Router();
 
 router
   .route("/salaries")
-  .get(
-    protect,
-    restrictTo("Admin", "Manager", "Accountant"),
-    getEmployeesSalary
-  );
+  .get(protect, restrictTo("Admin", "Accountant"), getEmployeesSalary);
 
 router
   .route("/:id/salary")

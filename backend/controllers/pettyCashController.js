@@ -9,9 +9,7 @@ const { User } = require("../models/userModel");
 const getAllPettyCash = async (req, res) => {
   try {
     const pettyCash = await PettyCash.find();
-    //.populate("deductedFromUser", "firstName lastName")
-    //.populate("deductedFromDriver", "firstName lastName")
-    //.populate("spendType", "name");
+
     res.status(200).json({
       status: "Success",
       data: {
@@ -164,8 +162,37 @@ const searchPettyCash = async (req, res) => {
   }
 };
 
+const fetchCurrentMonthPettyCash = async () => {
+  const currentDate = new Date();
+
+  // Get the first day of the current month
+  const firstDayOfMonth = new Date(
+    currentDate.getFullYear(),
+    currentDate.getMonth(),
+    1
+  );
+
+  // Get the first day of the next month
+  const firstDayOfNextMonth = new Date(
+    currentDate.getFullYear(),
+    currentDate.getMonth() + 1,
+    1
+  );
+
+  const pettyCash = await PettyCash.find({
+    status: { $in: ["pending", "approved"] },
+    spendsDate: {
+      $gte: firstDayOfMonth,
+      $lt: firstDayOfNextMonth,
+    },
+  });
+
+  return pettyCash;
+};
+
 module.exports = {
   getAllPettyCash,
   createPettyCash,
   searchPettyCash,
+  fetchCurrentMonthPettyCash,
 };
