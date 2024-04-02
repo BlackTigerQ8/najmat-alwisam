@@ -34,13 +34,14 @@ const Invoices = () => {
       );
 
       return driverInvoices.reduce((result, invoice) => {
-        result.order = invoice.order + (result.order || 0);
+        result.mainOrder = invoice.mainOrder + (result.mainOrder || 0);
+        result.additionalOrder = invoice.additionalOrder + (result.additionalOrder || 0);
         result.hour = invoice.hour + (result.hour || 0);
         result.cash = invoice.cash + (result.cash || 0);
         result.additionalSalary =
           invoice.additionalSalary + (result.additionalSalary || 0);
         result.deductionAmount =
-          invoice.deductionAmount + (result.deductionAmount || 0);
+          (invoice.deductionAmount || 0) + (result.deductionAmount || 0);
 
         return result;
       }, {});
@@ -50,11 +51,11 @@ const Invoices = () => {
 
   const driverWithInvoices = useMemo(() => {
     return drivers.map((driver) => {
-      const { cash, hour, order } = getInvoiceData(driver._id);
+      const { cash, hour, mainOrder, additionalOrder } = getInvoiceData(driver._id);
 
-      return { ...driver, cash, hour, order };
+      return { ...driver, cash, hour, mainOrder, additionalOrder };
     });
-  }, [drivers, invoices]);
+  }, [drivers, getInvoiceData]);
 
   const [editRowsModel, setEditRowsModel] = useState({});
   const [selectedRowIds, setSelectedRowIds] = useState([]);
@@ -106,8 +107,13 @@ const Invoices = () => {
       editable: true,
     },
     {
-      field: "order",
-      headerName: "Orders",
+      field: "mainOrder",
+      headerName: "Main orders",
+      editable: true,
+    },
+    {
+      field: "additionalOrder",
+      headerName: "Additional orders",
       editable: true,
     },
     {
@@ -180,10 +186,10 @@ const Invoices = () => {
 
   const handleUpdate = (row) => {
     try {
-      const { cash, order, hour } = row;
+      const { cash, mainOrder, additionalOrder, hour } = row;
       dispatch(
         createDriverInvoice({
-          values: { cash, order, hour, driverId: row._id },
+          values: { cash, mainOrder,additionalOrder, hour, driverId: row._id },
         })
       );
     } catch (error) {

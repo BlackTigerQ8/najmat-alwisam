@@ -143,7 +143,8 @@ const createDriverInvoice = async (req, res) => {
     const {
       driverId,
       hour = 0,
-      order = 0,
+      mainOrder = 0,
+      additionalOrder = 0,
       cash = 0,
       additionalSalary = 0,
       deductionReason = "",
@@ -166,7 +167,8 @@ const createDriverInvoice = async (req, res) => {
 
     const newInvoice = new DriverInvoice({
       driver: driverId,
-      order,
+      mainOrder,
+      additionalOrder,
       hour,
       cash,
       additionalSalary,
@@ -332,7 +334,7 @@ const getDriverSalaries = async (req, res) => {
   for (const pettyCash of pettyCashResults) {
     if (!pettyCash.deductedFromDriver) continue;
 
-    const driverData = driversData[pettyCash.deductedFromDriver.id];
+    const driverData = driversData[pettyCash.deductedFromDriver];
 
     if (!driverData) continue;
 
