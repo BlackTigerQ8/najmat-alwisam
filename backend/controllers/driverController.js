@@ -246,34 +246,36 @@ const getDriverInvoices = async () => {
 // Salary calculations based on the number of main and additional orders for CAR drivers
 const carDriverSalary = (orders, mainSalary, additionalSalary) => {
   if (orders <= 399) {
-    mainSalary = mainSalary + 0.3;
+    return (mainSalary = mainSalary + 0.3);
   } else if (orders >= 400 && orders <= 449) {
-    mainSalary = 140;
+    return (mainSalary = 140);
   } else if (orders >= 450 && orders <= 599) {
     mainSalary = mainSalary + 0.45;
     additionalSalary = additionalSalary + 0.3;
+    return { mainSalary, additionalSalary };
   } else if (orders >= 600) {
     mainSalary = mainSalary + 0.5;
     additionalSalary = additionalSalary + 0.3;
+    return { mainSalary, additionalSalary };
   }
-
-  return { mainSalary, additionalSalary };
 };
 
 // Salary calculations based on the number of main and additional orders for BIKE drivers
 const bikeDriverSalary = () => {
   if (orders <= 200) {
-    mainSalary = 50;
+    return (mainSalary = 50);
   } else if (orders <= 300) {
-    mainSalary = 100;
+    return (mainSalary = 100);
   } else if (orders >= 300 && orders <= 349) {
-    mainSalary = 150;
+    return (mainSalary = 150);
   } else if (orders >= 350 && orders <= 419) {
     mainSalary = mainSalary + 0.45;
     additionalSalary = additionalSalary + 0.3;
+    return { mainSalary, additionalSalary };
   } else if (orders >= 420) {
     mainSalary = mainSalary + 0.5;
     additionalSalary = additionalSalary + 0.3;
+    return { mainSalary, additionalSalary };
   }
 };
 

@@ -1,6 +1,17 @@
 import React, { useEffect, useMemo, useState } from "react";
 import * as yup from "yup";
-import { Box, useTheme, Button, TextField, Typography,MenuItem,IconButton, FormControl,InputLabel, Select } from "@mui/material";
+import {
+  Box,
+  useTheme,
+  Button,
+  TextField,
+  Typography,
+  MenuItem,
+  IconButton,
+  FormControl,
+  InputLabel,
+  Select,
+} from "@mui/material";
 import ClearIcon from "@mui/icons-material/Clear";
 import { Formik } from "formik";
 import useMediaQuery from "@mui/material/useMediaQuery";
@@ -8,31 +19,34 @@ import { DataGrid } from "@mui/x-data-grid";
 import Header from "../components/Header";
 import { tokens } from "../theme";
 import { useSelector, useDispatch } from "react-redux";
-import { fetchPettyCash,createPettyCash,searchPettyCash } from "../redux/pettyCashSlice";
+import {
+  fetchPettyCash,
+  createPettyCash,
+  searchPettyCash,
+} from "../redux/pettyCashSlice";
 import { pulsar } from "ldrs";
 import { fetchDrivers } from "../redux/driversSlice";
 import { fetchUsers } from "../redux/usersSlice";
-import {fetchAllSpendTypes} from '../redux/spendTypeSlice';
+import { fetchAllSpendTypes } from "../redux/spendTypeSlice";
 
-
-const initialValues ={
+const initialValues = {
   serialNumber: "",
   requestApplicant: "",
-  requestDate: ""
-}
+  requestDate: "",
+};
 
 const newPettyCashInitialValues = {
-  requestApplicant:"",
-  requestDate:"",
+  requestApplicant: "",
+  requestDate: "",
   spendsDate: "",
   spendsReason: "",
   cashAmount: "",
   spendType: "",
-  spendsRemarks:"",
+  spendsRemarks: "",
   deductedFromUser: "",
   deductedFromDriver: "",
-  currentBalance: ""
-}
+  currentBalance: "",
+};
 
 const pettyCashRequestSchema = yup.object().shape({
   serialNumber: yup.number(),
@@ -46,11 +60,11 @@ const addNewPettyCashSchema = yup.object().shape({
   spendsDate: yup.string().required(),
   spendsReason: yup.string().required(),
   cashAmount: yup.string().required(),
-  spendType:yup.string().required(),
+  spendType: yup.string().required(),
   spendsRemarks: yup.string(),
   deductedFromUser: yup.string(),
   deductedFromDriver: yup.string(),
-  currentBalance: yup.number()
+  currentBalance: yup.number(),
 });
 
 const PettyCash = () => {
@@ -62,7 +76,9 @@ const PettyCash = () => {
   const pageStatus = useSelector((state) => state.pettyCash.status);
   const error = useSelector((state) => state.pettyCash.error);
 
-  const pettyCashSearchResults = useSelector((state) => state.pettyCash.searchResults);
+  const pettyCashSearchResults = useSelector(
+    (state) => state.pettyCash.searchResults
+  );
   const searchStatus = useSelector((state) => state.pettyCash.searchStatus);
 
   const status = searchStatus || pageStatus;
@@ -72,25 +88,18 @@ const PettyCash = () => {
   const spendTypes = useSelector((state) => state.spendType.spendTypes);
 
   const token =
-  useSelector((state) => state.drivers.token) ||
-  localStorage.getItem("token");
-
+    useSelector((state) => state.drivers.token) ||
+    localStorage.getItem("token");
 
   async function handleFormSubmit(values) {
     try {
+      console.log("form values", values);
 
-
-      console.log(
-        'form values',values
-      )
-      
-        dispatch(
-          searchPettyCash({
-          values
+      dispatch(
+        searchPettyCash({
+          values,
         })
       );
-      
-      
 
       // TODO: Uncomment this later
 
@@ -104,22 +113,30 @@ const PettyCash = () => {
       console.error("Row does not have a valid _id field:");
     }
   }
-  
-  
 
-  
-const totalSpends =useMemo(() => pettyCash.reduce((sum, pettyCash) => sum + pettyCash.cashAmount, 0), [pettyCash]);
-const totalAmountOnWorker =useMemo(() => pettyCash.reduce((sum, pettyCash) => sum +  (pettyCash.deductedFromDriver || pettyCash.deductedFromUser ? pettyCash.cashAmount : 0), 0), [pettyCash]);
-const totalAmountOnCompany = totalSpends - totalAmountOnWorker; 
+  const totalSpends = useMemo(
+    () => pettyCash.reduce((sum, pettyCash) => sum + pettyCash.cashAmount, 0),
+    [pettyCash]
+  );
+  const totalAmountOnWorker = useMemo(
+    () =>
+      pettyCash.reduce(
+        (sum, pettyCash) =>
+          sum +
+          (pettyCash.deductedFromDriver || pettyCash.deductedFromUser
+            ? pettyCash.cashAmount
+            : 0),
+        0
+      ),
+    [pettyCash]
+  );
+  const totalAmountOnCompany = totalSpends - totalAmountOnWorker;
 
-
-useEffect(() => {
-  dispatch(fetchDrivers(token));
-  dispatch(fetchUsers(token));
-  dispatch(fetchAllSpendTypes(token));
-}, [token]);
-  
-  
+  useEffect(() => {
+    dispatch(fetchDrivers(token));
+    dispatch(fetchUsers(token));
+    dispatch(fetchAllSpendTypes(token));
+  }, [token]);
 
   const columns = [
     {
@@ -153,12 +170,13 @@ useEffect(() => {
       headerName: "spendType",
       flex: 1,
       renderCell: ({ row: { spendType } }) => {
-
-        const {name= undefined} = spendTypes.find(s =>s._id === spendType);
+        const { name = undefined } = spendTypes.find(
+          (s) => s._id === spendType
+        );
 
         return (
           <Box display="flex" justifyContent="center" borderRadius="4px">
-            {name} 
+            {name}
           </Box>
         );
       },
@@ -172,11 +190,12 @@ useEffect(() => {
       field: "deductedFrom",
       headerName: "Deducted From",
       renderCell: ({ row: { deductedFromDriver, deductedFromUser } }) => {
+        if (!deductedFromDriver && !deductedFromUser) return null;
 
-        if(!deductedFromDriver && !deductedFromUser) return null
-
-
-        const {firstName = undefined, lastName = undefined} = deductedFromDriver ? drivers.find(d => d._id === deductedFromDriver): users.find(u => u._id === deductedFromUser);
+        const { firstName = undefined, lastName = undefined } =
+          deductedFromDriver
+            ? drivers.find((d) => d._id === deductedFromDriver)
+            : users.find((u) => u._id === deductedFromUser);
 
         return (
           <Box display="flex" justifyContent="center" borderRadius="4px">
@@ -227,13 +246,14 @@ useEffect(() => {
     );
   }
 
-  
-
-
   return (
     <Box m="20px">
       <Header title="PETTY CASH" subtitle="Petty Cash Page" />
-      <Formik initialValues={initialValues} validationSchema={pettyCashRequestSchema} onSubmit={handleFormSubmit}>
+      <Formik
+        initialValues={initialValues}
+        validationSchema={pettyCashRequestSchema}
+        onSubmit={handleFormSubmit}
+      >
         {({
           values,
           errors,
@@ -291,18 +311,19 @@ useEffect(() => {
                 helperText={touched.requestDate && errors.requestDate}
                 sx={{ gridColumn: "span 1" }}
               />
-                <Button type="submit" color="secondary" variant="contained">
-                Search 
+              <Button type="submit" color="secondary" variant="contained">
+                Search
               </Button>
-
-             
             </Box>
-           
           </form>
         )}
       </Formik>
 
-      {<Box mt="50px"><PettyCashForm  /></Box>}
+      {
+        <Box mt="50px">
+          <PettyCashForm />
+        </Box>
+      }
       <Box
         mt="40px"
         mb="40px"
@@ -346,19 +367,19 @@ useEffect(() => {
           <Typography variant="h4" color="secondary" mt={4}>
             Total spends:
             <strong>
-              <span> {totalSpends/1000} </span> KD
+              <span> {totalSpends / 1000} </span> KD
             </strong>
           </Typography>
           <Typography variant="h4" color="secondary" mt={4}>
             Total amount on workers:
             <strong>
-              <span> {totalAmountOnWorker/1000} </span> KD
+              <span> {totalAmountOnWorker / 1000} </span> KD
             </strong>
           </Typography>
           <Typography variant="h4" color="secondary" mt={4}>
             Net amount on company:
             <strong>
-              <span> {totalAmountOnCompany/1000} </span> KD
+              <span> {totalAmountOnCompany / 1000} </span> KD
             </strong>
           </Typography>
         </Box>
@@ -375,8 +396,7 @@ useEffect(() => {
   );
 };
 
-function PettyCashForm({isNonMobile}){
-
+function PettyCashForm({ isNonMobile }) {
   const drivers = useSelector((state) => state.drivers.drivers);
   const users = useSelector((state) => state.users.users);
   const spendTypes = useSelector((state) => state.spendType.spendTypes);
@@ -384,23 +404,20 @@ function PettyCashForm({isNonMobile}){
 
   const dispatch = useDispatch();
 
-
-  async function handleFormSubmit(values,  options ) {
+  async function handleFormSubmit(values, options) {
     try {
-
-console.log('on submit',options.resetForm)
-        dispatch(
-          createPettyCash({
+      console.log("on submit", options.resetForm);
+      dispatch(
+        createPettyCash({
           values: {
             ...values,
-            deductedFromUser:values.deductedFromUser|| undefined,
-            deductedFromDriver:values.deductedFromDriver|| undefined,
-          }
+            deductedFromUser: values.deductedFromUser || undefined,
+            deductedFromDriver: values.deductedFromDriver || undefined,
+          },
         })
       );
-      
+
       options.resetForm();
-      
 
       // TODO: Uncomment this later
 
@@ -415,240 +432,244 @@ console.log('on submit',options.resetForm)
     }
   }
 
-return <Formik initialValues={newPettyCashInitialValues} validationSchema={addNewPettyCashSchema} onSubmit={handleFormSubmit}>
-{({
-  values,
-  errors,
-  touched,
-  handleBlur,
-  handleChange,
-  handleSubmit,
-  setFieldValue,
-}) => (
-  <form onSubmit={handleSubmit}>
-    <Header title="Add new petty cash"  />
-    <Box
-      display="grid"
-      gap="30px"
-      
-      gridTemplateColumns="repeat(4, minmax(0, 1fr))"
-      sx={{
-        "& > div": { gridColumn: isNonMobile ? undefined : "span 2" },
-      }}
+  return (
+    <Formik
+      initialValues={newPettyCashInitialValues}
+      validationSchema={addNewPettyCashSchema}
+      onSubmit={handleFormSubmit}
     >
-      <FormControl fullWidth sx={{ gridColumn: "span 2" }}>
-                <InputLabel id="select-user-label">Select User</InputLabel>
-                <Select
-                  labelId="select-user-label"
-                  id="select-user"
-                  value={values.deductedFromUser}
-                  onChange={handleChange}
-                  onBlur={handleBlur}
-                  error={!!touched.deductedFromUser && !!errors.deductedFromUser}
-                  name="deductedFromUser"
-                  label="Select User"
-                  disabled={!!values.deductedFromDriver}
-                >
-                  {users.map((user) => (
-                    <MenuItem key={user._id} value={user._id}>
-                      {user.firstName} {user.lastName}
-                    </MenuItem>
-                  ))}
-                </Select>
-                {values.deductedFromUser && (
-                  <IconButton
-                    onClick={() => setFieldValue("deductedFromUser", "")}
-                    sx={{ gridColumn: "span 1" }}
-                    style={{
-                      display: "flex",
-                      width: "30px",
-                      height: "30px",
-                    }}
-                  >
-                    <ClearIcon />
-                  </IconButton>
-                )}
-              </FormControl>
-
-<FormControl fullWidth sx={{ gridColumn: "span 2" }}>
-                <InputLabel id="select-driver-label">Select Driver</InputLabel>
-                <Select
-                  labelId="select-driver-label"
-                  id="select-driver"
-                  value={values.deductedFromDriver}
-                  onChange={handleChange}
-                  onBlur={handleBlur}
-                  error={!!touched.deductedFromDriver && !!errors.deductedFromDriver}
-                  name="deductedFromDriver"
-                  label="Select Driver"
-                  disabled={!!values.deductedFromUser}
-                  MenuProps={{
-                    MenuListProps: { disablePadding: true },
-                    PaperProps: {
-                      style: {
-                        maxHeight: 500,
-                      },
-                    },
+      {({
+        values,
+        errors,
+        touched,
+        handleBlur,
+        handleChange,
+        handleSubmit,
+        setFieldValue,
+      }) => (
+        <form onSubmit={handleSubmit}>
+          <Header title="Add new petty cash" />
+          <Box
+            display="grid"
+            gap="30px"
+            gridTemplateColumns="repeat(4, minmax(0, 1fr))"
+            sx={{
+              "& > div": { gridColumn: isNonMobile ? undefined : "span 2" },
+            }}
+          >
+            <FormControl fullWidth sx={{ gridColumn: "span 2" }}>
+              <InputLabel id="select-user-label">Select User</InputLabel>
+              <Select
+                labelId="select-user-label"
+                id="select-user"
+                value={values.deductedFromUser}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                error={!!touched.deductedFromUser && !!errors.deductedFromUser}
+                name="deductedFromUser"
+                label="Select User"
+                disabled={!!values.deductedFromDriver}
+              >
+                {users.map((user) => (
+                  <MenuItem key={user._id} value={user._id}>
+                    {user.firstName} {user.lastName}
+                  </MenuItem>
+                ))}
+              </Select>
+              {values.deductedFromUser && (
+                <IconButton
+                  onClick={() => setFieldValue("deductedFromUser", "")}
+                  sx={{ gridColumn: "span 1" }}
+                  style={{
+                    display: "flex",
+                    width: "30px",
+                    height: "30px",
                   }}
                 >
-                  {drivers.map((driver) => (
-                    <MenuItem key={driver._id} value={driver._id}>
-                      {driver.firstName} {driver.lastName}
-                    </MenuItem>
-                  ))}
-                </Select>
-                {values.deductedFromDriver && (
-                  <IconButton
-                    onClick={() => setFieldValue("deductedFromDriver", "")}
-                    sx={{ gridColumn: "span 1" }}
-                    style={{
-                      display: "flex",
-                      width: "30px",
-                      height: "30px",
-                    }}
-                  >
-                    <ClearIcon />
-                  </IconButton>
-                )}
-              </FormControl>
+                  <ClearIcon />
+                </IconButton>
+              )}
+            </FormControl>
 
-              <FormControl fullWidth sx={{ gridColumn: "span 2" }}>
-                <InputLabel id="select-user-label">Select spend type</InputLabel>
-                <Select
-                  labelId="select-spendType-label"
-                  id="select-spendType"
-                  value={values.spendType}
-                  onChange={handleChange}
-                  onBlur={handleBlur}
-                  error={!!touched.spendType && !!errors.spendType}
-                  name="spendType"
-                  label="Select spend type"
-                  
+            <FormControl fullWidth sx={{ gridColumn: "span 2" }}>
+              <InputLabel id="select-driver-label">Select Driver</InputLabel>
+              <Select
+                labelId="select-driver-label"
+                id="select-driver"
+                value={values.deductedFromDriver}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                error={
+                  !!touched.deductedFromDriver && !!errors.deductedFromDriver
+                }
+                name="deductedFromDriver"
+                label="Select Driver"
+                disabled={!!values.deductedFromUser}
+                MenuProps={{
+                  MenuListProps: { disablePadding: true },
+                  PaperProps: {
+                    style: {
+                      maxHeight: 500,
+                    },
+                  },
+                }}
+              >
+                {drivers.map((driver) => (
+                  <MenuItem key={driver._id} value={driver._id}>
+                    {driver.firstName} {driver.lastName}
+                  </MenuItem>
+                ))}
+              </Select>
+              {values.deductedFromDriver && (
+                <IconButton
+                  onClick={() => setFieldValue("deductedFromDriver", "")}
+                  sx={{ gridColumn: "span 1" }}
+                  style={{
+                    display: "flex",
+                    width: "30px",
+                    height: "30px",
+                  }}
                 >
-                  {spendTypes.map((spendType) => (
-                    <MenuItem key={spendType._id} value={spendType._id}>
-                      {spendType.name}
-                    </MenuItem>
-                  ))}
-                </Select>
-                {values.selectedSpendType && (
-                  <IconButton
-                    onClick={() => setFieldValue("selectedSpendType", "")}
-                    sx={{ gridColumn: "span 1" }}
-                    style={{
-                      display: "flex",
-                      width: "30px",
-                      height: "30px",
-                    }}
-                  >
-                    <ClearIcon />
-                  </IconButton>
-                )}
-              </FormControl>
-    
+                  <ClearIcon />
+                </IconButton>
+              )}
+            </FormControl>
+
+            <FormControl fullWidth sx={{ gridColumn: "span 2" }}>
+              <InputLabel id="select-user-label">Select spend type</InputLabel>
+              <Select
+                labelId="select-spendType-label"
+                id="select-spendType"
+                value={values.spendType}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                error={!!touched.spendType && !!errors.spendType}
+                name="spendType"
+                label="Select spend type"
+              >
+                {spendTypes.map((spendType) => (
+                  <MenuItem key={spendType._id} value={spendType._id}>
+                    {spendType.name}
+                  </MenuItem>
+                ))}
+              </Select>
+              {values.selectedSpendType && (
+                <IconButton
+                  onClick={() => setFieldValue("selectedSpendType", "")}
+                  sx={{ gridColumn: "span 1" }}
+                  style={{
+                    display: "flex",
+                    width: "30px",
+                    height: "30px",
+                  }}
+                >
+                  <ClearIcon />
+                </IconButton>
+              )}
+            </FormControl>
+
+            <TextField
+              fullWidth
+              variant="filled"
+              type="text"
+              label="Spends reason"
+              onBlur={handleBlur}
+              onChange={handleChange}
+              value={values.spendsReason}
+              name="spendsReason"
+              error={!!touched.spendsReason && !!errors.spendsReason}
+              helperText={touched.spendsReason && errors.spendsReason}
+              sx={{ gridColumn: "span 1" }}
+            />
+            <TextField
+              fullWidth
+              variant="filled"
+              type="number"
+              label="Cash amount"
+              onBlur={handleBlur}
+              onChange={handleChange}
+              value={values.cashAmount}
+              name="cashAmount"
+              error={!!touched.cashAmount && !!errors.cashAmount}
+              helperText={touched.cashAmount && errors.cashAmount}
+              sx={{ gridColumn: "span 1" }}
+            />
+            <TextField
+              fullWidth
+              variant="filled"
+              type="text"
+              label="Spends remarks"
+              onBlur={handleBlur}
+              onChange={handleChange}
+              value={values.spendsRemarks}
+              name="spendsRemarks"
+              error={!!touched.spendsRemarks && !!errors.spendsRemarks}
+              helperText={touched.spendsRemarks && errors.spendsRemarks}
+              sx={{ gridColumn: "span 1" }}
+            />
+            <TextField
+              fullWidth
+              variant="filled"
+              type="text"
+              label="Request Applicant"
+              onBlur={handleBlur}
+              onChange={handleChange}
+              value={values.requestApplicant}
+              name="requestApplicant"
+              error={!!touched.requestApplicant && !!errors.requestApplicant}
+              helperText={touched.requestApplicant && errors.requestApplicant}
+              sx={{ gridColumn: "span 1" }}
+            />
+            <TextField
+              fullWidth
+              variant="filled"
+              type="date"
+              label="Resquest Date"
+              onBlur={handleBlur}
+              onChange={handleChange}
+              value={values.requestDate}
+              name="requestDate"
+              error={!!touched.requestDate && !!errors.requestDate}
+              helperText={touched.requestDate && errors.requestDate}
+              sx={{ gridColumn: "span 1" }}
+            />
+            <TextField
+              fullWidth
+              variant="filled"
+              type="date"
+              label="Spends Date"
+              onBlur={handleBlur}
+              onChange={handleChange}
+              value={values.spendsDate}
+              name="spendsDate"
+              error={!!touched.spendsDate && !!errors.spendsDate}
+              helperText={touched.spendsDate && errors.spendsDate}
+              sx={{ gridColumn: "span 1" }}
+            />
+            {!pettyCash.length && (
               <TextField
-        fullWidth
-        variant="filled"
-        type="text"
-        label="Spends reason"
-        onBlur={handleBlur}
-        onChange={handleChange}
-        value={values.spendsReason}
-        name="spendsReason"
-        error={!!touched.spendsReason && !!errors.spendsReason}
-        helperText={touched.spendsReason && errors.spendsReason}
-        sx={{ gridColumn: "span 1" }}
-      />
-        <TextField
-        fullWidth
-        variant="filled"
-        type="number"
-        label="Cash amount"
-        onBlur={handleBlur}
-        onChange={handleChange}
-        value={values.cashAmount}
-        name="cashAmount"
-        error={!!touched.cashAmount && !!errors.cashAmount}
-        helperText={touched.cashAmount && errors.cashAmount}
-        sx={{ gridColumn: "span 1" }}
-      />
-       <TextField
-        fullWidth
-        variant="filled"
-        type="text"
-        label="Spends remarks"
-        onBlur={handleBlur}
-        onChange={handleChange}
-        value={values.spendsRemarks}
-        name="spendsRemarks"
-        error={!!touched.spendsRemarks && !!errors.spendsRemarks}
-        helperText={touched.spendsRemarks && errors.spendsRemarks}
-        sx={{ gridColumn: "span 1" }}
-      />
-      <TextField
-        fullWidth
-        variant="filled"
-        type="text"
-        label="Request Applicant"
-        onBlur={handleBlur}
-        onChange={handleChange}
-        value={values.requestApplicant}
-        name="requestApplicant"
-        error={!!touched.requestApplicant && !!errors.requestApplicant}
-        helperText={touched.requestApplicant && errors.requestApplicant}
-        sx={{ gridColumn: "span 1" }}
-      />
-      <TextField
-        fullWidth
-        variant="filled"
-        type="date"
-        label="Resquest Date"
-        onBlur={handleBlur}
-        onChange={handleChange}
-        value={values.requestDate}
-        name="requestDate"
-        error={!!touched.requestDate && !!errors.requestDate}
-        helperText={touched.requestDate && errors.requestDate}
-        sx={{ gridColumn: "span 1" }}
-      />
-      <TextField
-        fullWidth
-        variant="filled"
-        type="date"
-        label="Spends Date"
-        onBlur={handleBlur}
-        onChange={handleChange}
-        value={values.spendsDate}
-        name="spendsDate"
-        error={!!touched.spendsDate && !!errors.spendsDate}
-        helperText={touched.spendsDate && errors.spendsDate}
-        sx={{ gridColumn: "span 1" }}
-      />
-      {!pettyCash.length &&  <TextField
-        fullWidth
-        variant="filled"
-        type="number"
-        label="Starting balance"
-        onBlur={handleBlur}
-        onChange={handleChange}
-        value={values.currentBalance}
-        name="currentBalance"
-        error={!!touched.currentBalance && !!errors.currentBalance}
-        helperText={touched.currentBalance && errors.currentBalance}
-        sx={{ gridColumn: "span 1" }}
-      />}
+                fullWidth
+                variant="filled"
+                type="number"
+                label="Starting balance"
+                onBlur={handleBlur}
+                onChange={handleChange}
+                value={values.currentBalance}
+                name="currentBalance"
+                error={!!touched.currentBalance && !!errors.currentBalance}
+                helperText={touched.currentBalance && errors.currentBalance}
+                sx={{ gridColumn: "span 1" }}
+              />
+            )}
 
-        <Button type="submit" color="secondary" variant="contained">
-        Save Data 
-      </Button>
-
-     
-    </Box>
-   
-  </form>
-)}
-</Formik>
-
+            <Button type="submit" color="secondary" variant="contained">
+              Save Data
+            </Button>
+          </Box>
+        </form>
+      )}
+    </Formik>
+  );
 }
 
 export default PettyCash;

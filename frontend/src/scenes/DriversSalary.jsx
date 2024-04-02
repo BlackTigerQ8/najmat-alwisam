@@ -5,7 +5,7 @@ import { tokens } from "../theme";
 import Header from "../components/Header";
 import UpdateIcon from "@mui/icons-material/Update";
 import { useSelector, useDispatch } from "react-redux";
-import {  updateDriver, fetchSalaries } from "../redux/driversSlice";
+import { updateDriver, fetchSalaries } from "../redux/driversSlice";
 import { pulsar } from "ldrs";
 
 const DriversSalary = () => {
@@ -72,7 +72,7 @@ const DriversSalary = () => {
       renderCell: ({ row: { additionalOrder, mainOrder } }) => {
         return (
           <Box display="flex" justifyContent="center" borderRadius="4px">
-            {mainOrder + additionalOrder}
+            {Number(mainOrder) + Number(additionalOrder)}
           </Box>
         );
       },
@@ -101,7 +101,7 @@ const DriversSalary = () => {
       renderCell: ({ row: { salaryAdditionalOrders, salaryMainOrders } }) => {
         return (
           <Box display="flex" justifyContent="center" borderRadius="4px">
-            {salaryMainOrders + salaryAdditionalOrders}
+            {Number(salaryMainOrders) + Number(salaryAdditionalOrders)}
           </Box>
         );
       },
@@ -132,10 +132,22 @@ const DriversSalary = () => {
       headerName: "Net Salary",
       headerAlign: "center",
       align: "center",
-      renderCell: ({ row: { salaryAdditionalOrders, salaryMainOrders, pettyCashDeductionAmount, companyDeductionAmount,talabatDeductionAmount } }) => {
+      renderCell: ({
+        row: {
+          salaryAdditionalOrders,
+          salaryMainOrders,
+          pettyCashDeductionAmount,
+          companyDeductionAmount,
+          talabatDeductionAmount,
+        },
+      }) => {
         return (
           <Box display="flex" justifyContent="center" borderRadius="4px">
-            {salaryMainOrders + salaryAdditionalOrders - pettyCashDeductionAmount -companyDeductionAmount -talabatDeductionAmount }
+            {Number(salaryMainOrders) +
+              Number(salaryAdditionalOrders) -
+              Number(pettyCashDeductionAmount) -
+              Number(companyDeductionAmount) -
+              Number(talabatDeductionAmount)}
           </Box>
         );
       },
@@ -212,7 +224,7 @@ const DriversSalary = () => {
     //if (status === "succeeded") {
     dispatch(fetchSalaries(token));
     //}
-  }, [token,dispatch]);
+  }, [token, dispatch]);
 
   pulsar.register();
   if (status === "loading") {
