@@ -43,6 +43,7 @@ import EmployeesSalary from "./scenes/EmployeesSalary";
 import AdminInvoices from "./scenes/AdminInvoices";
 import ManagerDashboard from "./scenes/dashboard/ManagerDashboard";
 import Messages from "./scenes/Messages";
+import CoSpends from "./scenes/CoSpends";
 
 function App() {
   const [theme, colorMode] = useMode();
@@ -167,6 +168,11 @@ function App() {
                         exact
                         path="/accountant-dashboard"
                         element={<AccountantDashboard />}
+                      />
+                      <Route
+                        exact
+                        path="/company-spends"
+                        element={<CoSpends />}
                       />
 
                       <Route exact path="/spend-type" element={<SpendType />} />
