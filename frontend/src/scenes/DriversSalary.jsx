@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { Box, Button, Typography, useTheme } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import { tokens } from "../theme";
@@ -12,7 +12,7 @@ const DriversSalary = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const dispatch = useDispatch();
-  const driversSalaries = useSelector((state) => state.drivers.salaries) || [];
+  const driversSalaries = useSelector((state) => state.drivers.salaries);
   const status = useSelector((state) => state.drivers.salariesStatus);
   const error = useSelector((state) => state.drivers.salariesError);
   const token =
@@ -20,6 +20,41 @@ const DriversSalary = () => {
     localStorage.getItem("token");
 
   const [editRowsModel, setEditRowsModel] = useState({});
+
+  const netCarDriversSalary = useMemo(() => {
+
+    const carDrivers = driversSalaries.filter(driver => driver.vehicle === "Car");
+
+    return carDrivers.reduce((total, driver) => {
+      return total 
+      + Number(driver.salaryMainOrders) 
+      + Number(driver.salaryAdditionalOrders)
+      - Number(driver.talabatDeductionAmount)
+      - Number(driver.companyDeductionAmount) 
+      - Number(driver.pettyCashDeductionAmount);
+    }, 0)
+
+
+
+  }, [driversSalaries])
+
+
+  const netBikeDriversSalary = useMemo(() => {
+
+    const carDrivers = driversSalaries.filter(driver => driver.vehicle === "Bike");
+
+    return carDrivers.reduce((total, driver) => {
+      return total 
+      + Number(driver.salaryMainOrders) 
+      + Number(driver.salaryAdditionalOrders)
+      - Number(driver.talabatDeductionAmount)
+      - Number(driver.companyDeductionAmount) 
+      - Number(driver.pettyCashDeductionAmount);
+    }, 0)
+
+
+
+  }, [driversSalaries])
 
   const columns = [
     {
@@ -80,7 +115,7 @@ const DriversSalary = () => {
     {
       field: "salaryMainOrders", // NEW
       headerName: "Salary (Main Orders)",
-      editable: true,
+      //editable: true,
       flex: 1,
       headerAlign: "center",
       align: "center",
@@ -88,7 +123,7 @@ const DriversSalary = () => {
     {
       field: "salaryAdditionalOrders", // NEW
       headerName: "Salary (Additional Orders)",
-      editable: true,
+      //editable: true,
       flex: 1,
       headerAlign: "center",
       align: "center",
@@ -192,9 +227,9 @@ const DriversSalary = () => {
   };
 
   const calculateColumnSum = (fieldName) => {
-    // return driversSalaries.reduce((total, driver) => {
-    //   return total + (driver[fieldName] || 0);
-    // }, 0);
+     return driversSalaries.reduce((total, driver) => {
+       return total + (driver[fieldName] || 0);
+     }, 0);
   };
 
   const sumRow = {
@@ -202,16 +237,16 @@ const DriversSalary = () => {
     sequenceNumber: "Total",
     name: "",
     vehicle: "",
-    mainOrders: calculateColumnSum("mainOrders"),
-    additionalOrders: calculateColumnSum("additionalOrders"),
-    totalOrders: calculateColumnSum("totalOrders"),
-    salaryBasedOnMainOrders: calculateColumnSum("salaryBasedOnMainOrders"),
-    salaryBasedOnAdditionalOrders: calculateColumnSum(
-      "salaryBasedOnAdditionalOrders"
+    mainOrder: calculateColumnSum("mainOrder"),
+    additionalOrder: calculateColumnSum("additionalOrder"),
+    salaryMainOrders: calculateColumnSum("salaryMainOrders"),
+    salaryAdditionalOrders: calculateColumnSum(
+      "salaryAdditionalOrders"
     ),
-    finalSalary: calculateColumnSum("finalSalary"),
+    
     talabatDeductionAmount: calculateColumnSum("talabatDeductionAmount"),
     companyDeductionAmount: calculateColumnSum("companyDeductionAmount"),
+    pettyCashDeductionAmount: calculateColumnSum("pettyCashDeductionAmount"),
     cashAmount: calculateColumnSum("cashAmount"),
     netSalary: calculateColumnSum("netSalary"),
     remarks: "",
@@ -264,9 +299,9 @@ const DriversSalary = () => {
 
   const handleUpdate = (row) => {
     try {
-      const { cost, order, hour } = row;
+      const { mainOrder, additionalOrder, talabatDeductionAmount,companyDeductionAmount, pettyCashDeductionAmount } = row;
       dispatch(
-        updateDriver({ driverId: row._id, values: { cost, order, hour } })
+        updateDriver({ driverId: row._id, values: { mainOrder, additionalOrder, talabatDeductionAmount, companyDeductionAmount, pettyCashDeductionAmount } })
       );
     } catch (error) {
       console.error("Row does not have a valid _id field:", row);
@@ -314,11 +349,11 @@ const DriversSalary = () => {
           <Header title="NOTES" />
           <Typography color={colors.greenAccent[500]} fontSize={24}>
             Total net salary for car drivers:
-            <strong> ${totalNetSalary.carDrivers}</strong>
+            <strong> ${netCarDriversSalary}</strong>
           </Typography>
           <Typography color={colors.greenAccent[500]} fontSize={24}>
             Total net salary for bike drivers:
-            <strong> ${totalNetSalary.bikeDrivers}</strong>
+            <strong> ${netBikeDriversSalary}</strong>
           </Typography>
         </Box>
       </Box>

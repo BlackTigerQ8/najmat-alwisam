@@ -246,36 +246,40 @@ const getDriverInvoices = async () => {
 // Salary calculations based on the number of main and additional orders for CAR drivers
 const carDriverSalary = (orders, mainSalary, additionalSalary) => {
   if (orders <= 399) {
-    return (mainSalary = mainSalary + 0.3);
+    return { mainSalary: mainSalary + 0.3 };
   } else if (orders >= 400 && orders <= 449) {
-    return (mainSalary = 140);
+    return { mainSalary: 140 };
   } else if (orders >= 450 && orders <= 599) {
-    mainSalary = mainSalary + 0.45;
-    additionalSalary = additionalSalary + 0.3;
-    return { mainSalary, additionalSalary };
+    return {
+      mainSalary: mainSalary + 0.45,
+      additionalSalary: additionalSalary + 0.3,
+    };
   } else if (orders >= 600) {
-    mainSalary = mainSalary + 0.5;
-    additionalSalary = additionalSalary + 0.3;
-    return { mainSalary, additionalSalary };
+    return {
+      mainSalary: mainSalary + 0.5,
+      additionalSalary: additionalSalary + 0.3,
+    };
   }
 };
 
 // Salary calculations based on the number of main and additional orders for BIKE drivers
-const bikeDriverSalary = () => {
+const bikeDriverSalary = (orders = 0, mainSalary = 0, additionalSalary = 0) => {
   if (orders <= 200) {
-    return (mainSalary = 50);
+    return { mainSalary: 50 };
   } else if (orders <= 300) {
-    return (mainSalary = 100);
+    return { mainSalary: 100 };
   } else if (orders >= 300 && orders <= 349) {
-    return (mainSalary = 150);
+    return { mainSalary: 150 };
   } else if (orders >= 350 && orders <= 419) {
-    mainSalary = mainSalary + 0.45;
-    additionalSalary = additionalSalary + 0.3;
-    return { mainSalary, additionalSalary };
+    return {
+      mainSalary: mainSalary + 0.45,
+      additionalSalary: additionalSalary + 0.3,
+    };
   } else if (orders >= 420) {
-    mainSalary = mainSalary + 0.5;
-    additionalSalary = additionalSalary + 0.3;
-    return { mainSalary, additionalSalary };
+    return {
+      mainSalary: mainSalary + 0.5,
+      additionalSalary: additionalSalary + 0.3,
+    };
   }
 };
 
@@ -294,6 +298,8 @@ const getDriverSalaries = async (req, res) => {
       _id: driverId,
       vehicle: driver.vehicle,
       sequenceNumber: driver.sequenceNumber,
+      startingSalary: driver.mainSalary,
+
       mainOrder: 0,
       additionalOrder: 0,
 
@@ -327,8 +333,6 @@ const getDriverSalaries = async (req, res) => {
     driverData.additionalOrder += additionalOrder;
     driverData.talabatDeductionAmount += talabatDeductionAmount;
     driverData.companyDeductionAmount += companyDeductionAmount;
-
-    //TODO: ADD salary calculation here
   }
 
   const pettyCashResults = await fetchCurrentMonthPettyCash();
@@ -343,6 +347,21 @@ const getDriverSalaries = async (req, res) => {
     const { cashAmount } = pettyCash;
 
     driverData.pettyCashDeductionAmount += cashAmount;
+  }
+
+  // Calculating salary based on main order and additional order
+  for (const driverId of Object.keys(driversData)) {
+    const driverData = driversData[driverId];
+
+    if (!driverData) continue;
+
+    const { mainSalary, additionalSalary = 0 } =
+      driverData.vehicle === "Car"
+        ? carDriverSalary(driverData.mainOrder, driverData.startingSalary)
+        : bikeDriverSalary(driverData.mainOrder, driverData.startingSalary);
+
+    driverData.salaryMainOrders = mainSalary;
+    driverData.salaryAdditionalOrders = additionalSalary;
   }
 
   res.status(200).json({
