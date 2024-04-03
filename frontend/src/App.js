@@ -44,6 +44,7 @@ import AdminInvoices from "./scenes/AdminInvoices";
 import ManagerDashboard from "./scenes/dashboard/ManagerDashboard";
 import Messages from "./scenes/Messages";
 import CoSpends from "./scenes/CoSpends";
+import Profits from "./scenes/Profits";
 
 function App() {
   const [theme, colorMode] = useMode();
@@ -174,6 +175,7 @@ function App() {
                         path="/company-spends"
                         element={<CoSpends />}
                       />
+                      <Route exact path="/profits" element={<Profits />} />
 
                       <Route exact path="/spend-type" element={<SpendType />} />
                     </>
