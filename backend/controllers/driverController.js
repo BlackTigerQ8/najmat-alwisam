@@ -5,6 +5,7 @@ const ReadNotification = require("../models/readNotificationModel");
 const { User } = require("../models/userModel");
 const { addSingleDriverNotifications } = require("../services/driverService");
 const { fetchCurrentMonthPettyCash } = require("./pettyCashController");
+const PettyCash = require("../models/pettyCashModel");
 
 // @desc    Get all drivers
 // @route   GET /api/drivers
@@ -215,7 +216,7 @@ const getAllInvoices = async (req, res) => {
   }
 };
 
-const getDriverInvoices = async () => {
+const getMonthDateRange = () => {
   const currentDate = new Date();
 
   // Get the first day of the current month
@@ -232,11 +233,17 @@ const getDriverInvoices = async () => {
     1
   );
 
+  return { startDate: firstDayOfMonth, endDate: firstDayOfNextMonth };
+};
+
+const getDriverInvoices = async () => {
+  const { startDate, endDate } = getMonthDateRange();
+
   const driverInvoices = await DriverInvoice.find({
     status: { $in: ["pending", "approved"] },
     invoiceDate: {
-      $gte: firstDayOfMonth,
-      $lt: firstDayOfNextMonth,
+      $gte: startDate,
+      $lt: endDate,
     },
   }).populate("driver");
 
@@ -372,6 +379,109 @@ const getDriverSalaries = async (req, res) => {
   });
 };
 
+const overrideDriverSalary = async (req, res) => {
+  const {
+    mainOrder,
+    additionalOrder,
+    talabatDeductionAmount,
+    companyDeductionAmount,
+    pettyCashDeductionAmount,
+    driverId,
+  } = req.body;
+
+  const driver = await Driver.findById(driverId);
+
+  if (!driver)
+    return res.status(404).json({ message: "Driver does not exist" });
+
+  const user = await User.findById(req.user.id);
+
+  if (!user) return res.status(404).json({ message: "User does not exist" });
+
+  const { cash, hour, deductionReason } = await overrideDriverInvoices({
+    driverId,
+  });
+
+  /** All invoices should be set using yesterday's date */
+  const currentDate = new Date();
+  const invoiceDate = new Date(currentDate.getTime() - 24 * 60 * 60 * 1000);
+
+  const newInvoice = new DriverInvoice({
+    driver: driverId,
+    mainOrder,
+    additionalOrder,
+    hour,
+    cash,
+    additionalSalary,
+    talabatDeductionAmount,
+    companyDeductionAmount,
+    deductionReason,
+    invoiceDate,
+    user: req.user.id,
+  });
+
+  await newInvoice.save();
+
+  return res.status(201).json({
+    status: "Success",
+    data: {
+      invoice: { ...newInvoice._doc, driver: { _id: newInvoice.driver } },
+    },
+  });
+
+  // TODO: Confirm if petty cash deductions for driver should be overridden or not
+  //await overridePettyCashInvoices({ driverId });
+};
+
+const overrideDriverInvoices = async ({ driverId }) => {
+  const { startDate, endDate } = getMonthDateRange();
+
+  const driverInvoices = await DriverInvoice.find({
+    status: { $in: ["pending", "approved"] },
+    invoiceDate: {
+      $gte: startDate,
+      $lt: endDate,
+    },
+    driver: driverId,
+  });
+
+  let cash = 0;
+  let hour = 0;
+  let deductionReason = "";
+
+  for (const invoice of driverInvoices) {
+    invoice.status = "overridden";
+
+    cash += invoice.cash || 0;
+    hour += invoice.hour || 0;
+
+    if (invoice.deductionReason) {
+      deductionReason = invoice.deductionReason;
+    }
+    await invoice.save();
+  }
+
+  return { cash, hour, deductionReason };
+};
+
+const overridePettyCashInvoices = async ({ driverId }) => {
+  const { startDate, endDate } = getMonthDateRange();
+
+  const driverInvoices = await PettyCash.find({
+    status: { $in: ["pending", "approved"] },
+    invoiceDate: {
+      $gte: startDate,
+      $lt: endDate,
+    },
+    driver: driverId,
+  });
+
+  for (const invoice of driverInvoices) {
+    invoice.status = "overridden";
+    await invoice.save();
+  }
+};
+
 module.exports = {
   getAllDrivers,
   getDriver,
@@ -381,4 +491,5 @@ module.exports = {
   createDriverInvoice,
   getAllInvoices,
   getDriverSalaries,
+  overrideDriverSalary,
 };

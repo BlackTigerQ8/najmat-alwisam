@@ -1,6 +1,12 @@
 const mongoose = require("mongoose");
 
-const invoiceStatus = ["pending", "approved", "rejected", "archived"];
+const invoiceStatus = [
+  "pending",
+  "approved",
+  "rejected",
+  "archived",
+  "overridden",
+];
 
 const driverInvoiceSchema = new mongoose.Schema({
   driver: {
