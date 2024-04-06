@@ -5,11 +5,94 @@ const BankStatement = require("../models/bankStatementModel");
 // @access  Private/Accountant
 const getAllBankStatement = async (req, res) => {
   try {
-    const bankStatement = await BankStatement.find();
+    const bankStatement = await BankStatement.find().sort([
+      ["bankAccountNumber", 1], // Sort by bankAccountNumber in ascending order
+      ["sequence", -1], // Then sort by sequence in descending order
+    ]);
     res.status(200).json({
       status: "Success",
       data: {
         bankStatement,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: "Error",
+      message: error.message,
+    });
+  }
+};
+
+const createBankStatementRecord = async (req, res) => {
+  try {
+    const {
+      statementDate,
+      deposits = 0,
+      spends = 0,
+      balance = 0,
+      statementRemarks = "",
+      checkNumber = "",
+      statementDetails = "",
+      bankAccountNumber,
+    } = req.body;
+
+    if (!statementDate) throw new Error("Statement date is required");
+
+    const lastBankStatementRecord = await BankStatement.findOne({
+      bankAccountNumber,
+    })
+      .sort({
+        sequence: -1,
+      })
+      .limit(1);
+
+    if (!lastBankStatementRecord) {
+      if (!balance)
+        throw new Error(
+          "Does not have starting balance for first bank statement record"
+        );
+
+      const bankStatementRecord = new BankStatement({
+        statementDate,
+        deposits,
+        spends,
+        statementRemarks,
+        checkNumber,
+        statementDetails,
+        bankAccountNumber,
+        balance,
+        addedByUser: req.user.id,
+      });
+
+      await bankStatementRecord.save();
+
+      return res.status(201).json({
+        status: "Success",
+        data: {
+          bankStatement: bankStatementRecord,
+        },
+      });
+    }
+
+    const newBankStatementRecord = new BankStatement({
+      statementDate,
+      deposits,
+      spends,
+      statementRemarks,
+      checkNumber,
+      statementDetails,
+      bankAccountNumber,
+      balance: lastBankStatementRecord.balance - spends + deposits,
+      addedByUser: req.user.id,
+      sequence: lastBankStatementRecord.sequence + 1,
+    });
+
+    await newBankStatementRecord.save();
+
+    return res.status(201).json({
+      status: "Success",
+      data: {
+        bankStatement: newBankStatementRecord,
       },
     });
   } catch (error) {
@@ -61,4 +144,5 @@ const updateBankStatement = async (req, res) => {
 module.exports = {
   getAllBankStatement,
   updateBankStatement,
+  createBankStatementRecord,
 };

@@ -17,7 +17,23 @@ export const fetchBankStatement = createAsyncThunk(
       const response = await axios.get(`${API_URL}/bank-statement`, values, {
         headers: {
           Authorization: `Bearer ${token}`,
-          "Content-Type": "multipart/form-data",
+        },
+      });
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  }
+);
+
+export const createBankStatement = createAsyncThunk(
+  "bankStatement/createBankStatement",
+  async ({ values }) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.post(`${API_URL}/bank-statement`, values, {
+        headers: {
+          Authorization: `Bearer ${token}`,
         },
       });
       return response.data;
@@ -38,9 +54,23 @@ const bankStatementSlice = createSlice({
       })
       .addCase(fetchBankStatement.fulfilled, (state, action) => {
         state.status = "succeeded";
-        state.bankStatement = action.payload;
+        state.bankStatement = action.payload.data.bankStatement;
       })
       .addCase(fetchBankStatement.rejected, (state, action) => {
+        state.status = "failed";
+        state.error = action.error.message;
+      })
+      .addCase(createBankStatement.pending, (state) => {
+        state.status = "loading";
+      })
+      .addCase(createBankStatement.fulfilled, (state, action) => {
+        state.status = "succeeded";
+        state.bankStatement = [
+          action.payload.data.bankStatement,
+          ...state.bankStatement,
+        ];
+      })
+      .addCase(createBankStatement.rejected, (state, action) => {
         state.status = "failed";
         state.error = action.error.message;
       });

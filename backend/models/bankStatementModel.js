@@ -1,7 +1,5 @@
 const mongoose = require("mongoose");
 
-const ACCOUNT_NUMBERS = ["Admin", "Manager", "Employee", "Accountant"];
-
 const bankStatementSchema = new mongoose.Schema({
   balance: { type: Number, default: 0 },
   deposits: { type: Number, default: 0 },
@@ -10,7 +8,15 @@ const bankStatementSchema = new mongoose.Schema({
   checkNumber: { type: Number },
   statementDetails: { type: String, default: "" },
   statementDate: { type: Date },
-  bankAccountNumber: { type: Number, enum: ACCOUNT_NUMBERS, required: true },
+  bankAccountNumber: { type: Number, required: true },
+  addedByUser: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+  },
+  sequence: {
+    type: Number,
+    default: 1,
+  },
 });
 
 module.exports = mongoose.model("BankStatement", bankStatementSchema);
