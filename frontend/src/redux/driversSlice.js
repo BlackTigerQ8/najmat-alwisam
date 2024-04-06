@@ -91,6 +91,27 @@ export const updateDriver = createAsyncThunk(
   }
 );
 
+export const overrideDriverSalary = createAsyncThunk(
+  "driver/overrideDriverSalary",
+  async ({ values }) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.post(
+        `${API_URL}/driver-invoice/override`,
+        values,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response.data.message || error.message);
+    }
+  }
+);
+
 export const fetchSalaries = createAsyncThunk(
   "driver/fetchSalaries",
   async () => {
@@ -222,6 +243,37 @@ const driversSlice = createSlice({
       .addCase(updateDriver.rejected, (state, action) => {
         state.status = "failed";
         state.error = action.error.message;
+        toast.error("Can't update a driver's information, you can try later!", {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+        });
+      })
+      .addCase(overrideDriverSalary.pending, (state) => {
+        state.salariesStatus = "loading";
+      })
+      .addCase(overrideDriverSalary.fulfilled, (state, action) => {
+        state.salariesStatus = "succeeded";
+        const updatedInvoice = action.payload.data.invoice;
+
+        state.salaries = state.salaries.map((driver) =>
+          driver._id === updatedInvoice.driver
+            ? { ...driver, ...updatedInvoice, _id: updatedInvoice.driver }
+            : driver
+        );
+        toast.success("Driver's information is successfully updated!", {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+        });
+      })
+      .addCase(overrideDriverSalary.rejected, (state, action) => {
+        state.salariesStatus = "failed";
+        state.salariesError = action.error.message;
         toast.error("Can't update a driver's information, you can try later!", {
           position: "top-right",
           autoClose: 3000,

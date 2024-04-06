@@ -17,6 +17,8 @@ router
     createDriverInvoice
   );
 
-router.patch(protect, restrictTo("Admin", "Accountant"), overrideDriverSalary);
+router
+  .route("/override")
+  .post(protect, restrictTo("Admin", "Accountant"), overrideDriverSalary);
 
 module.exports = router;

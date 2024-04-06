@@ -389,7 +389,6 @@ const overrideDriverSalary = async (req, res) => {
     additionalOrder,
     talabatDeductionAmount,
     companyDeductionAmount,
-    pettyCashDeductionAmount,
     driverId,
   } = req.body;
 
@@ -416,7 +415,6 @@ const overrideDriverSalary = async (req, res) => {
     additionalOrder,
     hour,
     cash,
-    additionalSalary,
     talabatDeductionAmount,
     companyDeductionAmount,
     deductionReason,
@@ -429,7 +427,7 @@ const overrideDriverSalary = async (req, res) => {
   return res.status(201).json({
     status: "Success",
     data: {
-      invoice: { ...newInvoice._doc, driver: { _id: newInvoice.driver } },
+      invoice: newInvoice,
     },
   });
 

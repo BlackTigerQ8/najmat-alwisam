@@ -5,7 +5,7 @@ import { tokens } from "../theme";
 import Header from "../components/Header";
 import UpdateIcon from "@mui/icons-material/Update";
 import { useSelector, useDispatch } from "react-redux";
-import { updateDriver, fetchSalaries } from "../redux/driversSlice";
+import { overrideDriverSalary, fetchSalaries } from "../redux/driversSlice";
 import { pulsar } from "ldrs";
 
 const DriversSalary = () => {
@@ -160,7 +160,7 @@ const DriversSalary = () => {
       headerName: "Petty Cash Deduction",
       headerAlign: "center",
       align: "center",
-      editable: true,
+      //editable: true,
     },
     {
       field: "netSalary", // NEW
@@ -178,11 +178,11 @@ const DriversSalary = () => {
       }) => {
         return (
           <Box display="flex" justifyContent="center" borderRadius="4px">
-            {Number(salaryMainOrders) +
+            {parseFloat(Number(salaryMainOrders) +
               Number(salaryAdditionalOrders) -
               Number(pettyCashDeductionAmount) -
               Number(companyDeductionAmount) -
-              Number(talabatDeductionAmount)}
+              Number(talabatDeductionAmount)).toFixed(1)}
           </Box>
         );
       },
@@ -299,9 +299,9 @@ const DriversSalary = () => {
 
   const handleUpdate = (row) => {
     try {
-      const { mainOrder, additionalOrder, talabatDeductionAmount,companyDeductionAmount, pettyCashDeductionAmount } = row;
+      const { mainOrder, additionalOrder, talabatDeductionAmount,companyDeductionAmount } = row;
       dispatch(
-        updateDriver({ driverId: row._id, values: { mainOrder, additionalOrder, talabatDeductionAmount, companyDeductionAmount, pettyCashDeductionAmount } })
+        overrideDriverSalary({  values: {driverId: row._id, mainOrder, additionalOrder, talabatDeductionAmount, companyDeductionAmount } })
       );
     } catch (error) {
       console.error("Row does not have a valid _id field:", row);
