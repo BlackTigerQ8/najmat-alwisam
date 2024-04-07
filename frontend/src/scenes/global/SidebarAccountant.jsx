@@ -253,6 +253,13 @@ const SidebarA = () => {
               selected={selected}
               setSelected={setSelected}
             />
+            <Item
+              title="Company Income"
+              to="/income"
+              icon={<PointOfSaleOutlinedIcon />}
+              selected={selected}
+              setSelected={setSelected}
+            />
           </Box>
         </Menu>
       </ProSidebar>

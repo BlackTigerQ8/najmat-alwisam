@@ -6,7 +6,7 @@ import Header from "../components/Header";
 import { tokens } from "../theme";
 import { pulsar } from "ldrs";
 
-const Profits = () => {
+const Income = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
 
@@ -28,7 +28,7 @@ const Profits = () => {
   const columns = [
     {
       field: "name",
-      headerName: "Spends Type",
+      headerName: "Total Spends",
       flex: 1,
     },
     ...months.map((month) => ({
@@ -36,25 +36,15 @@ const Profits = () => {
       headerName: month,
       flex: 0.75,
     })),
-    {
-      field: "totalSpends",
-      headerName: "Total",
-      flex: 1,
-    },
   ];
 
-  const companyDeposits = [
-    { field: "depositsType", headerName: "Deposits Type" },
+  const companyIncomes = [
+    { field: "incomeType", headerName: "Income Type" },
     ...months.map((month) => ({
       field: `cashAmount${month}`,
       headerName: month,
       flex: 0.75,
     })),
-    {
-      field: "totalSpends",
-      headerName: "Total",
-      flex: 1,
-    },
   ];
 
   pulsar.register();
@@ -125,7 +115,7 @@ const Profits = () => {
         >
           <DataGrid
             rows={6}
-            columns={companyDeposits}
+            columns={companyIncomes}
             getRowId={(row) => row._id}
           />
         </Box>
@@ -162,4 +152,4 @@ const Profits = () => {
   );
 };
 
-export default Profits;
+export default Income;

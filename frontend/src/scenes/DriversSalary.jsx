@@ -22,39 +22,38 @@ const DriversSalary = () => {
   const [editRowsModel, setEditRowsModel] = useState({});
 
   const netCarDriversSalary = useMemo(() => {
-
-    const carDrivers = driversSalaries.filter(driver => driver.vehicle === "Car");
+    const carDrivers = driversSalaries.filter(
+      (driver) => driver.vehicle === "Car"
+    );
 
     return carDrivers.reduce((total, driver) => {
-      return total 
-      + Number(driver.salaryMainOrders) 
-      + Number(driver.salaryAdditionalOrders)
-      - Number(driver.talabatDeductionAmount)
-      - Number(driver.companyDeductionAmount) 
-      - Number(driver.pettyCashDeductionAmount);
-    }, 0)
-
-
-
-  }, [driversSalaries])
-
+      return (
+        total +
+        Number(driver.salaryMainOrders) +
+        Number(driver.salaryAdditionalOrders) -
+        Number(driver.talabatDeductionAmount) -
+        Number(driver.companyDeductionAmount) -
+        Number(driver.pettyCashDeductionAmount)
+      );
+    }, 0);
+  }, [driversSalaries]);
 
   const netBikeDriversSalary = useMemo(() => {
-
-    const carDrivers = driversSalaries.filter(driver => driver.vehicle === "Bike");
+    const carDrivers = driversSalaries.filter(
+      (driver) => driver.vehicle === "Bike"
+    );
 
     return carDrivers.reduce((total, driver) => {
-      return total 
-      + Number(driver.salaryMainOrders) 
-      + Number(driver.salaryAdditionalOrders)
-      - Number(driver.talabatDeductionAmount)
-      - Number(driver.companyDeductionAmount) 
-      - Number(driver.pettyCashDeductionAmount);
-    }, 0)
-
-
-
-  }, [driversSalaries])
+      return (
+        total +
+        Number(driver.salaryMainOrders) +
+        Number(driver.salaryAdditionalOrders) -
+        Number(driver.talabatDeductionAmount) -
+        Number(driver.companyDeductionAmount) -
+        Number(driver.pettyCashDeductionAmount)
+      );
+    }, 0);
+  }, [driversSalaries]);
 
   const columns = [
     {
@@ -178,11 +177,13 @@ const DriversSalary = () => {
       }) => {
         return (
           <Box display="flex" justifyContent="center" borderRadius="4px">
-            {parseFloat(Number(salaryMainOrders) +
-              Number(salaryAdditionalOrders) -
-              Number(pettyCashDeductionAmount) -
-              Number(companyDeductionAmount) -
-              Number(talabatDeductionAmount)).toFixed(1)}
+            {parseFloat(
+              Number(salaryMainOrders) +
+                Number(salaryAdditionalOrders) -
+                Number(pettyCashDeductionAmount) -
+                Number(companyDeductionAmount) -
+                Number(talabatDeductionAmount)
+            ).toFixed(1)}
           </Box>
         );
       },
@@ -227,9 +228,9 @@ const DriversSalary = () => {
   };
 
   const calculateColumnSum = (fieldName) => {
-     return driversSalaries.reduce((total, driver) => {
-       return total + (driver[fieldName] || 0);
-     }, 0);
+    return driversSalaries.reduce((total, driver) => {
+      return total + (driver[fieldName] || 0);
+    }, 0);
   };
 
   const sumRow = {
@@ -240,10 +241,8 @@ const DriversSalary = () => {
     mainOrder: calculateColumnSum("mainOrder"),
     additionalOrder: calculateColumnSum("additionalOrder"),
     salaryMainOrders: calculateColumnSum("salaryMainOrders"),
-    salaryAdditionalOrders: calculateColumnSum(
-      "salaryAdditionalOrders"
-    ),
-    
+    salaryAdditionalOrders: calculateColumnSum("salaryAdditionalOrders"),
+
     talabatDeductionAmount: calculateColumnSum("talabatDeductionAmount"),
     companyDeductionAmount: calculateColumnSum("companyDeductionAmount"),
     pettyCashDeductionAmount: calculateColumnSum("pettyCashDeductionAmount"),
@@ -299,9 +298,22 @@ const DriversSalary = () => {
 
   const handleUpdate = (row) => {
     try {
-      const { mainOrder, additionalOrder, talabatDeductionAmount,companyDeductionAmount } = row;
+      const {
+        mainOrder,
+        additionalOrder,
+        talabatDeductionAmount,
+        companyDeductionAmount,
+      } = row;
       dispatch(
-        overrideDriverSalary({  values: {driverId: row._id, mainOrder, additionalOrder, talabatDeductionAmount, companyDeductionAmount } })
+        overrideDriverSalary({
+          values: {
+            driverId: row._id,
+            mainOrder,
+            additionalOrder,
+            talabatDeductionAmount,
+            companyDeductionAmount,
+          },
+        })
       );
     } catch (error) {
       console.error("Row does not have a valid _id field:", row);
