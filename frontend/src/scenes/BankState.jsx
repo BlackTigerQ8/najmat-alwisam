@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback,useMemo } from "react";
 import {
   Box,
   useTheme,
@@ -61,6 +61,46 @@ const BankState = () => {
   const [editRowsModel, setEditRowsModel] = useState({});
 
   const getStatementsByAccountNumber = useCallback((selectedAccountNumber) => bankStatement.filter(b => b.bankAccountNumber ===selectedAccountNumber),[bankStatement])
+
+  const totalSpends = useMemo(() => {
+
+    if(searchStatus){
+      return searchResults.reduce((total, statement) => {
+        return total 
+        + Number(statement.spends) ;
+        
+      }, 0)
+  
+    }
+
+    return bankStatement.reduce((total, statement) => {
+      return total 
+      + Number(statement.spends) ;
+      
+    }, 0)
+
+  }, [searchStatus,bankStatement, searchResults])
+
+  const totalDeposits = useMemo(() => {
+
+    if(searchStatus){
+      return searchResults.reduce((total, statement) => {
+        return total 
+        + Number(statement.deposits) ;
+        
+      }, 0)
+  
+    }
+
+    return bankStatement.reduce((total, statement) => {
+      return total 
+      + Number(statement.deposits) ;
+      
+    }, 0)
+
+  }, [searchStatus,bankStatement, searchResults])
+
+  console.log('totalSpends', totalSpends)
 
   const columns = [
     {
@@ -380,6 +420,18 @@ const BankState = () => {
           editRowsModel={editRowsModel}
           onEditCellChange={handleCellValueChange}
         />
+         <Typography variant="h4" color="secondary" mt={4}>
+            Total spends:
+            <strong>
+              <span> {totalSpends / 1000} </span> KD
+            </strong>
+          </Typography>
+          <Typography variant="h4" color="secondary" mt={4}>
+            Total deposits:
+            <strong>
+              <span> {totalDeposits / 1000} </span> KD
+            </strong>
+          </Typography>
       </Box>
     </Box>
   );
