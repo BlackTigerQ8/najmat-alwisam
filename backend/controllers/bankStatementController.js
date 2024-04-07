@@ -23,6 +23,37 @@ const getAllBankStatement = async (req, res) => {
   }
 };
 
+const searchBankStatementRecords = async (req, res) => {
+  try {
+    const { bankAccountNumber, startDate, endDate } = req.body;
+
+    if (!startDate || !endDate)
+      throw new Error("Start date or end date is missing");
+
+    const bankStatement = await BankStatement.find({
+      bankAccountNumber,
+      statementDate: {
+        $gte: startDate,
+        $lte: endDate,
+      },
+    }).sort([
+      ["bankAccountNumber", 1], // Sort by bankAccountNumber in ascending order
+      ["sequence", -1], // Then sort by sequence in descending order
+    ]);
+    res.status(200).json({
+      status: "Success",
+      data: {
+        results: bankStatement,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: "Error",
+      message: error.message,
+    });
+  }
+};
+
 const createBankStatementRecord = async (req, res) => {
   try {
     const {
@@ -145,4 +176,5 @@ module.exports = {
   getAllBankStatement,
   updateBankStatement,
   createBankStatementRecord,
+  searchBankStatementRecords,
 };
