@@ -69,13 +69,14 @@ const BankState = () => {
       flex: 1,
       headerAlign: "center",
       align: "center",
-       renderCell: ({row} ) => {
+      valueFormatter: (params) => {  
 
-        const {statementDate} = row;
-
-        
-        return statementDate ? <Typography variant="body1">{new Date(statementDate).toISOString()}</Typography>: null
-       },
+        const date = new Date(params.value);
+        const formattedDate = `${date.getDate()}/${
+          date.getMonth() + 1
+        }/${date.getFullYear()}`;
+        return formattedDate;
+      },
     },
     {
       field: "deposits",

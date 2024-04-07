@@ -54,7 +54,16 @@ const CoSpends = () => {
   }, [pettyCash, bankStatement]);
 
   const columns = [
-    { field: "date", headerName: "Date", flex: 1 },
+    { field: "date", headerName: "Date", flex: 1, 
+    valueFormatter: (params) => {  
+
+      const date = new Date(params.value);
+      const formattedDate = `${date.getDate()}/${
+        date.getMonth() + 1
+      }/${date.getFullYear()}`;
+      return formattedDate;
+    },
+   },
     { field: "source", headerName: "From", flex: 1 },
     { field: "name", headerName: "Spends Type", flex: 1,
     renderCell: ({ row: { spendType } }) => {
