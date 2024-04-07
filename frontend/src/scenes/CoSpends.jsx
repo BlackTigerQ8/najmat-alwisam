@@ -7,6 +7,9 @@ import { tokens } from "../theme";
 import { fetchPettyCash } from "../redux/pettyCashSlice";
 import { fetchBankStatement } from "../redux/bankStatementSlice";
 import { pulsar } from "ldrs";
+import { fetchAllSpendTypes } from "../redux/spendTypeSlice";
+import { fetchDrivers } from "../redux/driversSlice";
+import { fetchUsers } from "../redux/usersSlice";
 
 const CoSpends = () => {
   const theme = useTheme();
@@ -17,6 +20,9 @@ const CoSpends = () => {
   const bankStatement = useSelector(
     (state) => state.bankStatement.bankStatement
   );
+  const drivers = useSelector((state) => state.drivers.drivers);
+  const users = useSelector((state) => state.users.users);
+  const spendTypes = useSelector((state) => state.spendType.spendTypes);
   const status = useSelector((state) => state.pettyCash.status);
   const error = useSelector((state) => state.pettyCash.error);
 
@@ -25,17 +31,23 @@ const CoSpends = () => {
   useEffect(() => {
     dispatch(fetchPettyCash());
     dispatch(fetchBankStatement(token));
+    dispatch(fetchAllSpendTypes());
+    dispatch(fetchDrivers(token));
+    dispatch(fetchUsers(token));
   }, [dispatch, token]);
 
   const combinedData = useMemo(() => {
     const pettyCashData = pettyCash.map((item) => ({
-      date: item.date,
+      date: item.requestDate,
       source: "PettyCash",
+      remarks: item.spendsRemarks,
       ...item,
     }));
-    const bankStatementData = bankStatement.map((item) => ({
+    const bankStatementData = bankStatement.filter(x => x.spends >0).map((item) => ({
       date: item.statementDate,
       source: "BankStatement",
+      remarks: item.statementRemarks,
+      cashAmount: item.spends,
       ...item,
     }));
     return [...pettyCashData, ...bankStatementData];
@@ -44,9 +56,37 @@ const CoSpends = () => {
   const columns = [
     { field: "date", headerName: "Date", flex: 1 },
     { field: "source", headerName: "From", flex: 1 },
-    { field: "name", headerName: "Spends Type", flex: 1 },
+    { field: "name", headerName: "Spends Type", flex: 1,
+    renderCell: ({ row: { spendType } }) => {
+
+      if(!spendType) return null;
+
+      const { name = undefined } = spendTypes.find(
+        (s) => s._id === spendType
+      );
+
+      return (
+        <Box display="flex" justifyContent="center" borderRadius="4px">
+          {name}
+        </Box>
+      );
+    }, },
     { field: "cashAmount", headerName: "Cash Spends", flex: 1 },
-    { field: "fetchedDeduction", headerName: "Deducted From", flex: 1 },
+    { field: "fetchedDeduction", headerName: "Deducted From", flex: 1,
+    renderCell: ({ row: { deductedFromDriver, deductedFromUser } }) => {
+      if (!deductedFromDriver && !deductedFromUser) return null;
+
+      const { firstName = undefined, lastName = undefined } =
+        deductedFromDriver
+          ? drivers.find((d) => d._id === deductedFromDriver)
+          : users.find((u) => u._id === deductedFromUser);
+
+      return (
+        <Box display="flex" justifyContent="center" borderRadius="4px">
+          {firstName} {lastName}
+        </Box>
+      );
+    }, },
     { field: "remarks", headerName: "Remarks", flex: 1 },
   ];
 
@@ -88,7 +128,7 @@ const CoSpends = () => {
 
   return (
     <Box m="20px">
-      <Header title="SPEND TYPES" subtitle="Spend type Page" />
+      <Header title="COMPANY SPENDS" subtitle="Spend type Page" />
       <Box
         mt="40px"
         mb="40px"
