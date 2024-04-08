@@ -28,7 +28,7 @@ const Income = () => {
   const columns = [
     {
       field: "name",
-      headerName: "Total Spends",
+      headerName: "Spends Type",
       flex: 1,
     },
     ...months.map((month) => ({
@@ -36,15 +36,25 @@ const Income = () => {
       headerName: month,
       flex: 0.75,
     })),
+    {
+      field: "totalSpends",
+      headerName: "Total",
+      flex: 1,
+    },
   ];
 
-  const companyIncomes = [
-    { field: "incomeType", headerName: "Income Type" },
+  const companyDeposits = [
+    { field: "depositsType", headerName: "Deposits Type" },
     ...months.map((month) => ({
       field: `cashAmount${month}`,
       headerName: month,
       flex: 0.75,
     })),
+    {
+      field: "totalSpends",
+      headerName: "Total",
+      flex: 1,
+    },
   ];
 
   pulsar.register();
@@ -115,7 +125,7 @@ const Income = () => {
         >
           <DataGrid
             rows={6}
-            columns={companyIncomes}
+            columns={companyDeposits}
             getRowId={(row) => row._id}
           />
         </Box>

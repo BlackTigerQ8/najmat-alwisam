@@ -11,6 +11,7 @@ const initialState = {
   searchResults: [],
   searchStatus: "",
   searchError: null,
+  currentYearPettyCash: [],
 };
 
 export const fetchPettyCash = createAsyncThunk(
@@ -19,6 +20,23 @@ export const fetchPettyCash = createAsyncThunk(
     try {
       const token = localStorage.getItem("token");
       const response = await axios.get(`${API_URL}/petty-cash`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  }
+);
+
+export const fetchCurrentYearPettyCash = createAsyncThunk(
+  "pettyCash/fetchCurrentYearPettyCash",
+  async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.get(`${API_URL}/petty-cash/current-year`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -84,6 +102,17 @@ const pettyCashSlice = createSlice({
         state.pettyCash = action.payload.data.pettyCash;
       })
       .addCase(fetchPettyCash.rejected, (state, action) => {
+        state.status = "failed";
+        state.error = action.error.message;
+      })
+      .addCase(fetchCurrentYearPettyCash.pending, (state) => {
+        state.status = "loading";
+      })
+      .addCase(fetchCurrentYearPettyCash.fulfilled, (state, action) => {
+        state.status = "succeeded";
+        state.currentYearPettyCash = action.payload.data.pettyCash;
+      })
+      .addCase(fetchCurrentYearPettyCash.rejected, (state, action) => {
         state.status = "failed";
         state.error = action.error.message;
       })

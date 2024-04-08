@@ -190,9 +190,30 @@ const fetchCurrentMonthPettyCash = async () => {
   return pettyCash;
 };
 
+const fetchCurrentYearPettyCash = async () => {
+  const currentDate = new Date();
+
+  // Get the first day of the current year
+  const firstDayOffYear = new Date(currentDate.getFullYear(), 0, 1);
+
+  // Get the first day of the next year
+  const firstDayOffNextYear = new Date(currentDate.getFullYear() + 1, 0, 1);
+
+  const pettyCash = await PettyCash.find({
+    status: { $in: ["pending", "approved", "archived"] },
+    spendsDate: {
+      $gte: firstDayOffYear,
+      $lt: firstDayOffNextYear,
+    },
+  });
+
+  return pettyCash;
+};
+
 module.exports = {
   getAllPettyCash,
   createPettyCash,
   searchPettyCash,
   fetchCurrentMonthPettyCash,
+  fetchCurrentYearPettyCash,
 };
