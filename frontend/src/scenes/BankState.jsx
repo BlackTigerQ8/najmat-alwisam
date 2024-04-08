@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback,useMemo } from "react";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
 import {
   Box,
   useTheme,
@@ -14,9 +14,14 @@ import { DataGrid } from "@mui/x-data-grid";
 import Header from "../components/Header";
 import { tokens } from "../theme";
 import { pulsar } from "ldrs";
+import * as yup from "yup";
 import { useSelector, useDispatch } from "react-redux";
-import { createBankStatement, fetchBankStatement,searchBankStatement } from "../redux/bankStatementSlice";
-import {  Formik } from "formik";
+import {
+  createBankStatement,
+  fetchBankStatement,
+  searchBankStatement,
+} from "../redux/bankStatementSlice";
+import { Formik } from "formik";
 import useMediaQuery from "@mui/material/useMediaQuery";
 
 const initialValues = {
@@ -32,15 +37,22 @@ const initialValues = {
 
 const searchInitialValues = {
   bankAccountNumber: 8657,
-  startDate:"",
+  startDate: "",
   endDate: "",
 };
+
+const searchSchema = yup.object().shape({
+  startDate: yup.string().required("Select starting date"),
+  endDate: yup.string().required("Select ending date"),
+});
+const rowSchema = yup.object().shape({
+  statementDate: yup.string().required("Select a date"),
+});
 
 const BankState = () => {
   const isNonMobile = useMediaQuery("(min-width: 600px)");
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
-  
 
   const dispatch = useDispatch();
   const bankStatement = useSelector(
@@ -60,47 +72,39 @@ const BankState = () => {
     localStorage.getItem("token");
   const [editRowsModel, setEditRowsModel] = useState({});
 
-  const getStatementsByAccountNumber = useCallback((selectedAccountNumber) => bankStatement.filter(b => b.bankAccountNumber ===selectedAccountNumber),[bankStatement])
+  const getStatementsByAccountNumber = useCallback(
+    (selectedAccountNumber) =>
+      bankStatement.filter(
+        (b) => b.bankAccountNumber === selectedAccountNumber
+      ),
+    [bankStatement]
+  );
 
   const totalSpends = useMemo(() => {
-
-    if(searchStatus){
+    if (searchStatus) {
       return searchResults.reduce((total, statement) => {
-        return total 
-        + Number(statement.spends) ;
-        
-      }, 0)
-  
+        return total + Number(statement.spends);
+      }, 0);
     }
 
     return bankStatement.reduce((total, statement) => {
-      return total 
-      + Number(statement.spends) ;
-      
-    }, 0)
-
-  }, [searchStatus,bankStatement, searchResults])
+      return total + Number(statement.spends);
+    }, 0);
+  }, [searchStatus, bankStatement, searchResults]);
 
   const totalDeposits = useMemo(() => {
-
-    if(searchStatus){
+    if (searchStatus) {
       return searchResults.reduce((total, statement) => {
-        return total 
-        + Number(statement.deposits) ;
-        
-      }, 0)
-  
+        return total + Number(statement.deposits);
+      }, 0);
     }
 
     return bankStatement.reduce((total, statement) => {
-      return total 
-      + Number(statement.deposits) ;
-      
-    }, 0)
+      return total + Number(statement.deposits);
+    }, 0);
+  }, [searchStatus, bankStatement, searchResults]);
 
-  }, [searchStatus,bankStatement, searchResults])
-
-  console.log('totalSpends', totalSpends)
+  console.log("totalSpends", totalSpends);
 
   const columns = [
     {
@@ -109,8 +113,7 @@ const BankState = () => {
       flex: 1,
       headerAlign: "center",
       align: "center",
-      valueFormatter: (params) => {  
-
+      valueFormatter: (params) => {
         const date = new Date(params.value);
         const formattedDate = `${date.getDate()}/${
           date.getMonth() + 1
@@ -169,11 +172,9 @@ const BankState = () => {
   }, [token]);
 
   const handleSubmit = async (values, { resetForm }) => {
-    dispatch(createBankStatement({values}));
+    dispatch(createBankStatement({ values }));
     resetForm();
   };
-
- 
 
   const handleCellValueChange = (params) => {
     const { id, field, value } = params;
@@ -249,11 +250,13 @@ const BankState = () => {
           },
         }}
       >
-        
-
         <Box mb="20px">
           <Header subtitle="ADD NEW ROW" />
-          <Formik onSubmit={handleSubmit} initialValues={initialValues}>
+          <Formik
+            onSubmit={handleSubmit}
+            initialValues={initialValues}
+            validationSchema={rowSchema}
+          >
             {({
               values,
               errors,
@@ -274,30 +277,31 @@ const BankState = () => {
                   }}
                 >
                   <FormControl
-                  fullWidth
-                  variant="filled"
-                  sx={{ gridColumn: "span 1" }}
-                >
-                  <InputLabel htmlFor="bankAccountNumber">
-                    Bank Account Number
-                  </InputLabel>
-                  <Select
-                    label="bankAccountNumber"
-                    value={values.bankAccountNumber}
-                    onChange={handleChange}
-                    onBlur={handleBlur}
-                    name="bankAccountNumber"
-                    error={
-                      !!touched.bankAccountNumber && !!errors.bankAccountNumber
-                    }
-                    helperText={
-                      touched.bankAccountNumber && errors.bankAccountNumber
-                    }
+                    fullWidth
+                    variant="filled"
+                    sx={{ gridColumn: "span 1" }}
                   >
-                    <MenuItem value={"8657"}>8657</MenuItem>
-                    <MenuItem value={"8656"}>8656</MenuItem>
-                  </Select>
-                </FormControl>
+                    <InputLabel htmlFor="bankAccountNumber">
+                      Bank Account Number
+                    </InputLabel>
+                    <Select
+                      label="bankAccountNumber"
+                      value={values.bankAccountNumber}
+                      onChange={handleChange}
+                      onBlur={handleBlur}
+                      name="bankAccountNumber"
+                      error={
+                        !!touched.bankAccountNumber &&
+                        !!errors.bankAccountNumber
+                      }
+                      helperText={
+                        touched.bankAccountNumber && errors.bankAccountNumber
+                      }
+                    >
+                      <MenuItem value={"8657"}>8657</MenuItem>
+                      <MenuItem value={"8656"}>8656</MenuItem>
+                    </Select>
+                  </FormControl>
                   <TextField
                     fullWidth
                     variant="filled"
@@ -323,7 +327,10 @@ const BankState = () => {
                     error={!!touched.deposits && !!errors.deposits}
                     helperText={touched.deposits && errors.deposits}
                     sx={{ gridColumn: "span 1" }}
-                    disabled={!getStatementsByAccountNumber(values.bankAccountNumber).length}
+                    disabled={
+                      !getStatementsByAccountNumber(values.bankAccountNumber)
+                        .length
+                    }
                   />
                   <TextField
                     fullWidth
@@ -337,21 +344,27 @@ const BankState = () => {
                     error={!!touched.spends && !!errors.spends}
                     helperText={touched.spends && errors.spends}
                     sx={{ gridColumn: "span 1" }}
-                    disabled={!getStatementsByAccountNumber(values.bankAccountNumber).length}
+                    disabled={
+                      !getStatementsByAccountNumber(values.bankAccountNumber)
+                        .length
+                    }
                   />
-                  {!getStatementsByAccountNumber(values.bankAccountNumber).length &&<TextField
-                    fullWidth
-                    variant="filled"
-                    type="number"
-                    label="Balance"
-                    onBlur={handleBlur}
-                    onChange={handleChange}
-                    value={values.balance}
-                    name="balance"
-                    error={!!touched.balance && !!errors.balance}
-                    helperText={touched.balance && errors.balance}
-                    sx={{ gridColumn: "span 1" }}
-                  />}
+                  {!getStatementsByAccountNumber(values.bankAccountNumber)
+                    .length && (
+                    <TextField
+                      fullWidth
+                      variant="filled"
+                      type="number"
+                      label="Balance"
+                      onBlur={handleBlur}
+                      onChange={handleChange}
+                      value={values.balance}
+                      name="balance"
+                      error={!!touched.balance && !!errors.balance}
+                      helperText={touched.balance && errors.balance}
+                      sx={{ gridColumn: "span 1" }}
+                    />
+                  )}
                   <TextField
                     fullWidth
                     variant="filled"
@@ -411,7 +424,7 @@ const BankState = () => {
         </Box>
 
         <Box mb="20px">
-         <BankStatementSearchForm isNonMobile={isNonMobile}/>
+          <BankStatementSearchForm isNonMobile={isNonMobile} />
         </Box>
         <DataGrid
           rows={searchStatus ? searchResults : bankStatement}
@@ -420,109 +433,116 @@ const BankState = () => {
           editRowsModel={editRowsModel}
           onEditCellChange={handleCellValueChange}
         />
-         <Typography variant="h4" color="secondary" mt={4}>
-            Total spends:
-            <strong>
-              <span> {totalSpends / 1000} </span> KD
-            </strong>
-          </Typography>
-          <Typography variant="h4" color="secondary" mt={4}>
-            Total deposits:
-            <strong>
-              <span> {totalDeposits / 1000} </span> KD
-            </strong>
-          </Typography>
+        <Typography variant="h4" color="secondary" mt={4}>
+          Total spends:
+          <strong>
+            <span> {totalSpends / 1000} </span> KD
+          </strong>
+        </Typography>
+        <Typography variant="h4" color="secondary" mt={4}>
+          Total deposits:
+          <strong>
+            <span> {totalDeposits / 1000} </span> KD
+          </strong>
+        </Typography>
       </Box>
     </Box>
   );
 };
 
-export function BankStatementSearchForm({isNonMobile}){
-
+export function BankStatementSearchForm({ isNonMobile }) {
   const dispatch = useDispatch();
 
-  const onSearchSubmit = async(values) => [
-    dispatch(searchBankStatement({values}))
-  ] 
+  const onSearchSubmit = async (values) => [
+    dispatch(searchBankStatement({ values })),
+  ];
 
   return (
-    <Formik onSubmit={onSearchSubmit} initialValues={searchInitialValues}>
-    {({ values, errors, touched, handleBlur, handleChange,handleSubmit }) => (
-      <form onSubmit={handleSubmit}>
-      <Box
-        display="grid"
-        gap="30px"
-        gridTemplateColumns="repeat(4, minmax(0, 1fr))"
-        sx={{
-          "& > div": {
-            gridColumn: isNonMobile ? undefined : "span 4",
-          },
-        }}
-      >
-        <FormControl
-          fullWidth
-          variant="filled"
-          sx={{ gridColumn: "span 1.8" }}
-        >
-          <InputLabel htmlFor="bankAccountNumber">
-            Bank Account Number
-          </InputLabel>
-          <Select
-            label="bankAccountNumber"
-            value={values.bankAccountNumber}
-            onChange={handleChange}
-            onBlur={handleBlur}
-            name="bankAccountNumber"
-            error={
-              !!touched.bankAccountNumber && !!errors.bankAccountNumber
-            }
-            helperText={
-              touched.bankAccountNumber && errors.bankAccountNumber
-            }
+    <Formik
+      onSubmit={onSearchSubmit}
+      initialValues={searchInitialValues}
+      validationSchema={searchSchema}
+    >
+      {({
+        values,
+        errors,
+        touched,
+        handleBlur,
+        handleChange,
+        handleSubmit,
+      }) => (
+        <form onSubmit={handleSubmit}>
+          <Box
+            display="grid"
+            gap="30px"
+            gridTemplateColumns="repeat(4, minmax(0, 1fr))"
+            sx={{
+              "& > div": {
+                gridColumn: isNonMobile ? undefined : "span 4",
+              },
+            }}
           >
-            <MenuItem value={"8657"}>8657</MenuItem>
-            <MenuItem value={"8656"}>8656</MenuItem>
-          </Select>
-        </FormControl>
-        <TextField
-          fullWidth
-          variant="filled"
-          type="date"
-          label="Starting Date"
-          onBlur={handleBlur}
-          onChange={handleChange}
-          value={values.startDate}
-          name="startDate"
-          error={!!touched.startDate && !!errors.startDate}
-          helperText={touched.startDate && errors.startDate}
-          sx={{ gridColumn: "span 1" }}
-        />
-        <TextField
-          fullWidth
-          variant="filled"
-          type="date"
-          label="Ending Date"
-          onBlur={handleBlur}
-          onChange={handleChange}
-          value={values.endDate}
-          name="endDate"
-          error={!!touched.endDate && !!errors.endDate}
-          helperText={touched.endDate && errors.endDate}
-          sx={{ gridColumn: "span 1" }}
-        />
-         <Box display="flex"  sx={{ gridColumn: "span 1" }}>
-          <Button type="submit" color="secondary" variant="contained">
-            Search
-          </Button>
-        </Box>
-      </Box>
-      </form>
-    )}
-    
-  </Formik>
-  )
+            <FormControl
+              fullWidth
+              variant="filled"
+              sx={{ gridColumn: "span 1.8" }}
+            >
+              <InputLabel htmlFor="bankAccountNumber">
+                Bank Account Number
+              </InputLabel>
+              <Select
+                label="bankAccountNumber"
+                value={values.bankAccountNumber}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                name="bankAccountNumber"
+                error={
+                  !!touched.bankAccountNumber && !!errors.bankAccountNumber
+                }
+                helperText={
+                  touched.bankAccountNumber && errors.bankAccountNumber
+                }
+              >
+                <MenuItem value={"8657"}>8657</MenuItem>
+                <MenuItem value={"8656"}>8656</MenuItem>
+              </Select>
+            </FormControl>
+            <TextField
+              fullWidth
+              variant="filled"
+              type="date"
+              label="Starting Date"
+              onBlur={handleBlur}
+              onChange={handleChange}
+              value={values.startDate}
+              name="startDate"
+              error={!!touched.startDate && !!errors.startDate}
+              helperText={touched.startDate && errors.startDate}
+              sx={{ gridColumn: "span 1" }}
+            />
+            <TextField
+              fullWidth
+              variant="filled"
+              type="date"
+              label="Ending Date"
+              onBlur={handleBlur}
+              onChange={handleChange}
+              value={values.endDate}
+              name="endDate"
+              error={!!touched.endDate && !!errors.endDate}
+              helperText={touched.endDate && errors.endDate}
+              sx={{ gridColumn: "span 1" }}
+            />
+            <Box display="flex" sx={{ gridColumn: "span 1" }}>
+              <Button type="submit" color="secondary" variant="contained">
+                Search
+              </Button>
+            </Box>
+          </Box>
+        </form>
+      )}
+    </Formik>
+  );
 }
-
-
 
 export default BankState;

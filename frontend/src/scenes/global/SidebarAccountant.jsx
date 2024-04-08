@@ -16,6 +16,7 @@ import AttachMoneyOutlinedIcon from "@mui/icons-material/AttachMoneyOutlined";
 import ContactsOutlinedIcon from "@mui/icons-material/ContactsOutlined";
 import { profileImage } from "../../redux/userSlice";
 import { toast } from "react-toastify";
+import PaymentsOutlinedIcon from "@mui/icons-material/PaymentsOutlined";
 
 const Item = ({ title, to, icon, selected, setSelected }) => {
   const theme = useTheme();
@@ -242,7 +243,7 @@ const SidebarA = () => {
             <Item
               title="Company Spends"
               to="/company-spends"
-              icon={<PointOfSaleOutlinedIcon />}
+              icon={<PaymentsOutlinedIcon />}
               selected={selected}
               setSelected={setSelected}
             />
