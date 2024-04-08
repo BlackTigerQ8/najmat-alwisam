@@ -7,6 +7,7 @@ import driversReducer from "./driversSlice";
 import driverInvoiceReducer from "./driverInvoiceSlice";
 import notificationReducer from "./notificationSlice";
 import pettyCashReducer from "./pettyCashSlice";
+import companyIncomeReducer from "./companyIncomeSlice";
 import bankStatementReducer from "./bankStatementSlice";
 import spendTypeReducer from "./spendTypeSlice";
 
@@ -24,6 +25,7 @@ const rootReducer = combineReducers({
   pettyCash: pettyCashReducer,
   bankStatement: bankStatementReducer,
   spendType: spendTypeReducer,
+  companyIncome: companyIncomeReducer,
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);
