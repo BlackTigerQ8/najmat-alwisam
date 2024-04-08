@@ -11,3 +11,5 @@ router
   .route("/")
   .get(protect, restrictTo("Admin", "Accountant"), getAllCompanyIncome)
   .post(protect, restrictTo("Admin", "Accountant"), createCompanyIncome);
+
+module.exports = router;
