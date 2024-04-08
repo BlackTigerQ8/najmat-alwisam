@@ -11,6 +11,7 @@ const {
   updateEmployeeSalary,
   createEmployeeDeductionInvoice,
   sendMessage,
+  fetchMessages,
 } = require("../controllers/userController");
 const { protect, restrictTo } = require("../middleware/authMiddleware");
 const { contractUpload } = require("./uploadRoutes");
@@ -37,7 +38,10 @@ router
     createEmployeeDeductionInvoice
   );
 
-router.route("/send-message").post(protect, sendMessage);
+router
+  .route("/messages")
+  .post(protect, sendMessage)
+  .get(protect, fetchMessages);
 
 router
   .route("/")

@@ -90,12 +90,12 @@ export const updateUser = createAsyncThunk(
 );
 
 export const sendMessage = createAsyncThunk(
-  "user/sendMessage",
+  "user/Message",
   async ({ selectedUsers, message }) => {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.post(
-        `${API_URL}/users/send-message`,
+        `${API_URL}/users/messages`,
         { selectedUsers, message },
         {
           headers: {
@@ -112,11 +112,11 @@ export const sendMessage = createAsyncThunk(
 );
 
 export const fetchSentMessages = createAsyncThunk(
-  "user/fetchSentMessages",
+  "user/fetchMessages",
   async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.get(`${API_URL}/users/sent-messages`, {
+      const response = await axios.get(`${API_URL}/users/messages`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -300,7 +300,7 @@ const usersSlice = createSlice({
       })
       .addCase(fetchSentMessages.fulfilled, (state, action) => {
         state.status = "succeeded";
-        state.sentMessages = action.payload.data.sentMessages;
+        state.sentMessages = action.payload.data.messages;
       })
       .addCase(fetchSentMessages.rejected, (state, action) => {
         state.status = "failed";

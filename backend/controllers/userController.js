@@ -451,6 +451,28 @@ const sendMessage = async (req, res) => {
   }
 };
 
+// @desc    Fetch messages
+// @route   GET /api/messages
+// @access  Private
+const fetchMessages = async (req, res) => {
+  try {
+    // Fetch messages from the database
+    const messages = await Message.find();
+
+    res.status(200).json({
+      status: "Success",
+      data: {
+        messages,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: "Error",
+      message: error.message,
+    });
+  }
+};
+
 module.exports = {
   getAllUsers,
   getUser,
@@ -463,4 +485,5 @@ module.exports = {
   updateEmployeeSalary,
   createEmployeeDeductionInvoice,
   sendMessage,
+  fetchMessages,
 };
