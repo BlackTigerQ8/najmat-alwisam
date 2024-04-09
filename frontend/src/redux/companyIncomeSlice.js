@@ -52,10 +52,11 @@ const companyIncomeSlice = createSlice({
     builder
       .addCase(fetchCompanyIncome.pending, (state) => {
         state.status = "loading";
+        state.error = null;
       })
       .addCase(fetchCompanyIncome.fulfilled, (state, action) => {
         state.status = "succeeded";
-        state.companyIncome = action.payload.data.pettyCash;
+        state.companyIncome = action.payload.data.companyIncome;
       })
       .addCase(fetchCompanyIncome.rejected, (state, action) => {
         state.status = "failed";

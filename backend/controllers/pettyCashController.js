@@ -190,7 +190,7 @@ const fetchCurrentMonthPettyCash = async () => {
   return pettyCash;
 };
 
-const fetchCurrentYearPettyCash = async () => {
+const fetchCurrentYearPettyCash = async (req, res) => {
   const currentDate = new Date();
 
   // Get the first day of the current year
@@ -207,7 +207,12 @@ const fetchCurrentYearPettyCash = async () => {
     },
   });
 
-  return pettyCash;
+  res.status(200).json({
+    status: "Success",
+    data: {
+      pettyCash,
+    },
+  });
 };
 
 module.exports = {

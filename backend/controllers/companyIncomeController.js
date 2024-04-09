@@ -35,7 +35,7 @@ const createCompanyIncome = async (req, res) => {
 
     if (!type) throw new Error("Income type is required");
 
-    if (!month || !year) throw new Error("Income month and year are required");
+    if (!year) throw new Error("Income year is required");
 
     const companyIncome = new CompanyIncome({
       type,
