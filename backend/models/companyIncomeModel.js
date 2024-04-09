@@ -38,6 +38,16 @@ const companyIncomeSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+  lastMonthIncome: {
+    type: Number,
+  },
+
+  lendsIncome: {
+    type: Number,
+  },
+  moneySafeBalance: {
+    type: Number,
+  },
 });
 
 module.exports = mongoose.model("CompanyIncome", companyIncomeSchema);

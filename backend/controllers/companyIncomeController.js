@@ -31,6 +31,9 @@ const createCompanyIncome = async (req, res) => {
       otherIncome = 0,
       refundCompany = "",
       refundAmount = 0,
+      lastMonthIncome = 0,
+      lendsIncome = 0,
+      moneySafeBalance = 0,
     } = req.body;
 
     if (!type) throw new Error("Income type is required");
@@ -47,6 +50,9 @@ const createCompanyIncome = async (req, res) => {
       refundCompany,
       refundAmount,
       addedByUser: req.user.id,
+      lastMonthIncome,
+      lendsIncome,
+      moneySafeBalance,
     });
 
     await companyIncome.save();

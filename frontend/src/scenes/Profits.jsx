@@ -14,17 +14,20 @@ import {
   fetchCurrentYearPettyCash,
 } from "../redux/pettyCashSlice";
 import { fetchAllSpendTypes } from '../redux/spendTypeSlice';
-import {groupBy, mapValues} from 'lodash';
+import {groupBy} from 'lodash';
 
 const initialValues = {
   type: "Income",
   month: "",
-  year:2024,
+  year:new Date().getFullYear(),
   bikeIncome: 0,
   carIncome: 0,
   otherIncome: 0,
   refundCompany: "",
   refundAmount: 0,
+  lastMonthIncome: 0,
+  lendsIncome:0,
+  moneySafeBalance: 0,
 };
 
 const requestSchema = yup.object().shape({
@@ -36,6 +39,9 @@ const requestSchema = yup.object().shape({
   otherIncome: yup.number(),
   refundCompany: yup.string(),
   refundAmount: yup.number(),
+  lastMonthIncome: yup.number(),
+  lendsIncome: yup.number(),
+  moneySafeBalance: yup.number(),
 });
 
 const Types = [
@@ -507,6 +513,51 @@ aggregatedResults.push(netProfitLossesResult);
               name="otherIncome"
               error={!!touched.otherIncome && !!errors.otherIncome}
               helperText={touched.otherIncome && errors.otherIncome}
+              sx={{ gridColumn: "span 1" }}
+              disabled={values.type === "Refund"}
+            />
+
+<TextField
+              fullWidth
+              variant="filled"
+              type="number"
+              label="Last month income"
+              onBlur={handleBlur}
+              onChange={handleChange}
+              value={values.lastMonthIncome}
+              name="lastMonthIncome"
+              error={!!touched.lastMonthIncome && !!errors.lastMonthIncome}
+              helperText={touched.lastMonthIncome && errors.lastMonthIncome}
+              sx={{ gridColumn: "span 1" }}
+              disabled={values.type === "Refund"}
+            />
+
+            <TextField
+              fullWidth
+              variant="filled"
+              type="number"
+              label="Lends Income"
+              onBlur={handleBlur}
+              onChange={handleChange}
+              value={values.lendsIncome}
+              name="lendsIncome"
+              error={!!touched.lendsIncome && !!errors.lendsIncome}
+              helperText={touched.lendsIncome && errors.lendsIncome}
+              sx={{ gridColumn: "span 1" }}
+              disabled={values.type === "Refund"}
+            />
+
+            <TextField
+              fullWidth
+              variant="filled"
+              type="number"
+              label="Money safe balance"
+              onBlur={handleBlur}
+              onChange={handleChange}
+              value={values.moneySafeBalance}
+              name="moneySafeBalance"
+              error={!!touched.moneySafeBalance && !!errors.moneySafeBalance}
+              helperText={touched.moneySafeBalance && errors.moneySafeBalance}
               sx={{ gridColumn: "span 1" }}
               disabled={values.type === "Refund"}
             />
