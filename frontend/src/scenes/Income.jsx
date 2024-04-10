@@ -135,7 +135,7 @@ const Income = () => {
       for(const result of results){
         const existingData = aggregatedData.perMonthCash[month];
   
-        existingData.cashAmount += result[income_type.fieldName];
+        existingData.cashAmount += (result[income_type.fieldName] ?? 0);
       }
     }
 
