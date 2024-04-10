@@ -194,7 +194,7 @@ const PettyCash = () => {
 
         const { firstName = undefined, lastName = undefined } =
           deductedFromDriver
-            ? drivers.find((d) => d._id === deductedFromDriver)
+            ? (drivers.find((d) => d._id === deductedFromDriver) || {firstName:"Deleted",lastName: "Driver"})
             : users.find((u) => u._id === deductedFromUser);
 
         return (
