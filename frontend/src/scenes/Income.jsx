@@ -14,7 +14,11 @@ import {
   fetchCurrentYearPettyCash,
 } from "../redux/pettyCashSlice";
 import { fetchAllSpendTypes } from '../redux/spendTypeSlice';
-import {groupBy} from 'lodash';
+import {groupBy, orderBy, first} from 'lodash';
+import {fetchCurrentYearBankStatement} from "../redux/bankStatementSlice"; 
+
+const MAIN_BANK_ACCOUNT_NUMBER = 8657
+const PROFITS_BANK_ACCOUNT_NUMBER = 8656
 
 const initialValues = {
   type: "Income",
@@ -68,6 +72,17 @@ const INCOME_FIELDS = [
 }
 ]
 
+const LENDS_AND_MONEY_SAFE_BALANCE = [
+  {
+    fieldName: 'lendsIncome',
+    label: "Lends",
+  },
+  {
+  fieldName: 'moneySafeBalance',
+  label: "Money safe balance",
+},
+]
+
 const months = [
   "Jan",
   "Feb",
@@ -94,13 +109,14 @@ const Income = () => {
   const pageStatus = useSelector((state) => state.companyIncome.status);
   const error = useSelector((state) => state.companyIncome.error);
   const spendTypes = useSelector((state) => state.spendType.spendTypes);
+  const bankStatement = useSelector(
+    (state) => state.bankStatement.bankStatement
+  );
 
   const pettyCash = useSelector((state) => state.pettyCash.currentYearPettyCash);
 
 
   const aggregatedIncomeResults = useMemo(() =>{
-
-  
   
   
   const aggregatedResults = [];
@@ -128,7 +144,7 @@ const Income = () => {
   
   const totalResult = {perMonthCash: months.reduce((result, month) => {
     return {...result,[month]:{cashAmount: 0}};
-  }, {}), name: 'Total', id:  'Total'};
+  }, {}), name: 'Total Income', id:  'Total Income'};
   
   
   
@@ -212,73 +228,143 @@ return aggregatedResults;
 
   },[pettyCash,spendTypes,aggregatedIncomeResults])
 
+  const aggregatedMainAccountBalance = useMemo(() => {
+
+    const groupedResult = groupBy(
+      orderBy(
+        bankStatement
+          .filter(o => o.bankAccountNumber === MAIN_BANK_ACCOUNT_NUMBER)
+          .map(d => ({
+            ...d,
+            month: new Date(d.statementDate).getMonth(),
+          })),
+        ['sequence'],
+        ['desc']
+      ),
+      item => item.month
+    );
+
+    
+    const aggregatedData = {perMonthCash: months.reduce((result, month) => {
+      return {...result,[month]:{cashAmount: 0}};
+    }, {}), name: "Main Bank Account Balance", id:  MAIN_BANK_ACCOUNT_NUMBER};
   
-  const aggregatedRefunds = useMemo(() =>{
+    for(let i=0; i < months.length; i++){
+      const month = months[i];
+      const result = first(groupedResult[i]?? []);
+
+      if(result){
+  
+      
+        const existingData = aggregatedData.perMonthCash[month];
+  
+        existingData.cashAmount += result.balance;
+      }
+
+      
+    }
+    
+
+    return aggregatedData;
+
+
+  },[bankStatement])
+
+  const aggregatedProfitAccountBalance = useMemo(() => {
+    const groupedResult = groupBy(
+      orderBy(
+        bankStatement
+          .filter(o => o.bankAccountNumber === PROFITS_BANK_ACCOUNT_NUMBER)
+          .map(d => ({
+            ...d,
+            month: new Date(d.statementDate).getMonth(),
+          })),
+        ['sequence'],
+        ['desc']
+      ),
+      item => item.month
+    );
+
+    
+    const aggregatedData = {perMonthCash: months.reduce((result, month) => {
+      return {...result,[month]:{cashAmount: 0}};
+    }, {}), name: "Profits Bank Account Balance", id:  PROFITS_BANK_ACCOUNT_NUMBER};
+  
+    for(let i=0; i < months.length; i++){
+      const month = months[i];
+      const result = first(groupedResult[i]?? []);
+
+      if(result){
+  
+      
+        const existingData = aggregatedData.perMonthCash[month];
+  
+        existingData.cashAmount += result.balance;
+      }
+
+      
+    }
+    
+
+    return aggregatedData;
+    
+
+  },[bankStatement])
+
+  const aggregatedTotalBalance = useMemo(() =>{
+  
+  
     const aggregatedResults = [];
 
-    const groupedResult = groupBy(companyIncomeData.filter(obj => obj.type === "Refund"), item => item.refundCompany);
+    aggregatedResults.push(aggregatedMainAccountBalance);
+    aggregatedResults.push(aggregatedProfitAccountBalance);
     
-    for(const companyRefund of Object.keys(groupedResult)){
+    for(const income_type of LENDS_AND_MONEY_SAFE_BALANCE){
     
       
       const aggregatedData = {perMonthCash: months.reduce((result, month) => {
         return {...result,[month]:{cashAmount: 0}};
-      }, {}), name: companyRefund, id:  companyRefund};
+      }, {}), name: income_type.label, id:  income_type.label};
     
       for(let i=0; i < months.length; i++){
         const month = months[i];
-        const results = groupedResult[companyRefund].filter(o => o.month === i);
+        const results = companyIncomeData.filter(c => c.month === i && c.type=== "Income");
     
         for(const result of results){
           const existingData = aggregatedData.perMonthCash[month];
     
-          existingData.cashAmount += result.refundAmount;
+          existingData.cashAmount += (result[income_type.fieldName] ?? 0);
         }
       }
   
       aggregatedResults.push(aggregatedData);
     }
     
-    const totalResult = {perMonthCash: months.reduce((result, month) => {
-      return {...result,[month]:{cashAmount: 0}};
-    }, {}), name: 'Total Refunds', id:  'Total refunds'};
-    
-    
-    
-    
-    for(const result of aggregatedResults){
-    
-      for(const month of months){
-        totalResult.perMonthCash[month].cashAmount +=  result.perMonthCash[month].cashAmount;
-      }
-    
-    }
-
    
-    
-    aggregatedResults.push(totalResult);
-    
-
     const netProfitLossesResult = {perMonthCash: months.reduce((result, month) => {
       return {...result,[month]:{cashAmount: 0}};
-    }, {}), name: 'Net profit/losses after refunds', id:  'Net profit/losses'};
+    }, {}), name: 'Total balance', id:  'Total balance'};
     
     const totalIncomeResult = aggregatedPettyCash[aggregatedPettyCash.length -1];
 
 for(const month of months){
-  netProfitLossesResult.perMonthCash[month].cashAmount =  totalIncomeResult.perMonthCash[month].cashAmount + totalResult.perMonthCash[month].cashAmount;
+  netProfitLossesResult.perMonthCash[month].cashAmount =  totalIncomeResult.perMonthCash[month].cashAmount + aggregatedMainAccountBalance.perMonthCash[month].cashAmount + aggregatedProfitAccountBalance.perMonthCash[month].cashAmount;
 }
 
 aggregatedResults.push(netProfitLossesResult);
     
+    
     return aggregatedResults;
     
-      },[companyIncomeData,aggregatedPettyCash])
+      },[aggregatedMainAccountBalance, aggregatedProfitAccountBalance, aggregatedPettyCash, companyIncomeData])
+  
 
   useEffect(() => {
     dispatch(fetchCompanyIncome());
     dispatch(fetchCurrentYearPettyCash());
     dispatch(fetchAllSpendTypes());
+    dispatch(fetchCurrentYearBankStatement());
+
     }, [dispatch]);
  
 
@@ -693,7 +779,7 @@ aggregatedResults.push(netProfitLossesResult);
             },
           }}
         >
-          <DataGrid rows={aggregatedRefunds} columns={columns} />
+          <DataGrid rows={aggregatedTotalBalance} columns={columns} />
         </Box>
       </Box>
     </Box>

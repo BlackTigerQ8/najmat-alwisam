@@ -11,6 +11,8 @@ const initialState = {
   searchStatus: "",
   searchResults: [],
   searchError: null,
+
+  currentYearBankStatement: [],
 };
 
 export const fetchBankStatement = createAsyncThunk(
@@ -23,6 +25,26 @@ export const fetchBankStatement = createAsyncThunk(
           Authorization: `Bearer ${token}`,
         },
       });
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  }
+);
+
+export const fetchCurrentYearBankStatement = createAsyncThunk(
+  "bankStatement/fetchCurrentYearBankStatement",
+  async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.get(
+        `${API_URL}/bank-statement/current-year`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
       return response.data;
     } catch (error) {
       throw error;
@@ -84,6 +106,17 @@ const bankStatementSlice = createSlice({
         state.bankStatement = action.payload.data.bankStatement;
       })
       .addCase(fetchBankStatement.rejected, (state, action) => {
+        state.status = "failed";
+        state.error = action.error.message;
+      })
+      .addCase(fetchCurrentYearBankStatement.pending, (state) => {
+        state.status = "loading";
+      })
+      .addCase(fetchCurrentYearBankStatement.fulfilled, (state, action) => {
+        state.status = "succeeded";
+        state.currentYearBankStatement = action.payload.data.bankStatement;
+      })
+      .addCase(fetchCurrentYearBankStatement.rejected, (state, action) => {
         state.status = "failed";
         state.error = action.error.message;
       })
