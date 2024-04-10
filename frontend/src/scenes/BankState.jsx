@@ -73,10 +73,11 @@ const BankState = () => {
   const [editRowsModel, setEditRowsModel] = useState({});
 
   const getStatementsByAccountNumber = useCallback(
-    (selectedAccountNumber) =>
-      bankStatement.filter(
-        (b) => b.bankAccountNumber === selectedAccountNumber
-      ),
+    (selectedAccountNumber) => {
+     return bankStatement.filter(
+        (b) => b.bankAccountNumber == selectedAccountNumber
+      )
+    },
     [bankStatement]
   );
 
@@ -349,8 +350,7 @@ const BankState = () => {
                         .length
                     }
                   />
-                  {!getStatementsByAccountNumber(values.bankAccountNumber)
-                    .length && (
+                  {!getStatementsByAccountNumber(values.bankAccountNumber).length && (
                     <TextField
                       fullWidth
                       variant="filled"
