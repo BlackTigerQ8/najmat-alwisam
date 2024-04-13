@@ -119,7 +119,7 @@ function App() {
                 <>
                   {userRole === "Admin" && (
                     <>
-                      <Route exact path="/" element={<Dashboard />} />
+                      <Route exact path="/" element={<Team />} />
                       <Route
                         exact
                         path="/admin-invoices"
@@ -128,7 +128,7 @@ function App() {
                     </>
                   )}
                   {userRole === "Manager" && (
-                    <Route exact path="/" element={<ManagerDashboard />} />
+                    <Route exact path="/" element={<Team />} />
                   )}
                   {userRole === "Employee" && (
                     <Route exact path="/" element={<Invoices />} />
@@ -148,7 +148,7 @@ function App() {
 
                   {userRole === "Accountant" && (
                     <>
-                      <Route exact path="/" element={<AccountantDashboard />} />
+                      <Route exact path="/" element={<DriversSalary />} />
                       <Route
                         exact
                         path="/drivers-salary"

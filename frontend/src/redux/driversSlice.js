@@ -14,6 +14,16 @@ const initialState = {
   salariesError: null,
 };
 
+const dispatchToast = (message, type) => {
+  toast[type](message, {
+    position: "top-right",
+    autoClose: 3000,
+    hideProgressBar: false,
+    closeOnClick: true,
+    pauseOnHover: true,
+  });
+};
+
 // Create a new driver
 export const registerDriver = createAsyncThunk(
   "driver/registerDriver",
@@ -228,17 +238,13 @@ const driversSlice = createSlice({
       .addCase(updateDriver.fulfilled, (state, action) => {
         state.status = "succeeded";
         const updatedDriver = action.payload.data.driver;
-
         state.drivers = state.drivers.map((driver) =>
           driver._id === updatedDriver._id ? updatedDriver : driver
         );
-        toast.success("Driver's information is successfully updated!", {
-          position: "top-right",
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-        });
+        dispatchToast(
+          "Driver's information is successfully updated!",
+          "success"
+        );
       })
       .addCase(updateDriver.rejected, (state, action) => {
         state.status = "failed";
@@ -263,13 +269,10 @@ const driversSlice = createSlice({
             ? { ...driver, ...updatedInvoice, _id: updatedInvoice.driver }
             : driver
         );
-        toast.success("Driver's information is successfully updated!", {
-          position: "top-right",
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-        });
+        dispatchToast(
+          "Driver's information is successfully updated!",
+          "success"
+        );
       })
       .addCase(overrideDriverSalary.rejected, (state, action) => {
         state.salariesStatus = "failed";

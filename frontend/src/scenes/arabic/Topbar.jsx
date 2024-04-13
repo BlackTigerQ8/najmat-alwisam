@@ -1,20 +1,27 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Box, IconButton, useTheme, Menu, MenuItem } from "@mui/material";
+import {
+  Box,
+  IconButton,
+  useTheme,
+  Menu,
+  MenuItem,
+  Typography,
+} from "@mui/material";
 import { useContext } from "react";
 import InputBase from "@mui/material/InputBase";
 import LightModeOutlinedIcon from "@mui/icons-material/LightModeOutlined";
 import DarkModeOutlinedIcon from "@mui/icons-material/DarkModeOutlined";
 import NotificationsOutlinedIcon from "@mui/icons-material/NotificationsOutlined";
 import SettingsOutlinedIcon from "@mui/icons-material/SettingsOutlined";
+import EmailOutlinedIcon from "@mui/icons-material/EmailOutlined";
 import PersonOutlinedIcon from "@mui/icons-material/PersonOutlined";
 import SearchIcon from "@mui/icons-material/Search";
 import { ColorModeContext, tokens } from "../../theme";
 import Badge from "@mui/material/Badge";
 import { Link, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
-import { getUserRoleFromToken } from "./getUserRoleFromToken";
+import { getUserRoleFromToken } from "../global/getUserRoleFromToken";
 import { fetchNotifications } from "../../redux/notificationSlice";
-import Logo from "../../assets/nj-logo2.png";
 
 const Topbar = () => {
   const theme = useTheme();
@@ -69,7 +76,7 @@ const Topbar = () => {
   return (
     <Box display="flex" justifyContent="space-between" p={2}>
       {/* SEARCH BAR */}
-      {/* <Box
+      <Box
         display="flex"
         backgroundColor={colors.primary[400]}
         borderRadius="3px"
@@ -78,11 +85,24 @@ const Topbar = () => {
         <IconButton type="button" sx={{ p: 1 }}>
           <SearchIcon />
         </IconButton>
-      </Box> */}
-      <img src={Logo} width={50} alt="" />
+      </Box>
 
       {/* ICONS */}
       <Box display="flex">
+        <Link to="/ar/">
+          <IconButton>
+            <Badge badgeContent={0} color="secondary" max={50}>
+              <Typography>English</Typography>
+            </Badge>
+          </IconButton>
+        </Link>
+        <Link to="/messages">
+          <IconButton>
+            <Badge badgeContent={0} color="secondary" max={50}>
+              <EmailOutlinedIcon />
+            </Badge>
+          </IconButton>
+        </Link>
         <IconButton onClick={colorMode.toggleColorMode}>
           {theme.palette.mode === "dark" ? (
             <DarkModeOutlinedIcon />

@@ -94,8 +94,8 @@ const bankStatementSlice = createSlice({
       .addCase(createBankStatement.fulfilled, (state, action) => {
         state.status = "succeeded";
         state.bankStatement = [
-          action.payload.data.bankStatement,
           ...state.bankStatement,
+          action.payload.data.bankStatement,
         ];
       })
       .addCase(createBankStatement.rejected, (state, action) => {

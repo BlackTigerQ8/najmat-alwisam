@@ -15,11 +15,11 @@ import {
 import { ErrorMessage, Formik } from "formik";
 import * as yup from "yup";
 import useMediaQuery from "@mui/material/useMediaQuery";
-import Header from "../components/Header";
-import { registerUser } from "../redux/userSlice";
+import Header from "../../components/Header";
+import { registerUser } from "../../redux/userSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { tokens } from "../theme";
+import { tokens } from "../../theme";
 import { pulsar } from "ldrs";
 
 const initialValues = {
@@ -50,6 +50,7 @@ const userSchema = yup.object().shape({
     .required("required"),
   identification: yup.string().required("required"),
   passport: yup.string().required("required"),
+  visa: yup.string().required("required"),
   contractExpiryDate: yup.string().required("required"),
   role: yup.string().required("required"),
   mainSalary: yup.number().required("required"),
@@ -92,6 +93,7 @@ const Form = () => {
 
       await dispatch(registerUser(formData));
       navigate("/team");
+      console.log("clicked!!!");
     } catch (error) {
       console.error("Error registering user:", error.message);
     }
@@ -119,7 +121,7 @@ const Form = () => {
 
   return (
     <Box m="20px">
-      <Header title="CREATE USER" subtitle="Create a New User Profile" />
+      <Header title="إنشاء حساب" subtitle="إنشاء حساب مستخدم جديد" />
 
       <Formik
         onSubmit={handleFormSubmit}
@@ -328,7 +330,7 @@ const Form = () => {
             </Box>
             <Box display="flex" justifyContent="end" mt="20px">
               <Button type="submit" color="secondary" variant="contained">
-                Create New User
+                انشئ حساب جديد
               </Button>
             </Box>
           </form>

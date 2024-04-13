@@ -71,11 +71,12 @@ const Messages = () => {
     <Box m="20px">
       <Header title="MESSAGES" subtitle="Received Messages Page" />
       {sentMessages && sentMessages.length > 0 ? (
-        sentMessages.map((message, index) => (
+        [...sentMessages].reverse().map((message, index) => (
           <Accordion defaultExpanded key={index}>
             <AccordionSummary expandIcon={<ExpandMoreIcon />}>
               <Typography color={colors.greenAccent[500]} variant="h5">
-                {userInfo.firstName}
+                {getUserInfo(message.sender).firstName}{" "}
+                {getUserInfo(message.sender).lastName}
               </Typography>
             </AccordionSummary>
             <AccordionDetails>

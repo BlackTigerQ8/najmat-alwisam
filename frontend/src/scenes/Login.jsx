@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { loginUser } from "../redux/userSlice";
 import { tokens } from "../theme";
 import { pulsar } from "ldrs";
+import Logo from "../assets/nj-logo.png";
 
 const Login = () => {
   const theme = useTheme();
@@ -54,6 +55,7 @@ const Login = () => {
       height="100vh"
       bgcolor={theme.palette.background.default}
     >
+      <img src={Logo} width={600} alt="" />
       <Typography variant="h4" gutterBottom>
         LOGIN
       </Typography>

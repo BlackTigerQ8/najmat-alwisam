@@ -8,48 +8,41 @@ import Header from "../components/Header";
 import { tokens } from "../theme";
 import { useSelector, useDispatch } from "react-redux";
 import { pulsar } from "ldrs";
-import { fetchAllSpendTypes, addSpendType } from '../redux/spendTypeSlice';
-
+import { fetchAllSpendTypes, addSpendType } from "../redux/spendTypeSlice";
+import DeleteIcon from "@mui/icons-material/Delete";
+import { deleteSpendType } from "../redux/spendTypeSlice";
 
 const initialValues = {
   name: "",
-}
-
-
+};
 
 const spendTypeSchema = yup.object().shape({
   name: yup.string().required(),
 });
-
-
 
 const SpendType = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const isNonMobile = useMediaQuery("(min-width: 600px)");
   const dispatch = useDispatch();
-  
+
   const status = useSelector((state) => state.spendType.status);
-  const error = useSelector((state) => state.spendType.error);  
+  const error = useSelector((state) => state.spendType.error);
   const spendTypes = useSelector((state) => state.spendType.spendTypes);
 
-  const token =localStorage.getItem("token");
-
+  const token = localStorage.getItem("token");
 
   async function handleFormSubmit(values) {
     try {
-        dispatch(addSpendType(values));
-      
+      dispatch(addSpendType(values));
     } catch (error) {
       console.error("Row does not have a valid _id field:");
     }
   }
-  
-useEffect(() => {
-  dispatch(fetchAllSpendTypes(token));
-}, [dispatch, token]);
-  
-  
+
+  useEffect(() => {
+    dispatch(fetchAllSpendTypes(token));
+  }, [dispatch, token]);
 
   const columns = [
     {
@@ -57,9 +50,37 @@ useEffect(() => {
       headerName: "Name",
       flex: 1,
     },
+    {
+      field: "actions",
+      headerName: "Actions",
+      width: 150,
+      headerAlign: "center",
+      align: "center",
+      sortable: false,
+      filterable: false,
+      renderCell: (params) => {
+        return (
+          <Box display="flex" justifyContent="center">
+            <Button
+              variant="contained"
+              color="secondary"
+              size="small"
+              onClick={() => handleDelete(params.row._id)}
+              startIcon={<DeleteIcon />}
+            ></Button>
+          </Box>
+        );
+      },
+    },
   ];
 
-  
+  const handleDelete = async (spendTypeId) => {
+    try {
+      dispatch(deleteSpendType(spendTypeId));
+    } catch (error) {
+      console.error("Error deleting spend type:", error);
+    }
+  };
 
   pulsar.register();
   if (status === "loading") {
@@ -97,13 +118,14 @@ useEffect(() => {
     );
   }
 
-  
-
-
   return (
     <Box m="20px">
       <Header title="SPEND TYPES" subtitle="Spend type Page" />
-      <Formik initialValues={initialValues} validationSchema={spendTypeSchema} onSubmit={handleFormSubmit}>
+      <Formik
+        initialValues={initialValues}
+        validationSchema={spendTypeSchema}
+        onSubmit={handleFormSubmit}
+      >
         {({
           values,
           errors,
@@ -135,19 +157,15 @@ useEffect(() => {
                 helperText={touched.name && errors.name}
                 sx={{ gridColumn: "span 1" }}
               />
-              
-                <Button type="submit" color="secondary" variant="contained">
-                Add new spend type 
-              </Button>
 
-             
+              <Button type="submit" color="secondary" variant="contained">
+                Add new spend type
+              </Button>
             </Box>
-           
           </form>
         )}
       </Formik>
 
-      
       <Box
         mt="40px"
         mb="40px"
@@ -187,11 +205,7 @@ useEffect(() => {
           sx={{
             "& > div": { gridColumn: isNonMobile ? undefined : "span 4" },
           }}
-        >
-         
-         
-         
-        </Box>
+        ></Box>
       </Box>
       <Box
         display="grid"
@@ -204,7 +218,5 @@ useEffect(() => {
     </Box>
   );
 };
-
-
 
 export default SpendType;

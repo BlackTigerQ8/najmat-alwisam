@@ -46,6 +46,27 @@ export const addSpendType = createAsyncThunk(
   }
 );
 
+export const deleteSpendType = createAsyncThunk(
+  "spendType/deleteSpendType",
+  async (spendTypeId, { getState }) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.delete(
+        `${API_URL}/spend-types/${spendTypeId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response.data.message || error.message);
+    }
+  }
+);
+
 const spendTypeSlice = createSlice({
   name: "spendType",
   initialState,
@@ -83,6 +104,36 @@ const spendTypeSlice = createSlice({
         state.status = "failed";
         state.error = action.error.message;
         toast.error("Can't add a spend type, you can try later!", {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+        });
+      });
+    // Delete Spend Type
+    builder
+      .addCase(deleteSpendType.pending, (state) => {
+        state.status = "loading";
+      })
+      .addCase(deleteSpendType.fulfilled, (state, action) => {
+        state.status = "succeeded";
+        const spendTypeId = action.meta.arg;
+        state.spendTypes = state.spendTypes.filter(
+          (spendType) => spendType._id !== spendTypeId
+        );
+        toast.success("Spend type is successfully deleted!", {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+        });
+      })
+      .addCase(deleteSpendType.rejected, (state, action) => {
+        state.status = "failed";
+        state.error = action.error.message;
+        toast.error("Can't delete spend type, please try again later!", {
           position: "top-right",
           autoClose: 3000,
           hideProgressBar: false,

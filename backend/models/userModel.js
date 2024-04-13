@@ -44,10 +44,6 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: [true, "Passport number is required"],
   },
-  visa: {
-    type: String,
-    required: [true, "VISA number is required"],
-  },
   contractExpiryDate: {
     type: Date,
     required: [true, "Contract expiry date is required"],

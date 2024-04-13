@@ -87,10 +87,10 @@ const SidebarM = () => {
           padding: "5px 35px 5px 20px !important",
         },
         "& .pro-inner-item:hover": {
-          color: "#868dfb !important",
+          color: "#f1994d !important",
         },
         "& .pro-menu-item.active": {
-          color: "#6870fa !important",
+          color: "#f1994d !important",
         },
       }}
     >
@@ -163,13 +163,13 @@ const SidebarM = () => {
           )}
 
           <Box paddingLeft={isCollapsed ? undefined : "10%"}>
-            <Item
+            {/* <Item
               title="Dashboard"
               to="/"
               icon={<HomeOutlinedIcon />}
               selected={selected}
               setSelected={setSelected}
-            />
+            /> */}
             <Typography
               variant="h6"
               color={colors.grey[300]}

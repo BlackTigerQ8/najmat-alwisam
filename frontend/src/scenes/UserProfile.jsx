@@ -42,14 +42,13 @@ const UserProfile = () => {
     phone: "",
     email: "",
     identification: "",
-    visa: "",
     contractExpiryDate: "",
     role: "",
     passport: "",
     password: "",
     createdAt: Date,
     file: "",
-    mainSalary: 0
+    mainSalary: 0,
   };
 
   const validationSchema = Yup.object().shape({
@@ -240,19 +239,6 @@ const UserProfile = () => {
               <TextField
                 fullWidth
                 variant="filled"
-                type="text"
-                label="VISA"
-                onBlur={handleBlur}
-                onChange={handleChange}
-                value={values.visa}
-                name="visa"
-                error={!!touched.visa && !!errors.visa}
-                helperText={touched.visa && errors.visa}
-                sx={{ gridColumn: "span 2" }}
-              />
-              <TextField
-                fullWidth
-                variant="filled"
                 type="date"
                 label="Contract Expiry Date"
                 onBlur={handleBlur}
@@ -288,7 +274,7 @@ const UserProfile = () => {
                 helperText={touched.passport && errors.passport}
                 sx={{ gridColumn: "span 2" }}
               />
-               <TextField
+              <TextField
                 fullWidth
                 variant="filled"
                 type="number"

@@ -75,11 +75,11 @@ const DriverProfile = ({ driverId }) => {
 
   const handleFormSubmit = async (values) => {
     try {
-      await dispatch(updateDriver({ values, driverId: driverInfo._id }));
+      // await dispatch(updateDriver({ values, driverId: driverInfo._id }));
 
       const formData = new FormData();
       Object.keys(values).forEach((key) => {
-        if (key !== "uploadedFile" && key !== "__v" && key !== "mainSalary") {
+        if (key !== "uploadedFile" && key !== "__v") {
           formData.append(key, values[key] || undefined);
         }
       });
@@ -87,7 +87,9 @@ const DriverProfile = ({ driverId }) => {
       if (values.uploadedFile)
         formData.append("uploadedFile", values.uploadedFile);
 
-      await dispatch(updateDriver({ driverId: driverInfo._id, formData }));
+      await dispatch(
+        updateDriver({ values, driverId: driverInfo._id, formData })
+      );
     } catch (error) {
       console.error("Error updating driver:", error.message);
     }

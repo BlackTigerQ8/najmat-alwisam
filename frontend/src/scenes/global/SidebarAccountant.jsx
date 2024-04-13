@@ -87,10 +87,10 @@ const SidebarA = () => {
           padding: "5px 35px 5px 20px !important",
         },
         "& .pro-inner-item:hover": {
-          color: "#868dfb !important",
+          color: "#f1994d !important",
         },
         "& .pro-menu-item.active": {
-          color: "#6870fa !important",
+          color: "#f1994d !important",
         },
       }}
     >
@@ -170,13 +170,13 @@ const SidebarA = () => {
             >
               Pages
             </Typography>
-            <Item
+            {/* <Item
               title="Dashboard"
               to="/accountant-dashboard"
               icon={<LibraryBooksOutlinedIcon />}
               selected={selected}
               setSelected={setSelected}
-            />
+            /> */}
             <Item
               title="Employees Salary"
               to="/employees-salary"

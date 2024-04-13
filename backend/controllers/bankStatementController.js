@@ -7,7 +7,7 @@ const getAllBankStatement = async (req, res) => {
   try {
     const bankStatement = await BankStatement.find().sort([
       ["bankAccountNumber", 1], // Sort by bankAccountNumber in ascending order
-      ["sequence", -1], // Then sort by sequence in descending order
+      ["sequence", 1], // Then sort by sequence in descending order
     ]);
     res.status(200).json({
       status: "Success",

@@ -367,19 +367,19 @@ const PettyCash = () => {
           <Typography variant="h4" color="secondary" mt={4}>
             Total spends:
             <strong>
-              <span> {totalSpends / 1000} </span> KD
+              <span> {totalSpends} </span> KD
             </strong>
           </Typography>
           <Typography variant="h4" color="secondary" mt={4}>
             Total amount on workers:
             <strong>
-              <span> {totalAmountOnWorker / 1000} </span> KD
+              <span> {totalAmountOnWorker} </span> KD
             </strong>
           </Typography>
           <Typography variant="h4" color="secondary" mt={4}>
             Net amount on company:
             <strong>
-              <span> {totalAmountOnCompany / 1000} </span> KD
+              <span> {totalAmountOnCompany} </span> KD
             </strong>
           </Typography>
         </Box>

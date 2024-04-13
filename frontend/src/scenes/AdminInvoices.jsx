@@ -45,7 +45,6 @@ const AdminInvoices = () => {
       renderCell: ({ row: { firstName, lastName } }) => {
         return (
           <Box
-           
             display="flex"
             justifyContent="left"
             alignItems="center"
@@ -76,7 +75,6 @@ const AdminInvoices = () => {
       headerName: "Deduction Reason",
       flex: 1,
     },
-
     {
       field: "actions",
       headerName: "Actions",

@@ -21,6 +21,9 @@ const getAllSpendTypes = async (req, res) => {
   }
 };
 
+// @desc    Create a PettyCash
+// @route   POST /api/petty-cash
+// @access  Private/Accountant
 const createSpendType = async (req, res) => {
   try {
     const { name } = req.body;
@@ -50,7 +53,26 @@ const createSpendType = async (req, res) => {
   }
 };
 
+// @desc    Delete a Spend Type
+// @route   DELETE /api/spend-types/:id
+// @access  Private/Accountant
+const deleteSpendType = async (req, res) => {
+  try {
+    await SpendType.findByIdAndDelete(req.params.id);
+    res.status(204).json({
+      status: "Success",
+      data: null,
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: "Error",
+      message: error.message,
+    });
+  }
+};
+
 module.exports = {
   getAllSpendTypes,
   createSpendType,
+  deleteSpendType,
 };
