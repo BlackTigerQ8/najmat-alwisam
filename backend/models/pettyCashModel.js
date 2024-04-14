@@ -9,6 +9,9 @@ const pettyCashSchema = new mongoose.Schema({
     type: Number,
     required: [true, "Serial number is required"],
   },
+  sequence: {
+    type: Number,
+  },
   requestApplicant: {
     type: String,
     required: [true, "Request applicant is required"],

@@ -135,7 +135,7 @@ const pettyCashSlice = createSlice({
         state.status = "succeeded";
         state.pettyCash = [...state.pettyCash, action.payload.data.pettyCash];
 
-        toast.success("Spend type is successfully added!", {
+        toast.success("Petty cash is successfully added!", {
           position: "top-right",
           autoClose: 3000,
           hideProgressBar: false,

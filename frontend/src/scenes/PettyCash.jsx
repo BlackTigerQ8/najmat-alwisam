@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo } from "react";
 import * as yup from "yup";
 import {
   Box,
@@ -46,6 +46,7 @@ const newPettyCashInitialValues = {
   deductedFromUser: "",
   deductedFromDriver: "",
   currentBalance: "",
+  serialNumber: ""
 };
 
 const pettyCashRequestSchema = yup.object().shape({
@@ -140,7 +141,7 @@ const PettyCash = () => {
 
   const columns = [
     {
-      field: "serialNumber",
+      field: "sequence",
       headerName: "NO.",
     },
     {
@@ -278,7 +279,7 @@ const PettyCash = () => {
               <TextField
                 fullWidth
                 variant="filled"
-                type="text"
+                type="number"
                 label="Serial Number"
                 onBlur={handleBlur}
                 onChange={handleChange}
@@ -571,6 +572,19 @@ function PettyCashForm({ isNonMobile }) {
               )}
             </FormControl>
 
+            <TextField
+              fullWidth
+              variant="filled"
+              type="number"
+              label="Serial No."
+              onBlur={handleBlur}
+              onChange={handleChange}
+              value={values.serialNumber}
+              name="serialNumber"
+              error={!!touched.serialNumber && !!errors.serialNumber}
+              helperText={touched.serialNumber && errors.serialNumber}
+              sx={{ gridColumn: "span 1" }}
+            />
             <TextField
               fullWidth
               variant="filled"

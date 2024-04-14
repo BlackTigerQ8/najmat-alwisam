@@ -37,6 +37,7 @@ const createPettyCash = async (req, res) => {
       deductedFromUser = undefined,
       deductedFromDriver = undefined,
       currentBalance = 0,
+      serialNumber,
     } = req.body;
 
     if (deductedFromUser && deductedFromDriver)
@@ -63,7 +64,7 @@ const createPettyCash = async (req, res) => {
       return res.status(404).json({ message: "Spend type does not exist" });
 
     const latestPettyCash = await PettyCash.findOne()
-      .sort({ serialNumber: -1 })
+      .sort({ sequence: -1 })
       .limit(1);
 
     console.log("latestPettyCash", latestPettyCash);
@@ -75,7 +76,8 @@ const createPettyCash = async (req, res) => {
         );
 
       const pettyCash = new PettyCash({
-        serialNumber: 1,
+        serialNumber,
+        sequence: 1,
         requestApplicant,
         requestDate,
         spendsDate,
@@ -100,7 +102,8 @@ const createPettyCash = async (req, res) => {
     }
 
     const pettyCash = new PettyCash({
-      serialNumber: latestPettyCash.serialNumber + 1,
+      serialNumber,
+      sequence: latestPettyCash.sequence + 1,
       requestApplicant,
       requestDate,
       spendsDate,
