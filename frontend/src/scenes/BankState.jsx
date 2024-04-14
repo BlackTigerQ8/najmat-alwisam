@@ -73,10 +73,11 @@ const BankState = () => {
   const [editRowsModel, setEditRowsModel] = useState({});
 
   const getStatementsByAccountNumber = useCallback(
-    (selectedAccountNumber) =>
-      bankStatement.filter(
-        (b) => b.bankAccountNumber === selectedAccountNumber
-      ),
+    (selectedAccountNumber) => {
+      return bankStatement.filter(
+        (b) => b.bankAccountNumber == selectedAccountNumber
+      );
+    },
     [bankStatement]
   );
 
@@ -436,13 +437,13 @@ const BankState = () => {
         <Typography variant="h4" color="secondary" mt={4}>
           Total spends:
           <strong>
-            <span> {totalSpends} </span> KD
+            <span> {totalSpends / 1000} </span> KD
           </strong>
         </Typography>
         <Typography variant="h4" color="secondary" mt={4}>
           Total deposits:
           <strong>
-            <span> {totalDeposits} </span> KD
+            <span> {totalDeposits / 1000} </span> KD
           </strong>
         </Typography>
       </Box>

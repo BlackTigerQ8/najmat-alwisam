@@ -194,7 +194,10 @@ const PettyCash = () => {
 
         const { firstName = undefined, lastName = undefined } =
           deductedFromDriver
-            ? drivers.find((d) => d._id === deductedFromDriver)
+            ? drivers.find((d) => d._id === deductedFromDriver) || {
+                firstName: "Deleted",
+                lastName: "Driver",
+              }
             : users.find((u) => u._id === deductedFromUser);
 
         return (
@@ -367,19 +370,19 @@ const PettyCash = () => {
           <Typography variant="h4" color="secondary" mt={4}>
             Total spends:
             <strong>
-              <span> {totalSpends} </span> KD
+              <span> {totalSpends / 1000} </span> KD
             </strong>
           </Typography>
           <Typography variant="h4" color="secondary" mt={4}>
             Total amount on workers:
             <strong>
-              <span> {totalAmountOnWorker} </span> KD
+              <span> {totalAmountOnWorker / 1000} </span> KD
             </strong>
           </Typography>
           <Typography variant="h4" color="secondary" mt={4}>
             Net amount on company:
             <strong>
-              <span> {totalAmountOnCompany} </span> KD
+              <span> {totalAmountOnCompany / 1000} </span> KD
             </strong>
           </Typography>
         </Box>

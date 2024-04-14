@@ -54,6 +54,30 @@ const searchBankStatementRecords = async (req, res) => {
   }
 };
 
+const fetchCurrentYearBankStatement = async (req, res) => {
+  const currentDate = new Date();
+
+  // Get the first day of the current year
+  const firstDayOffYear = new Date(currentDate.getFullYear(), 0, 1);
+
+  // Get the first day of the next year
+  const firstDayOffNextYear = new Date(currentDate.getFullYear() + 1, 0, 1);
+
+  const pettyCash = await BankStatement.find({
+    statementDate: {
+      $gte: firstDayOffYear,
+      $lt: firstDayOffNextYear,
+    },
+  });
+
+  res.status(200).json({
+    status: "Success",
+    data: {
+      pettyCash,
+    },
+  });
+};
+
 const createBankStatementRecord = async (req, res) => {
   try {
     const {
@@ -177,4 +201,5 @@ module.exports = {
   updateBankStatement,
   createBankStatementRecord,
   searchBankStatementRecords,
+  fetchCurrentYearBankStatement,
 };

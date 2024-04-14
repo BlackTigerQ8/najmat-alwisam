@@ -5,6 +5,7 @@ const {
   updateBankStatement,
   createBankStatementRecord,
   searchBankStatementRecords,
+  fetchCurrentYearBankStatement,
 } = require("../controllers/bankStatementController");
 
 const router = express.Router();
@@ -18,4 +19,12 @@ router
 router
   .route("/search")
   .post(protect, restrictTo("Admin", "Accountant"), searchBankStatementRecords);
+
+router
+  .route("/current-year")
+  .get(
+    protect,
+    restrictTo("Admin", "Accountant"),
+    fetchCurrentYearBankStatement
+  );
 module.exports = router;
