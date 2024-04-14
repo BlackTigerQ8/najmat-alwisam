@@ -282,6 +282,8 @@ const getEmployeesSalary = async (_req, res) => {
     }
 
     for (const invoice of invoices) {
+      if (!invoice.user) continue;
+
       const {
         user,
         additionalSalary,
