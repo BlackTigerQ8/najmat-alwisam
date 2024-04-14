@@ -5,8 +5,10 @@ import { loginUser } from "../redux/userSlice";
 import { tokens } from "../theme";
 import { pulsar } from "ldrs";
 import Logo from "../assets/nj-logo.png";
+import useMediaQuery from "@mui/material/useMediaQuery";
 
 const Login = () => {
+  const isNonMobile = useMediaQuery("(min-width: 600px)");
   const theme = useTheme();
   const dispatch = useDispatch();
   const { status, error } = useSelector((state) => state.user);
@@ -55,7 +57,7 @@ const Login = () => {
       height="100vh"
       bgcolor={theme.palette.background.default}
     >
-      <img src={Logo} width={600} alt="" />
+      <img src={Logo} width={isNonMobile ? 600 : 300} alt="" />
       <Typography variant="h4" gutterBottom>
         LOGIN
       </Typography>
