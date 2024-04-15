@@ -465,6 +465,31 @@ const overridePettyCashInvoices = async ({ driverId }) => {
   }
 };
 
+const updateInvoiceStatus = async (req, res) => {
+  try {
+    const { status } = req.body;
+
+    const invoice = await DriverInvoice.findByIdAndUpdate(
+      req.params.id,
+      { status },
+      {
+        new: true,
+        runValidators: true,
+      }
+    ).populate("driver");
+
+    res.status(200).json({
+      status: "Success",
+      data: { invoice },
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: "Error",
+      message: error.message,
+    });
+  }
+};
+
 module.exports = {
   getAllDrivers,
   getDriver,
@@ -475,4 +500,5 @@ module.exports = {
   getAllInvoices,
   getDriverSalaries,
   overrideDriverSalary,
+  updateInvoiceStatus,
 };

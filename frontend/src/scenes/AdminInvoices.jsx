@@ -1,17 +1,16 @@
-import React, { useEffect, useState, useMemo } from "react";
-import { Typography, Box, Button, useTheme } from "@mui/material";
+import React, { useEffect, useMemo } from "react";
+import {  Box, Button, useTheme } from "@mui/material";
 import Header from "../components/Header";
 import { DataGrid } from "@mui/x-data-grid";
 import { tokens } from "../theme";
-import UpdateIcon from "@mui/icons-material/Update";
 import { pulsar } from "ldrs";
-import { useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
-import { fetchDrivers, updateDriver } from "../redux/driversSlice";
+import { fetchDrivers } from "../redux/driversSlice";
 import {
   fetchInvoices,
-  createDriverInvoice,
-  fetchEmployeeInvoices
+  updateDriverInvoice,
+  fetchEmployeeInvoices,
+  updateEmployeeInvoice
 } from "../redux/invoiceSlice";
 import CloseOutlinedIcon from "@mui/icons-material/CloseOutlined";
 import CheckOutlinedIcon from "@mui/icons-material/CheckOutlined";
@@ -20,9 +19,16 @@ const AdminInvoices = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const dispatch = useDispatch();
-  const drivers = useSelector((state) => state.drivers.drivers);
-  const status = useSelector((state) => state.drivers.status);
-  const error = useSelector((state) => state.drivers.error);
+  
+  const driverInvoiceStatus = useSelector((state) => state.invoice.status);
+  const employeeInvoiceStatus = useSelector((state) => state.invoice.employeeInvoicesStatus);
+
+  const status = (driverInvoiceStatus === "loading" || driverInvoiceStatus === "failed") ? driverInvoiceStatus : employeeInvoiceStatus; 
+  const driverInvoiceError = useSelector((state) => state.invoice.error);
+  const employeeInvoiceError = useSelector((state) => state.invoice.employeeInvoicesError);
+  const error = driverInvoiceError || employeeInvoiceError;
+
+
   const invoices = useSelector((state) => state.invoice?.driverInvoices);
   const userInvoices = useSelector((state) => state.invoice?.employeeInvoices);
 
@@ -44,7 +50,8 @@ const AdminInvoices = () => {
         companyDeductionAmount: driverInvoice.companyDeductionAmount,
         deductionReason: driverInvoice.deductionReason,
         talabatDeductionAmount: driverInvoice.talabatDeductionAmount,
-        ...driverInvoice.driver
+        ...driverInvoice.driver,
+        type: 'driver'
       });
 
       sequenceNumber++;
@@ -62,6 +69,7 @@ const AdminInvoices = () => {
           companyDeductionAmount: userInvoice.companyDeductionAmount,
           deductionReason: userInvoice.deductionReason,
           talabatDeductionAmount: 0,
+          type: 'user',
           ...userInvoice.user
         });
   
@@ -77,15 +85,13 @@ const AdminInvoices = () => {
     useSelector((state) => state.drivers.token) ||
     localStorage.getItem("token");
 
-  const navigate = useNavigate();
-
-  const [selectedRowIds, setSelectedRowIds] = useState([]);
+  
 
   const columns = [
     {
       field: "sequenceNumber",
       headerName: "NO.",
-      flex: 1,
+      flex: 0.5,
     },
     {
       field: "name",
@@ -108,7 +114,7 @@ const AdminInvoices = () => {
     {
       field: "mainSalary",
       headerName: "Main Salary",
-      flex: 1,
+      flex: 0.5,
     },
     {
       field: "additionalSalary",
@@ -139,6 +145,8 @@ const AdminInvoices = () => {
       sortable: false,
       filterable: false,
       renderCell: (params) => {
+
+        console.log('params.row',params.row)
         return (
           <Box display="flex" justifyContent="center">
             <Button
@@ -146,14 +154,14 @@ const AdminInvoices = () => {
               color="primary"
               size="small"
               style={{ marginRight: 8 }}
-              onClick={() => handleUpdate(params.row)}
+              onClick={() => handleUpdate({id: params.row.id, status: "rejected", type: params.row.type})}
               startIcon={<CloseOutlinedIcon />}
             ></Button>
             <Button
               variant="contained"
               color="secondary"
               size="small"
-              onClick={() => handleUpdate(params.row._id)}
+              onClick={() => handleUpdate({id: params.row.id, status: "approved", type: params.row.type})}
               startIcon={<CheckOutlinedIcon />}
             ></Button>
           </Box>
@@ -206,28 +214,25 @@ const AdminInvoices = () => {
     );
   }
 
-  const handleUpdate = (row) => {
+  const handleUpdate = ({id, status, type}) => {
     try {
-      const { cost, order, hour } = row;
-      dispatch(
-        updateDriver({ driverId: row._id, values: { cost, order, hour } })
-      );
+      if(type === "driver"){      
+        return dispatch(
+          updateDriverInvoice({values: {id, status}})
+        );  
+      }
+
+      if(type === "user"){      
+        return dispatch(
+          updateEmployeeInvoice({values: {id, status}})
+        );  
+      }
     } catch (error) {
-      console.error("Row does not have a valid _id field:", row);
+      console.error("Row does not have a valid _id field:");
     }
   };
 
-  const handleUpdateAll = () => {
-    // Update all rows in the DataGrid
-    selectedRowIds.forEach((id) => {
-      const row = drivers.find((driver) => driver._id === id);
-      if (row) {
-        console.log(row);
-        handleUpdate(row);
-      }
-    });
-  };
-
+ 
   return (
     <Box m="20px">
       <Header title="DEDUCTION SALARY" subtitle="Deduction Salary Page" />

@@ -67,6 +67,48 @@ export const createDriverInvoice = createAsyncThunk(
   }
 );
 
+export const updateDriverInvoice = createAsyncThunk(
+  "invoice/updateDriverInvoice",
+  async ({ values }) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.put(
+        `${API_URL}/driver-invoice/invoice/${values.id}`,
+        values,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response.data.message || error.message);
+    }
+  }
+);
+
+export const updateEmployeeInvoice = createAsyncThunk(
+  "invoice/driverInvoiceStatus",
+  async ({ values }) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.put(
+        `${API_URL}/users/invoice/${values.id}`,
+        values,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response.data.message || error.message);
+    }
+  }
+);
+
 const driverInvoiceSlice = createSlice({
   name: "invoice",
   initialState,
@@ -98,6 +140,7 @@ const driverInvoiceSlice = createSlice({
         state.employeeInvoicesStatus = "failed";
         state.employeeInvoicesError = action.error.message;
       });
+
     builder
       .addCase(createDriverInvoice.pending, (state) => {
         state.status = "loading";
@@ -118,6 +161,72 @@ const driverInvoiceSlice = createSlice({
         state.status = "failed";
         state.error = action.error.message;
         toast.error("Can't add a driver invoice, you can try later!", {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+        });
+      });
+
+    builder
+      .addCase(updateDriverInvoice.pending, (state) => {
+        state.status = "loading";
+      })
+      .addCase(updateDriverInvoice.fulfilled, (state, action) => {
+        state.status = "succeeded";
+        const updatedInvoice = action.payload.data.invoice;
+        state.driverInvoices =
+          updatedInvoice.status === "rejected"
+            ? state.driverInvoices.filter((d) => d._id !== updatedInvoice._id)
+            : state.driverInvoices.map((d) =>
+                d._id === updatedInvoice._id ? { ...d, ...updatedInvoice } : d
+              );
+        state.error = null;
+        toast.success("Driver invoice is updated successfully!", {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+        });
+      })
+      .addCase(updateDriverInvoice.rejected, (state, action) => {
+        state.status = "failed";
+        state.error = action.error.message;
+        toast.error("Can't update a driver invoice, you can try later!", {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+        });
+      })
+      .addCase(updateEmployeeInvoice.pending, (state) => {
+        state.employeeInvoicesStatus = "loading";
+      })
+      .addCase(updateEmployeeInvoice.fulfilled, (state, action) => {
+        state.employeeInvoicesStatus = "succeeded";
+        const updatedInvoice = action.payload.data.invoice;
+        state.employeeInvoices =
+          updatedInvoice.status === "rejected"
+            ? state.employeeInvoices.filter((d) => d._id !== updatedInvoice._id)
+            : state.employeeInvoices.map((d) =>
+                d._id === updatedInvoice._id ? { ...d, ...updatedInvoice } : d
+              );
+        state.employeeInvoicesError = null;
+        toast.success("User invoice is updated successfully!", {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+        });
+      })
+      .addCase(updateEmployeeInvoice.rejected, (state, action) => {
+        state.employeeInvoicesStatus = "failed";
+        state.employeeInvoicesError = action.error.message;
+        toast.error("Can't update a user invoice, you can try later!", {
           position: "top-right",
           autoClose: 3000,
           hideProgressBar: false,

@@ -13,6 +13,7 @@ const {
   sendMessage,
   fetchMessages,
   getAllInvoices,
+  updateInvoiceStatus,
 } = require("../controllers/userController");
 const { protect, restrictTo } = require("../middleware/authMiddleware");
 const { contractUpload } = require("./uploadRoutes");
@@ -49,6 +50,13 @@ router.get(
   protect,
   restrictTo("Admin", "Accountant"),
   getAllInvoices
+);
+
+router.put(
+  "/invoice/:id",
+  protect,
+  restrictTo("Admin", "Accountant"),
+  updateInvoiceStatus
 );
 
 router

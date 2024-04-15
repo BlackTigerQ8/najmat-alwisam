@@ -490,6 +490,31 @@ const fetchMessages = async (req, res) => {
   }
 };
 
+const updateInvoiceStatus = async (req, res) => {
+  try {
+    const { status } = req.body;
+
+    const invoice = await EmployeeInvoice.findByIdAndUpdate(
+      req.params.id,
+      { status },
+      {
+        new: true,
+        runValidators: true,
+      }
+    ).populate("user");
+
+    res.status(200).json({
+      status: "Success",
+      data: { invoice },
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: "Error",
+      message: error.message,
+    });
+  }
+};
+
 module.exports = {
   getAllUsers,
   getUser,
@@ -504,4 +529,5 @@ module.exports = {
   sendMessage,
   fetchMessages,
   getAllInvoices,
+  updateInvoiceStatus,
 };

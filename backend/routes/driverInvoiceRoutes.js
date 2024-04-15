@@ -3,6 +3,7 @@ const {
   createDriverInvoice,
   getAllInvoices,
   overrideDriverSalary,
+  updateInvoiceStatus,
 } = require("../controllers/driverController");
 const { protect, restrictTo } = require("../middleware/authMiddleware");
 
@@ -16,6 +17,13 @@ router
     restrictTo("Admin", "Manager", "Employee", "Accountant"),
     createDriverInvoice
   );
+
+router.put(
+  "/invoice/:id",
+  protect,
+  restrictTo("Admin", "Accountant"),
+  updateInvoiceStatus
+);
 
 router
   .route("/override")
