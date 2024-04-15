@@ -17,7 +17,7 @@ import Header from "../components/Header";
 import { fetchDrivers } from "../redux/driversSlice";
 import { fetchUsers } from "../redux/usersSlice";
 import { useDispatch, useSelector } from "react-redux";
-import { createDriverInvoice } from "../redux/driverInvoiceSlice";
+import { createDriverInvoice } from "../redux/invoiceSlice";
 import {createUserInvoice} from '../redux/userSlice';
 import { createNotification, buildNotificationAlert } from '../redux/notificationSlice';
 

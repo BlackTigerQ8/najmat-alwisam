@@ -3,6 +3,7 @@ const { Message } = require("../models/messageModel");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const EmployeeInvoice = require("../models/employeeInvoiceModel");
+const { getMonthDateRange } = require("../utils/date");
 
 // @desc    Get all users
 // @route   GET /api/users
@@ -213,31 +214,45 @@ const logoutUser = (req, res) => {
     .json({ status: "Success", message: "Logged out successfully" });
 };
 
+const getAllInvoices = async (req, res) => {
+  console.log("In get all employee invoices method");
+  try {
+    const employeeInvoices = await getEmployeeInvoices();
+
+    console.log("employeeInvoices", employeeInvoices);
+
+    res.status(200).json({
+      status: "Success",
+      data: {
+        employeeInvoices,
+      },
+    });
+  } catch (error) {
+    console.log("Get all invoice", error);
+    res.status(500).json({
+      status: "Error",
+      message: error.message,
+    });
+  }
+};
+
+async function getEmployeeInvoices() {
+  const { startDate, endDate } = getMonthDateRange();
+
+  const invoices = await EmployeeInvoice.find({
+    status: { $in: ["pending", "approved"] },
+    invoiceDate: {
+      $gte: startDate,
+      $lt: endDate,
+    },
+  }).populate("user");
+
+  return invoices.filter((invoice) => invoice.user);
+}
+
 const getEmployeesSalary = async (_req, res) => {
   try {
-    const currentDate = new Date();
-
-    // Get the first day of the current month
-    const firstDayOfMonth = new Date(
-      currentDate.getFullYear(),
-      currentDate.getMonth(),
-      1
-    );
-
-    // Get the first day of the next month
-    const firstDayOfNextMonth = new Date(
-      currentDate.getFullYear(),
-      currentDate.getMonth() + 1,
-      1
-    );
-
-    const invoices = await EmployeeInvoice.find({
-      status: { $in: ["pending", "approved"] },
-      invoiceDate: {
-        $gte: firstDayOfMonth,
-        $lt: firstDayOfNextMonth,
-      },
-    }).populate("user");
+    const invoices = await getEmployeeInvoices();
 
     if (!invoices.length) {
       const users = await User.find();
@@ -488,4 +503,5 @@ module.exports = {
   createEmployeeDeductionInvoice,
   sendMessage,
   fetchMessages,
+  getAllInvoices,
 };

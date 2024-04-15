@@ -12,6 +12,7 @@ const {
   createEmployeeDeductionInvoice,
   sendMessage,
   fetchMessages,
+  getAllInvoices,
 } = require("../controllers/userController");
 const { protect, restrictTo } = require("../middleware/authMiddleware");
 const { contractUpload } = require("./uploadRoutes");
@@ -43,6 +44,13 @@ router
   .post(protect, sendMessage)
   .get(protect, fetchMessages);
 
+router.get(
+  "/invoices",
+  protect,
+  restrictTo("Admin", "Accountant"),
+  getAllInvoices
+);
+
 router
   .route("/")
   .get(protect, getAllUsers)
@@ -52,6 +60,7 @@ router
     contractUpload.single("uploadedFile"),
     createUser
   );
+
 router
   .route("/:id")
   .get(protect, getUser)

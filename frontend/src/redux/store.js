@@ -4,7 +4,7 @@ import storage from "redux-persist/lib/storage"; // defaults to localStorage for
 import userReducer from "./userSlice";
 import usersReducer from "./usersSlice";
 import driversReducer from "./driversSlice";
-import driverInvoiceReducer from "./driverInvoiceSlice";
+import driverInvoiceReducer from "./invoiceSlice";
 import notificationReducer from "./notificationSlice";
 import pettyCashReducer from "./pettyCashSlice";
 import companyIncomeReducer from "./companyIncomeSlice";
@@ -20,7 +20,7 @@ const rootReducer = combineReducers({
   user: userReducer,
   users: usersReducer,
   drivers: driversReducer,
-  driverInvoice: driverInvoiceReducer,
+  invoice: driverInvoiceReducer,
   notifications: notificationReducer,
   pettyCash: pettyCashReducer,
   bankStatement: bankStatementReducer,

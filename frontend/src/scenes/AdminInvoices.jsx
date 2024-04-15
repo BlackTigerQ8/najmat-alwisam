@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { Typography, Box, Button, useTheme } from "@mui/material";
 import Header from "../components/Header";
 import { DataGrid } from "@mui/x-data-grid";
@@ -11,7 +11,8 @@ import { fetchDrivers, updateDriver } from "../redux/driversSlice";
 import {
   fetchInvoices,
   createDriverInvoice,
-} from "../redux/driverInvoiceSlice";
+  fetchEmployeeInvoices
+} from "../redux/invoiceSlice";
 import CloseOutlinedIcon from "@mui/icons-material/CloseOutlined";
 import CheckOutlinedIcon from "@mui/icons-material/CheckOutlined";
 
@@ -22,7 +23,56 @@ const AdminInvoices = () => {
   const drivers = useSelector((state) => state.drivers.drivers);
   const status = useSelector((state) => state.drivers.status);
   const error = useSelector((state) => state.drivers.error);
-  const invoices = useSelector((state) => state.driverInvoice?.driverInvoice);
+  const invoices = useSelector((state) => state.invoice?.driverInvoices);
+  const userInvoices = useSelector((state) => state.invoice?.employeeInvoices);
+
+  const combinedInvoices = useMemo(() => {
+
+    const combinedInvoices = []
+
+    let sequenceNumber = 1;
+
+    for(const driverInvoice of invoices){
+    if(!driverInvoice.additionalSalary && !driverInvoice.companyDeductionAmount && !driverInvoice.talabatDeductionAmount){
+      continue;
+    }
+
+      combinedInvoices.push({
+        id: driverInvoice._id,
+        sequenceNumber,
+        additionalSalary: driverInvoice.additionalSalary,
+        companyDeductionAmount: driverInvoice.companyDeductionAmount,
+        deductionReason: driverInvoice.deductionReason,
+        talabatDeductionAmount: driverInvoice.talabatDeductionAmount,
+        ...driverInvoice.driver
+      });
+
+      sequenceNumber++;
+    }
+
+    for(const userInvoice of userInvoices){
+      if(!userInvoice.additionalSalary && !userInvoice.companyDeductionAmount){
+        continue;
+      }
+  
+        combinedInvoices.push({
+          id: userInvoice._id,
+          sequenceNumber,
+          additionalSalary: userInvoice.additionalSalary,
+          companyDeductionAmount: userInvoice.companyDeductionAmount,
+          deductionReason: userInvoice.deductionReason,
+          talabatDeductionAmount: 0,
+          ...userInvoice.user
+        });
+  
+        sequenceNumber++;
+      }
+
+    return combinedInvoices;
+  }, [invoices,userInvoices])
+
+  console.log('invoices',invoices);
+  console.log('userInvoices', userInvoices)
   const token =
     useSelector((state) => state.drivers.token) ||
     localStorage.getItem("token");
@@ -66,8 +116,13 @@ const AdminInvoices = () => {
       flex: 1,
     },
     {
-      field: "deductionAmount",
-      headerName: "Deduction",
+      field: "talabatDeductionAmount",
+      headerName: "Talabat deduction",
+      flex: 1,
+    },
+    {
+      field: "companyDeductionAmount",
+      headerName: "Company deduction",
       flex: 1,
     },
     {
@@ -111,8 +166,9 @@ const AdminInvoices = () => {
     //if (status === "succeeded") {
     dispatch(fetchDrivers(token));
     dispatch(fetchInvoices(token));
+    dispatch(fetchEmployeeInvoices(token));
     //}
-  }, [token]);
+  }, [dispatch, token]);
 
   pulsar.register();
   if (status === "loading") {
@@ -202,9 +258,8 @@ const AdminInvoices = () => {
         }}
       >
         <DataGrid
-          rows={Array.isArray(drivers) ? drivers : []}
+          rows={Array.isArray(combinedInvoices) ? combinedInvoices : []}
           columns={columns}
-          getRowId={(row) => row._id}
         />
       </Box>
     </Box>

@@ -5,13 +5,16 @@ import { toast } from "react-toastify";
 const API_URL = process.env.REACT_APP_API_URL;
 
 const initialState = {
-  driverInvoice: [],
+  driverInvoices: [],
   status: "",
   error: null,
+  employeeInvoices: [],
+  employeeInvoicesStatus: "",
+  employeeInvoicesError: null,
 };
 
 export const fetchInvoices = createAsyncThunk(
-  "driverInvoice/fetchInvoices",
+  "invoice/fetchInvoices",
   async (token) => {
     try {
       const response = await axios.get(`${API_URL}/driver-invoice/invoice`, {
@@ -26,9 +29,25 @@ export const fetchInvoices = createAsyncThunk(
   }
 );
 
+export const fetchEmployeeInvoices = createAsyncThunk(
+  "invoice/fetchEmployeeInvoices",
+  async (token) => {
+    try {
+      const response = await axios.get(`${API_URL}/users/invoices`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response.data.message || error.message);
+    }
+  }
+);
+
 // Create driver invoice
 export const createDriverInvoice = createAsyncThunk(
-  "driverInvoice/createDriverInvoice",
+  "invoice/createDriverInvoice",
   async ({ values }) => {
     try {
       const token = localStorage.getItem("token");
@@ -49,7 +68,7 @@ export const createDriverInvoice = createAsyncThunk(
 );
 
 const driverInvoiceSlice = createSlice({
-  name: "driverInvoice",
+  name: "invoice",
   initialState,
   reducers: {},
   extraReducers(builder) {
@@ -60,12 +79,24 @@ const driverInvoiceSlice = createSlice({
       })
       .addCase(fetchInvoices.fulfilled, (state, action) => {
         state.status = "succeeded";
-        state.driverInvoice = action.payload.data.driverInvoices;
+        state.driverInvoices = action.payload.data.driverInvoices;
         state.error = null;
       })
       .addCase(fetchInvoices.rejected, (state, action) => {
         state.status = "failed";
         state.error = action.error.message;
+      })
+      .addCase(fetchEmployeeInvoices.pending, (state) => {
+        state.employeeInvoicesStatus = "loading";
+      })
+      .addCase(fetchEmployeeInvoices.fulfilled, (state, action) => {
+        state.employeeInvoicesStatus = "succeeded";
+        state.employeeInvoices = action.payload.data.employeeInvoices;
+        state.employeeInvoicesError = null;
+      })
+      .addCase(fetchEmployeeInvoices.rejected, (state, action) => {
+        state.employeeInvoicesStatus = "failed";
+        state.employeeInvoicesError = action.error.message;
       });
     builder
       .addCase(createDriverInvoice.pending, (state) => {
@@ -73,7 +104,7 @@ const driverInvoiceSlice = createSlice({
       })
       .addCase(createDriverInvoice.fulfilled, (state, action) => {
         state.status = "succeeded";
-        state.driverInvoice.push(action.payload.data.invoice);
+        state.driverInvoices.push(action.payload.data.invoice);
         state.error = null;
         toast.success("Driver invoice is added successfully!", {
           position: "top-right",

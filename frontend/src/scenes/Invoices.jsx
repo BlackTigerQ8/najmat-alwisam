@@ -10,7 +10,8 @@ import { pulsar } from "ldrs";
 import {
   fetchInvoices,
   createDriverInvoice,
-} from "../redux/driverInvoiceSlice";
+  fetchEmployeeInvoices
+} from "../redux/invoiceSlice";
 
 const Invoices = () => {
   const theme = useTheme();
@@ -24,7 +25,7 @@ const Invoices = () => {
     localStorage.getItem("token");
 
   const invoices = useSelector(
-    (state) => state.driverInvoice?.driverInvoice || []
+    (state) => state.invoice?.driverInvoices || []
   );
 
   const getInvoiceData = useCallback(
@@ -145,8 +146,9 @@ const Invoices = () => {
     //if (status === "succeeded") {
     dispatch(fetchDrivers(token));
     dispatch(fetchInvoices(token));
+    dispatch(fetchEmployeeInvoices(token));
     //}
-  }, [token]);
+  }, [token, dispatch]);
 
   pulsar.register();
   if (status === "loading") {
