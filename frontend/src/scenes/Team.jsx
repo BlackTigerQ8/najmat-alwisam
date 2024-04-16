@@ -18,9 +18,10 @@ const Team = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const dispatch = useDispatch();
-  const users = useSelector((state) => state.users.users); // <-- Select users from state
+  const users = useSelector((state) => state.users.users);
   const status = useSelector((state) => state.user.status);
   const error = useSelector((state) => state.user.error);
+  const filteredUsers = users.filter((user) => user.role !== "Admin");
   const navigate = useNavigate();
 
   const token =
@@ -211,7 +212,7 @@ const Team = () => {
         }}
       >
         <DataGrid
-          rows={Array.isArray(users) ? users : []}
+          rows={Array.isArray(filteredUsers) ? filteredUsers : []}
           columns={columns}
           getRowId={(row) => row._id}
           // components={{ Toolbar: GridToolbar }}

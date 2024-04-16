@@ -18,8 +18,11 @@ import { fetchDrivers } from "../redux/driversSlice";
 import { fetchUsers } from "../redux/usersSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { createDriverInvoice } from "../redux/invoiceSlice";
-import {createUserInvoice} from '../redux/userSlice';
-import { createNotification, buildNotificationAlert } from '../redux/notificationSlice';
+import { createUserInvoice } from "../redux/userSlice";
+import {
+  createNotification,
+  buildNotificationAlert,
+} from "../redux/notificationSlice";
 
 const initialValues = {
   deductionReason: "",
@@ -69,9 +72,9 @@ const userSchema = yup
 const Deduction = () => {
   const dispatch = useDispatch();
   const isNonMobile = useMediaQuery("(min-width: 600px)");
-
   const drivers = useSelector((state) => state.drivers.drivers);
   const users = useSelector((state) => state.users.users);
+  const filteredUsers = users.filter((user) => user.role !== "Admin");
   const token =
     useSelector((state) => state.drivers.token) ||
     localStorage.getItem("token");
@@ -83,18 +86,16 @@ const Deduction = () => {
 
   async function handleFormSubmit(values) {
     try {
-
-      if(values.selectedDriver){
-      dispatch(
-        createDriverInvoice({
-          values: {
-            ...values,
-            driverId: values.selectedDriver,
-          },
-        })
-      );
-      }
-      else if(values.selectedUser){
+      if (values.selectedDriver) {
+        dispatch(
+          createDriverInvoice({
+            values: {
+              ...values,
+              driverId: values.selectedDriver,
+            },
+          })
+        );
+      } else if (values.selectedUser) {
         dispatch(
           createUserInvoice({
             values: {
@@ -201,9 +202,9 @@ const Deduction = () => {
                   label="Select User"
                   disabled={values.selectedDriver}
                 >
-                  {users.map((user) => (
+                  {filteredUsers.map((user) => (
                     <MenuItem key={user._id} value={user._id}>
-                      {user.firstName} {user.lastName}
+                      {user.firstName} {user.lastName} - ({user.role})
                     </MenuItem>
                   ))}
                 </Select>

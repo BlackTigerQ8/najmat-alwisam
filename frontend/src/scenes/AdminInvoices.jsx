@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo } from "react";
-import {  Box, Button, useTheme } from "@mui/material";
+import { Box, Button, useTheme } from "@mui/material";
 import Header from "../components/Header";
 import { DataGrid } from "@mui/x-data-grid";
 import { tokens } from "../theme";
@@ -10,7 +10,7 @@ import {
   fetchInvoices,
   updateDriverInvoice,
   fetchEmployeeInvoices,
-  updateEmployeeInvoice
+  updateEmployeeInvoice,
 } from "../redux/invoiceSlice";
 import CloseOutlinedIcon from "@mui/icons-material/CloseOutlined";
 import CheckOutlinedIcon from "@mui/icons-material/CheckOutlined";
@@ -19,29 +19,38 @@ const AdminInvoices = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const dispatch = useDispatch();
-  
+
   const driverInvoiceStatus = useSelector((state) => state.invoice.status);
-  const employeeInvoiceStatus = useSelector((state) => state.invoice.employeeInvoicesStatus);
+  const employeeInvoiceStatus = useSelector(
+    (state) => state.invoice.employeeInvoicesStatus
+  );
 
-  const status = (driverInvoiceStatus === "loading" || driverInvoiceStatus === "failed") ? driverInvoiceStatus : employeeInvoiceStatus; 
+  const status =
+    driverInvoiceStatus === "loading" || driverInvoiceStatus === "failed"
+      ? driverInvoiceStatus
+      : employeeInvoiceStatus;
   const driverInvoiceError = useSelector((state) => state.invoice.error);
-  const employeeInvoiceError = useSelector((state) => state.invoice.employeeInvoicesError);
+  const employeeInvoiceError = useSelector(
+    (state) => state.invoice.employeeInvoicesError
+  );
   const error = driverInvoiceError || employeeInvoiceError;
-
 
   const invoices = useSelector((state) => state.invoice?.driverInvoices);
   const userInvoices = useSelector((state) => state.invoice?.employeeInvoices);
 
   const combinedInvoices = useMemo(() => {
-
-    const combinedInvoices = []
+    const combinedInvoices = [];
 
     let sequenceNumber = 1;
 
-    for(const driverInvoice of invoices){
-    if(!driverInvoice.additionalSalary && !driverInvoice.companyDeductionAmount && !driverInvoice.talabatDeductionAmount){
-      continue;
-    }
+    for (const driverInvoice of invoices) {
+      if (
+        !driverInvoice.additionalSalary &&
+        !driverInvoice.companyDeductionAmount &&
+        !driverInvoice.talabatDeductionAmount
+      ) {
+        continue;
+      }
 
       combinedInvoices.push({
         id: driverInvoice._id,
@@ -51,41 +60,42 @@ const AdminInvoices = () => {
         deductionReason: driverInvoice.deductionReason,
         talabatDeductionAmount: driverInvoice.talabatDeductionAmount,
         ...driverInvoice.driver,
-        type: 'driver'
+        type: "driver",
       });
 
       sequenceNumber++;
     }
 
-    for(const userInvoice of userInvoices){
-      if(!userInvoice.additionalSalary && !userInvoice.companyDeductionAmount){
+    for (const userInvoice of userInvoices) {
+      if (
+        !userInvoice.additionalSalary &&
+        !userInvoice.companyDeductionAmount
+      ) {
         continue;
       }
-  
-        combinedInvoices.push({
-          id: userInvoice._id,
-          sequenceNumber,
-          additionalSalary: userInvoice.additionalSalary,
-          companyDeductionAmount: userInvoice.companyDeductionAmount,
-          deductionReason: userInvoice.deductionReason,
-          talabatDeductionAmount: 0,
-          type: 'user',
-          ...userInvoice.user
-        });
-  
-        sequenceNumber++;
-      }
+
+      combinedInvoices.push({
+        id: userInvoice._id,
+        sequenceNumber,
+        additionalSalary: userInvoice.additionalSalary,
+        companyDeductionAmount: userInvoice.companyDeductionAmount,
+        deductionReason: userInvoice.deductionReason,
+        talabatDeductionAmount: 0,
+        type: "user",
+        ...userInvoice.user,
+      });
+
+      sequenceNumber++;
+    }
 
     return combinedInvoices;
-  }, [invoices,userInvoices])
+  }, [invoices, userInvoices]);
 
-  console.log('invoices',invoices);
-  console.log('userInvoices', userInvoices)
+  console.log("invoices", invoices);
+  console.log("userInvoices", userInvoices);
   const token =
     useSelector((state) => state.drivers.token) ||
     localStorage.getItem("token");
-
-  
 
   const columns = [
     {
@@ -145,8 +155,7 @@ const AdminInvoices = () => {
       sortable: false,
       filterable: false,
       renderCell: (params) => {
-
-        console.log('params.row',params.row)
+        console.log("params.row", params.row);
         return (
           <Box display="flex" justifyContent="center">
             <Button
@@ -154,14 +163,26 @@ const AdminInvoices = () => {
               color="primary"
               size="small"
               style={{ marginRight: 8 }}
-              onClick={() => handleUpdate({id: params.row.id, status: "rejected", type: params.row.type})}
+              onClick={() =>
+                handleUpdate({
+                  id: params.row.id,
+                  status: "rejected",
+                  type: params.row.type,
+                })
+              }
               startIcon={<CloseOutlinedIcon />}
             ></Button>
             <Button
               variant="contained"
               color="secondary"
               size="small"
-              onClick={() => handleUpdate({id: params.row.id, status: "approved", type: params.row.type})}
+              onClick={() =>
+                handleUpdate({
+                  id: params.row.id,
+                  status: "approved",
+                  type: params.row.type,
+                })
+              }
               startIcon={<CheckOutlinedIcon />}
             ></Button>
           </Box>
@@ -214,25 +235,20 @@ const AdminInvoices = () => {
     );
   }
 
-  const handleUpdate = ({id, status, type}) => {
+  const handleUpdate = ({ id, status, type }) => {
     try {
-      if(type === "driver"){      
-        return dispatch(
-          updateDriverInvoice({values: {id, status}})
-        );  
+      if (type === "driver") {
+        return dispatch(updateDriverInvoice({ values: { id, status } }));
       }
 
-      if(type === "user"){      
-        return dispatch(
-          updateEmployeeInvoice({values: {id, status}})
-        );  
+      if (type === "user") {
+        return dispatch(updateEmployeeInvoice({ values: { id, status } }));
       }
     } catch (error) {
       console.error("Row does not have a valid _id field:");
     }
   };
 
- 
   return (
     <Box m="20px">
       <Header title="DEDUCTION SALARY" subtitle="Deduction Salary Page" />

@@ -177,7 +177,8 @@ const driverInvoiceSlice = createSlice({
         state.status = "succeeded";
         const updatedInvoice = action.payload.data.invoice;
         state.driverInvoices =
-          updatedInvoice.status === "rejected"
+          updatedInvoice.status === "rejected" ||
+          updatedInvoice.status === "approved"
             ? state.driverInvoices.filter((d) => d._id !== updatedInvoice._id)
             : state.driverInvoices.map((d) =>
                 d._id === updatedInvoice._id ? { ...d, ...updatedInvoice } : d
@@ -209,7 +210,8 @@ const driverInvoiceSlice = createSlice({
         state.employeeInvoicesStatus = "succeeded";
         const updatedInvoice = action.payload.data.invoice;
         state.employeeInvoices =
-          updatedInvoice.status === "rejected"
+          updatedInvoice.status === "rejected" ||
+          updatedInvoice.status === "approved"
             ? state.employeeInvoices.filter((d) => d._id !== updatedInvoice._id)
             : state.employeeInvoices.map((d) =>
                 d._id === updatedInvoice._id ? { ...d, ...updatedInvoice } : d

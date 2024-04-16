@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   Box,
   Button,
@@ -16,6 +16,7 @@ import { ErrorMessage, Formik } from "formik";
 import * as yup from "yup";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import Header from "../components/Header";
+import { getUserRoleFromToken } from "./global/getUserRoleFromToken";
 import { registerUser } from "../redux/userSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
@@ -77,6 +78,14 @@ const Form = () => {
   const { status, error } = useSelector((state) => state.user);
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
+  const userRole =
+    useSelector((state) => state.user.userRole) || getUserRoleFromToken();
+  const savedToken = localStorage.getItem("token");
+
+  useEffect(() => {
+    const storedUserRole = localStorage.getItem("userRole", userRole);
+    // const savedUser = JSON.parse(localStorage.getItem("userInfo"));
+  }, []);
 
   const handleFormSubmit = async (values) => {
     try {
@@ -293,10 +302,14 @@ const Form = () => {
                   error={!!touched.role && !!errors.role}
                   helperText={touched.role && errors.role}
                 >
-                  {/* <MenuItem value={"Admin"}>Admin</MenuItem> */}
-                  <MenuItem value={"Manager"}>Manager</MenuItem>
                   <MenuItem value={"Accountant"}>Accountant</MenuItem>
                   <MenuItem value={"Employee"}>Employee</MenuItem>
+                  {userRole === "Admin" && (
+                    <MenuItem value={"Manager"}>Manager</MenuItem>
+                  )}
+                  {userRole === "Admin" && (
+                    <MenuItem value={"Admin"}>Admin</MenuItem>
+                  )}
                 </Select>
               </FormControl>
               <TextField

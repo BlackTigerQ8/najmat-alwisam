@@ -47,14 +47,18 @@ const Notifications = () => {
             </Typography>
           </AccordionSummary>
           <AccordionDetails>
-            <Typography>
-              {getDriverInfo(notification.driverId).firstName} (Driver){" "}
-              {notification.additionalDetails.fieldName} will expire on{" "}
-              {new Date(
-                notification.additionalDetails.expiryDate
-              ).toDateString()}
-              .
-            </Typography>
+            {getDriverInfo(notification.driverId) ? (
+              <Typography>
+                {getDriverInfo(notification.driverId).firstName} (Driver){" "}
+                {notification.additionalDetails.fieldName} will expire on{" "}
+                {new Date(
+                  notification.additionalDetails.expiryDate
+                ).toDateString()}
+                .
+              </Typography>
+            ) : (
+              <Typography>Driver information not available</Typography>
+            )}
           </AccordionDetails>
         </Accordion>
       ))}
