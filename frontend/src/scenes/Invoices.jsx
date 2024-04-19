@@ -1,5 +1,5 @@
 import React, { useMemo, useEffect, useState, useCallback } from "react";
-import { Box, Button, useTheme } from "@mui/material";
+import { Box, Button, TextField, useMediaQuery, useTheme } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import { tokens } from "../theme";
 import Header from "../components/Header";
@@ -12,10 +12,12 @@ import {
   createDriverInvoice,
   fetchEmployeeInvoices,
 } from "../redux/invoiceSlice";
+import { Formik } from "formik";
 
 const InvoicesArchive = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
+  const isNonMobile = useMediaQuery("(min-width: 600px)");
   const dispatch = useDispatch();
   const drivers = useSelector((state) => state.drivers.drivers);
   const status = useSelector((state) => state.drivers.status);
@@ -25,6 +27,10 @@ const InvoicesArchive = () => {
     localStorage.getItem("token");
 
   const invoices = useSelector((state) => state.invoice?.driverInvoices || []);
+
+  const initialValues = {
+    InvoicesMonth: "",
+  };
 
   const getInvoiceData = useCallback(
     (driverId) => {
@@ -198,6 +204,17 @@ const InvoicesArchive = () => {
   return (
     <Box m="20px">
       <Header title="INVOICES" subtitle="List of Invoice Blanaces" />
+      <Box
+        display="flex"
+        justifyContent="flex-end"
+        sx={{
+          "& > div": { gridColumn: isNonMobile ? undefined : "span 5" },
+        }}
+      >
+        <Button type="submit" color="secondary" variant="contained">
+          Reset
+        </Button>
+      </Box>
       <Box
         mt="40px"
         height="75vh"
