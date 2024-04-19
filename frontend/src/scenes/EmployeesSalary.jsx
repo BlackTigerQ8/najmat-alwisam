@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import {  Box, Button, useTheme } from "@mui/material";
+import { Box, Button, useTheme } from "@mui/material";
 import Header from "../components/Header";
 import { DataGrid } from "@mui/x-data-grid";
 import { tokens } from "../theme";
@@ -12,15 +12,11 @@ const EmployeesSalary = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const dispatch = useDispatch();
-
+  const users = useSelector((state) => state.users.users);
+  const filteredUsers = users.filter((user) => user.role !== "Admin");
   const status = useSelector((state) => state.user.salariesStatus);
   const salaries = useSelector((state) => state.users.salaries);
   const error = useSelector((state) => state.user.error);
-  
-
-  
-
-  
 
   const columns = [
     {
@@ -64,7 +60,9 @@ const EmployeesSalary = () => {
       field: "totalSalary",
       headerName: "Total Salary",
       flex: 1,
-      renderCell: ({ row: { additionalSalary, mainSalary, companyDeductionAmount } }) => {
+      renderCell: ({
+        row: { additionalSalary, mainSalary, companyDeductionAmount },
+      }) => {
         return (
           <Box
             display="flex"
@@ -72,7 +70,9 @@ const EmployeesSalary = () => {
             alignItems="center"
             borderRadius="4px"
           >
-            {Number(additionalSalary) + Number(mainSalary) - Number(companyDeductionAmount)}
+            {Number(additionalSalary) +
+              Number(mainSalary) -
+              Number(companyDeductionAmount)}
           </Box>
         );
       },
@@ -124,9 +124,7 @@ const EmployeesSalary = () => {
   ];
 
   useEffect(() => {
-    
     dispatch(fetchSalaries());
-    
   }, [dispatch]);
 
   pulsar.register();
@@ -169,16 +167,15 @@ const EmployeesSalary = () => {
     try {
       const { additionalSalary, remarks } = row;
       dispatch(
-        updateAdditionalSalary({ userId: row._id, values: { additionalSalary, remarks } })
+        updateAdditionalSalary({
+          userId: row._id,
+          values: { additionalSalary, remarks },
+        })
       );
     } catch (error) {
       console.error("Row does not have a valid _id field:", row);
     }
   };
-
-  
-
-  
 
   return (
     <Box m="20px">

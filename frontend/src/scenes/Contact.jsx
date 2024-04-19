@@ -40,6 +40,11 @@ const Contact = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const users = useSelector((state) => state.users.users);
+  const userInfo = useSelector((state) => state.user.userInfo);
+  const filteredUsers =
+    userInfo.role === "Employee"
+      ? users.filter((user) => user.role !== "Admin")
+      : users;
   const token =
     useSelector((state) => state.drivers.token) ||
     localStorage.getItem("token");
@@ -47,8 +52,8 @@ const Contact = () => {
   useEffect(() => {
     dispatch(fetchUsers(token));
   }, [token]);
-
   pulsar.register();
+
   if (status === "loading") {
     return (
       <div
@@ -161,7 +166,7 @@ const Contact = () => {
                     name="selectedUsers"
                     label="Select Users"
                   >
-                    {users.map((user) => (
+                    {filteredUsers.map((user) => (
                       <MenuItem key={user._id} value={user._id}>
                         {user.firstName} {user.lastName} - ({user.role})
                       </MenuItem>
