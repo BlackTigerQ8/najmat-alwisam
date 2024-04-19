@@ -46,7 +46,7 @@ const newPettyCashInitialValues = {
   deductedFromUser: "",
   deductedFromDriver: "",
   currentBalance: "",
-  serialNumber: ""
+  serialNumber: "",
 };
 
 const pettyCashRequestSchema = yup.object().shape({
@@ -173,7 +173,7 @@ const PettyCash = () => {
       renderCell: ({ row: { spendType } }) => {
         const { name = undefined } = spendTypes.find(
           (s) => s._id === spendType
-        );
+        ) || { name: undefined };
 
         return (
           <Box display="flex" justifyContent="center" borderRadius="4px">
@@ -199,7 +199,10 @@ const PettyCash = () => {
                 firstName: "Deleted",
                 lastName: "Driver",
               }
-            : users.find((u) => u._id === deductedFromUser);
+            : users.find((u) => u._id === deductedFromUser) || {
+                firstName: "Deleted",
+                lastName: "User",
+              };
 
         return (
           <Box display="flex" justifyContent="center" borderRadius="4px">
@@ -371,19 +374,19 @@ const PettyCash = () => {
           <Typography variant="h4" color="secondary" mt={4}>
             Total spends:
             <strong>
-              <span> {totalSpends / 1000} </span> KD
+              <span> {totalSpends} </span> KD
             </strong>
           </Typography>
           <Typography variant="h4" color="secondary" mt={4}>
             Total amount on workers:
             <strong>
-              <span> {totalAmountOnWorker / 1000} </span> KD
+              <span> {totalAmountOnWorker} </span> KD
             </strong>
           </Typography>
           <Typography variant="h4" color="secondary" mt={4}>
             Net amount on company:
             <strong>
-              <span> {totalAmountOnCompany / 1000} </span> KD
+              <span> {totalAmountOnCompany} </span> KD
             </strong>
           </Typography>
         </Box>
