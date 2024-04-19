@@ -229,13 +229,6 @@ const getAllInvoices = async (req, res) => {
         break;
     }
 
-    console.log(
-      "getting invoices for user role = ",
-      req.user.role,
-      ", status",
-      status
-    );
-
     const driverInvoices = await getDriverInvoices([status]);
 
     res.status(200).json({

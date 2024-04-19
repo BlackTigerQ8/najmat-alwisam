@@ -147,7 +147,11 @@ const driverInvoiceSlice = createSlice({
       })
       .addCase(createDriverInvoice.fulfilled, (state, action) => {
         state.status = "succeeded";
-        state.driverInvoices.push(action.payload.data.invoice);
+        const userRole = JSON.parse(
+          JSON.parse(localStorage.getItem("persist:root")).user
+        ).userInfo.role;
+        if (userRole !== "Admin")
+          state.driverInvoices.push(action.payload.data.invoice);
         state.error = null;
         toast.success("Driver invoice is added successfully!", {
           position: "top-right",

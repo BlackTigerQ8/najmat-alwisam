@@ -1,6 +1,14 @@
 const mongoose = require("mongoose");
 
-const invoiceStatus = ["pending", "approved", "rejected", "archived"];
+const invoiceStatus = [
+  "pendingManagerReview",
+  "pendingAdminReview",
+  "approved",
+  "managerRejected",
+  "adminRejected",
+  "archived",
+  "overridden",
+];
 
 const employeeInvoice = new mongoose.Schema({
   invoiceDate: { type: Date },
@@ -15,7 +23,7 @@ const employeeInvoice = new mongoose.Schema({
   status: {
     type: String,
     enum: invoiceStatus,
-    default: "pending",
+    default: "pendingManagerReview",
   },
   remarks: { type: String },
   invoiceAddedBy: {
