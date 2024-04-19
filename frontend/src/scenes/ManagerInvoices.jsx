@@ -166,7 +166,7 @@ const ManagerInvoices = () => {
               onClick={() =>
                 handleUpdate({
                   id: params.row.id,
-                  status: "rejected",
+                  status: "managerRejected",
                   type: params.row.type,
                 })
               }
@@ -179,7 +179,7 @@ const ManagerInvoices = () => {
               onClick={() =>
                 handleUpdate({
                   id: params.row.id,
-                  status: "approved",
+                  status: "pendingAdminReview",
                   type: params.row.type,
                 })
               }

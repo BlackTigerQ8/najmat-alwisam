@@ -21,7 +21,7 @@ router
 router.put(
   "/invoice/:id",
   protect,
-  restrictTo("Admin", "Accountant"),
+  restrictTo("Admin", "Accountant", "Manager"),
   updateInvoiceStatus
 );
 

@@ -36,7 +36,7 @@ router
   .route("/:id/invoice")
   .post(
     protect,
-    restrictTo("Admin", "Manager", "Accountant"),
+    restrictTo("Admin", "Manager", "Accountant", "Employee"),
     createEmployeeDeductionInvoice
   );
 
@@ -48,14 +48,14 @@ router
 router.get(
   "/invoices",
   protect,
-  restrictTo("Admin", "Accountant"),
+  restrictTo("Admin", "Accountant", "Manager", "Employee"),
   getAllInvoices
 );
 
 router.put(
   "/invoice/:id",
   protect,
-  restrictTo("Admin", "Accountant"),
+  restrictTo("Admin", "Accountant", "Manager"),
   updateInvoiceStatus
 );
 

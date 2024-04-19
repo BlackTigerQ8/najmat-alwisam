@@ -335,7 +335,9 @@ const getDriverSalaries = async (req, res) => {
     };
   }
 
-  const driverInvoices = await getDriverInvoices();
+  const driverInvoices = await getDriverInvoices(["approved"]);
+
+  console.log("driverInvoices", driverInvoices);
 
   for (const invoice of driverInvoices) {
     const {

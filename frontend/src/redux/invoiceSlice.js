@@ -180,13 +180,9 @@ const driverInvoiceSlice = createSlice({
       .addCase(updateDriverInvoice.fulfilled, (state, action) => {
         state.status = "succeeded";
         const updatedInvoice = action.payload.data.invoice;
-        state.driverInvoices =
-          updatedInvoice.status === "rejected" ||
-          updatedInvoice.status === "approved"
-            ? state.driverInvoices.filter((d) => d._id !== updatedInvoice._id)
-            : state.driverInvoices.map((d) =>
-                d._id === updatedInvoice._id ? { ...d, ...updatedInvoice } : d
-              );
+        state.driverInvoices = state.driverInvoices.filter(
+          (d) => d._id !== updatedInvoice._id
+        );
         state.error = null;
         toast.success("Driver invoice is updated successfully!", {
           position: "top-right",
@@ -213,13 +209,9 @@ const driverInvoiceSlice = createSlice({
       .addCase(updateEmployeeInvoice.fulfilled, (state, action) => {
         state.employeeInvoicesStatus = "succeeded";
         const updatedInvoice = action.payload.data.invoice;
-        state.employeeInvoices =
-          updatedInvoice.status === "rejected" ||
-          updatedInvoice.status === "approved"
-            ? state.employeeInvoices.filter((d) => d._id !== updatedInvoice._id)
-            : state.employeeInvoices.map((d) =>
-                d._id === updatedInvoice._id ? { ...d, ...updatedInvoice } : d
-              );
+        state.employeeInvoices = state.employeeInvoices.filter(
+          (d) => d._id !== updatedInvoice._id
+        );
         state.employeeInvoicesError = null;
         toast.success("User invoice is updated successfully!", {
           position: "top-right",
