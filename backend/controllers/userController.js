@@ -268,7 +268,7 @@ const getEmployeesSalary = async (_req, res) => {
     const invoices = await getEmployeeInvoices();
 
     if (!invoices.length) {
-      const users = await User.find();
+      const users = await User.find({ role: { $ne: "Admin" } });
 
       return res.status(200).json({
         status: "Success",
@@ -290,7 +290,7 @@ const getEmployeesSalary = async (_req, res) => {
 
     const userData = {};
 
-    const users = await User.find();
+    const users = await User.find({ role: { $ne: "Admin" } });
 
     // Check if user already exists in userData, if not, create new entry
     for (const userInfo of users) {
