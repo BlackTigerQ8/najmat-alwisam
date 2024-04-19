@@ -468,13 +468,13 @@ const sendMessage = async (req, res) => {
   }
 };
 
-// @desc    Fetch messages
+// @desc    Fetch messages for the currently logged-in user
 // @route   GET /api/messages
 // @access  Private
 const fetchMessages = async (req, res) => {
   try {
-    // Fetch messages from the database
-    const messages = await Message.find();
+    // Fetch messages from the database where the receiver is the currently logged-in user
+    const messages = await Message.find({ receivers: req.user.id });
 
     res.status(200).json({
       status: "Success",

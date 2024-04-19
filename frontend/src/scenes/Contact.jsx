@@ -16,7 +16,7 @@ import { tokens } from "../theme";
 import Header from "../components/Header";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import { pulsar } from "ldrs";
-import {  Formik } from "formik";
+import { Formik } from "formik";
 import { fetchUsers, sendMessage } from "../redux/usersSlice";
 import { useDispatch, useSelector } from "react-redux";
 
