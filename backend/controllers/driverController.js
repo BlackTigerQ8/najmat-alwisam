@@ -154,6 +154,22 @@ const createDriverInvoice = async (req, res) => {
       companyDeductionAmount = 0,
     } = req.body;
 
+    let status = undefined;
+    switch (req.user.role) {
+      case "Admin":
+        status = "approved";
+        break;
+      case "Manager":
+        status = "pendingAdminReview";
+        break;
+      case "Employee":
+        status = "pendingManagerReview";
+        break;
+      case "Accountant":
+        status = "approved";
+        break;
+    }
+
     /** All invoices should be set using yesterday's date */
     const currentDate = new Date();
     const invoiceDate = new Date(currentDate.getTime() - 24 * 60 * 60 * 1000);
@@ -179,6 +195,7 @@ const createDriverInvoice = async (req, res) => {
       deductionReason,
       invoiceDate,
       user: req.user.id,
+      status,
     });
 
     await newInvoice.save();
@@ -198,9 +215,28 @@ const createDriverInvoice = async (req, res) => {
 };
 
 const getAllInvoices = async (req, res) => {
-  console.log("In get all invoices method");
   try {
-    const driverInvoices = await getDriverInvoices();
+    let status = undefined;
+    switch (req.user.role) {
+      case "Admin":
+        status = "pendingAdminReview";
+        break;
+      case "Manager":
+        status = "pendingManagerReview";
+        break;
+      case "Accountant":
+        status = "approved";
+        break;
+    }
+
+    console.log(
+      "getting invoices for user role = ",
+      req.user.role,
+      ", status",
+      status
+    );
+
+    const driverInvoices = await getDriverInvoices([status]);
 
     res.status(200).json({
       status: "Success",
@@ -217,11 +253,11 @@ const getAllInvoices = async (req, res) => {
   }
 };
 
-const getDriverInvoices = async () => {
+const getDriverInvoices = async (status = ["pending", "approved"]) => {
   const { startDate, endDate } = getMonthDateRange();
 
   const driverInvoices = await DriverInvoice.find({
-    status: { $in: ["pending", "approved"] },
+    status: { $in: status },
     invoiceDate: {
       $gte: startDate,
       $lt: endDate,
@@ -420,7 +456,7 @@ const overrideDriverInvoices = async ({ driverId }) => {
   const { startDate, endDate } = getMonthDateRange();
 
   const driverInvoices = await DriverInvoice.find({
-    status: { $in: ["pending", "approved"] },
+    status: { $in: ["approved"] },
     invoiceDate: {
       $gte: startDate,
       $lt: endDate,

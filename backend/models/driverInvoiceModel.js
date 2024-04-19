@@ -1,9 +1,11 @@
 const mongoose = require("mongoose");
 
 const invoiceStatus = [
-  "pending",
+  "pendingManagerReview",
+  "pendingAdminReview",
   "approved",
-  "rejected",
+  "managerRejected",
+  "adminRejected",
   "archived",
   "overridden",
 ];
@@ -31,7 +33,7 @@ const driverInvoiceSchema = new mongoose.Schema({
   status: {
     type: String,
     enum: invoiceStatus,
-    default: "pending",
+    default: "pendingManagerReview",
   },
   remarks: { type: String },
 });
