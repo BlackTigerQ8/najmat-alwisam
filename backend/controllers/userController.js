@@ -364,7 +364,7 @@ const updateEmployeeSalary = async (req, res) => {
   );
 
   const existingInvoice = await EmployeeInvoice.findOne({
-    status: { $in: ["pending", "approved"] },
+    status: { $in: ["approved"] },
     invoiceDate: {
       $gte: firstDayOfMonth,
       $lt: firstDayOfNextMonth,
@@ -389,7 +389,7 @@ const updateEmployeeSalary = async (req, res) => {
       remarks,
       user: userId,
       invoiceAddedBy: req.user.id,
-      status: "pending",
+      status: "approved",
     });
     await newInvoice.save();
   }
@@ -426,7 +426,7 @@ const createEmployeeDeductionInvoice = async (req, res) => {
         status = "pendingManagerReview";
         break;
       case "Accountant":
-        status = "approved";
+        status = "pendingAdminReview";
         break;
     }
 

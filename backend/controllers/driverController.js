@@ -167,7 +167,7 @@ const createDriverInvoice = async (req, res) => {
           status = "pendingManagerReview";
           break;
         case "Accountant":
-          status = "approved";
+          status = "pendingAdminReview";
           break;
       }
     }
@@ -434,6 +434,7 @@ const overrideDriverSalary = async (req, res) => {
     deductionReason,
     invoiceDate,
     user: req.user.id,
+    status: "approved",
   });
 
   await newInvoice.save();
