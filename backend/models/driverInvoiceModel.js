@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 
 const invoiceStatus = [
+  "visibleToAll",
   "pendingManagerReview",
   "pendingAdminReview",
   "approved",

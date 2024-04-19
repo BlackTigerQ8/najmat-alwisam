@@ -154,20 +154,22 @@ const createDriverInvoice = async (req, res) => {
       companyDeductionAmount = 0,
     } = req.body;
 
-    let status = undefined;
-    switch (req.user.role) {
-      case "Admin":
-        status = "approved";
-        break;
-      case "Manager":
-        status = "pendingAdminReview";
-        break;
-      case "Employee":
-        status = "pendingManagerReview";
-        break;
-      case "Accountant":
-        status = "approved";
-        break;
+    let status = "visibleToAll";
+    if (deductionReason && (talabatDeductionAmount || companyDeductionAmount)) {
+      switch (req.user.role) {
+        case "Admin":
+          status = "approved";
+          break;
+        case "Manager":
+          status = "pendingAdminReview";
+          break;
+        case "Employee":
+          status = "pendingManagerReview";
+          break;
+        case "Accountant":
+          status = "approved";
+          break;
+      }
     }
 
     /** All invoices should be set using yesterday's date */
@@ -229,7 +231,7 @@ const getAllInvoices = async (req, res) => {
         break;
     }
 
-    const driverInvoices = await getDriverInvoices([status]);
+    const driverInvoices = await getDriverInvoices([status, "visibleToAll"]);
 
     res.status(200).json({
       status: "Success",
@@ -246,7 +248,7 @@ const getAllInvoices = async (req, res) => {
   }
 };
 
-const getDriverInvoices = async (status = ["pending", "approved"]) => {
+const getDriverInvoices = async (status = ["visibleToAll", "approved"]) => {
   const { startDate, endDate } = getMonthDateRange();
 
   const driverInvoices = await DriverInvoice.find({

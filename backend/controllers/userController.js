@@ -229,7 +229,10 @@ const getAllInvoices = async (req, res) => {
         status = "approved";
         break;
     }
-    const employeeInvoices = await getEmployeeInvoices([status]);
+    const employeeInvoices = await getEmployeeInvoices([
+      status,
+      "visibleToAll",
+    ]);
 
     res.status(200).json({
       status: "Success",
@@ -246,7 +249,7 @@ const getAllInvoices = async (req, res) => {
   }
 };
 
-async function getEmployeeInvoices(status = ["pending", "approved"]) {
+async function getEmployeeInvoices(status = ["approved"]) {
   const { startDate, endDate } = getMonthDateRange();
 
   const invoices = await EmployeeInvoice.find({
