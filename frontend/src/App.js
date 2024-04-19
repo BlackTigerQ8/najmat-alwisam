@@ -41,11 +41,13 @@ import PettyCash from "./scenes/PettyCash";
 import DriversSalary from "./scenes/DriversSalary";
 import EmployeesSalary from "./scenes/EmployeesSalary";
 import AdminInvoices from "./scenes/AdminInvoices";
+import ManagerInvoices from "./scenes/ManagerInvoices";
 import ManagerDashboard from "./scenes/dashboard/ManagerDashboard";
 import Messages from "./scenes/Messages";
 import CoSpends from "./scenes/CoSpends";
 import Profits from "./scenes/Profits";
 import Income from "./scenes/Income";
+import InvoicesArchive from "./scenes/InvoiceArchive";
 
 function App() {
   const [theme, colorMode] = useMode();
@@ -125,10 +127,28 @@ function App() {
                         path="/admin-invoices"
                         element={<AdminInvoices />}
                       />
+                      <Route
+                        exact
+                        path="/archive"
+                        element={<InvoicesArchive />}
+                      />
                     </>
                   )}
                   {userRole === "Manager" && (
-                    <Route exact path="/" element={<Team />} />
+                    <>
+                      {" "}
+                      <Route exact path="/" element={<Team />} />
+                      <Route
+                        exact
+                        path="/manager-invoices"
+                        element={<ManagerInvoices />}
+                      />
+                      <Route
+                        exact
+                        path="/archive"
+                        element={<InvoicesArchive />}
+                      />
+                    </>
                   )}
                   {userRole === "Employee" && (
                     <Route exact path="/" element={<Invoices />} />

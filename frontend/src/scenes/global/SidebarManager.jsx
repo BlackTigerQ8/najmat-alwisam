@@ -221,7 +221,7 @@ const SidebarM = () => {
             />
             <Item
               title="Deduction Invoices"
-              to="/invoices"
+              to="/manager-invoices"
               icon={<ReceiptOutlinedIcon />}
               selected={selected}
               setSelected={setSelected}
@@ -257,6 +257,13 @@ const SidebarM = () => {
             <Item
               title="Notifications"
               to="/notifications"
+              icon={<NotificationsActiveOutlinedIcon />}
+              selected={selected}
+              setSelected={setSelected}
+            />
+            <Item
+              title="Invoices Archive"
+              to="/archive"
               icon={<NotificationsActiveOutlinedIcon />}
               selected={selected}
               setSelected={setSelected}

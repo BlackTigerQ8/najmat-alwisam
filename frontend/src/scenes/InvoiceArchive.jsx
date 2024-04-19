@@ -1,5 +1,5 @@
 import React, { useMemo, useEffect, useState, useCallback } from "react";
-import { Box, Button, useTheme } from "@mui/material";
+import { Box, Button, TextField, useTheme } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import { tokens } from "../theme";
 import Header from "../components/Header";
@@ -7,15 +7,18 @@ import UpdateIcon from "@mui/icons-material/Update";
 import { useSelector, useDispatch } from "react-redux";
 import { fetchDrivers } from "../redux/driversSlice";
 import { pulsar } from "ldrs";
+import useMediaQuery from "@mui/material/useMediaQuery";
 import {
   fetchInvoices,
   createDriverInvoice,
   fetchEmployeeInvoices,
 } from "../redux/invoiceSlice";
+import { Formik } from "formik";
 
-const InvoicesArchive = () => {
+const Invoices = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
+  const isNonMobile = useMediaQuery("(min-width: 600px)");
   const dispatch = useDispatch();
   const drivers = useSelector((state) => state.drivers.drivers);
   const status = useSelector((state) => state.drivers.status);
@@ -80,10 +83,12 @@ const InvoicesArchive = () => {
         );
       },
     },
+
     {
       field: "phone",
       headerName: "Phone Number",
       flex: 1,
+      justifyContent: "center",
     },
     {
       field: "idNumber",
@@ -95,48 +100,25 @@ const InvoicesArchive = () => {
     {
       field: "cash",
       headerName: "Cash",
-      editable: true,
       type: Number,
     },
     {
       field: "hour",
       headerName: "Hours",
-      editable: true,
     },
     {
       field: "mainOrder",
       headerName: "Main orders",
-      editable: true,
     },
     {
       field: "additionalOrder",
       headerName: "Additional orders",
-      editable: true,
-    },
-    {
-      field: "actions",
-      headerName: "Actions",
-      width: 150,
-      headerAlign: "center",
-      align: "center",
-      sortable: false,
-      filterable: false,
-      renderCell: (params) => {
-        return (
-          <Box display="flex" justifyContent="center">
-            <Button
-              variant="contained"
-              color="primary"
-              size="small"
-              style={{ marginRight: 8 }}
-              onClick={() => handleUpdate(params.row)}
-              startIcon={<UpdateIcon />}
-            ></Button>
-          </Box>
-        );
-      },
     },
   ];
+
+  const initialValues = {
+    InvoicesMonth: "",
+  };
 
   useEffect(() => {
     //if (status === "succeeded") {
@@ -198,6 +180,47 @@ const InvoicesArchive = () => {
   return (
     <Box m="20px">
       <Header title="INVOICES" subtitle="List of Invoice Blanaces" />
+      <Formik initialValues={initialValues} validationSchema={1} onSubmit={1}>
+        {({
+          values,
+          errors,
+          touched,
+          handleBlur,
+          handleChange,
+          handleSubmit,
+          setFieldValue,
+        }) => (
+          <form onSubmit={handleSubmit}>
+            <Box
+              display="grid"
+              gap="30px"
+              gridTemplateColumns="repeat(5, minmax(0, 1fr))"
+              sx={{
+                "& > div": { gridColumn: isNonMobile ? undefined : "span 5" },
+              }}
+            >
+              <TextField
+                fullWidth
+                variant="filled"
+                type="text"
+                label="Select Month"
+                onBlur={handleBlur}
+                onChange={handleChange}
+                value={values.InvoicesMonth}
+                name="InvoicesMonth"
+                error={!!touched.InvoicesMonth && !!errors.InvoicesMonth}
+                helperText={touched.InvoicesMonth && errors.InvoicesMonth}
+                sx={{ gridColumn: "span 3" }}
+              />
+
+              <Button type="submit" color="secondary" variant="contained">
+                Search
+              </Button>
+            </Box>
+          </form>
+        )}
+      </Formik>
+
       <Box
         mt="40px"
         height="75vh"
@@ -243,4 +266,4 @@ const InvoicesArchive = () => {
   );
 };
 
-export default InvoicesArchive;
+export default Invoices;
