@@ -408,7 +408,7 @@ function PettyCashForm({ isNonMobile }) {
   const users = useSelector((state) => state.users.users);
   const spendTypes = useSelector((state) => state.spendType.spendTypes);
   const pettyCash = useSelector((state) => state.pettyCash.pettyCash);
-
+  const filteredUsers = users.filter((user) => user.role !== "Admin");
   const dispatch = useDispatch();
 
   async function handleFormSubmit(values, options) {
@@ -477,9 +477,9 @@ function PettyCashForm({ isNonMobile }) {
                 label="Select User"
                 disabled={!!values.deductedFromDriver}
               >
-                {users.map((user) => (
+                {filteredUsers.map((user) => (
                   <MenuItem key={user._id} value={user._id}>
-                    {user.firstName} {user.lastName}
+                    {user.firstName} {user.lastName} - ({user.role})
                   </MenuItem>
                 ))}
               </Select>
