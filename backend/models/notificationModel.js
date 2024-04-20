@@ -5,14 +5,22 @@ const { USER_ROLES } = require("./userModel");
 // Deduction success => Accountant
 // Deduction failure => Sender
 
-const NOTIFICATION_TYPE = ["Deduction_Invoice", "Driver_Documents_Expiry"];
+const NOTIFICATION_TYPE = [
+  "Driver_Deduction",
+  "Driver_Documents_Expiry",
+  "Employee_Deduction",
+];
 
 const notificationSchema = new mongoose.Schema({
   driverId: {
     type: mongoose.Schema.Types.ObjectId,
-    required: true,
     ref: "Driver",
   },
+  forUserId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+  },
+  heading: { type: String },
   message: { type: String },
   additionalDetails: { type: Object },
   createdAt: {

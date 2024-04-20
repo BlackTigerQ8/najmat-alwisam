@@ -7,6 +7,7 @@ const { addSingleDriverNotifications } = require("../services/driverService");
 const { fetchCurrentMonthPettyCash } = require("./pettyCashController");
 const PettyCash = require("../models/pettyCashModel");
 const { getMonthDateRange } = require("../utils/date");
+const { uniq } = require("lodash");
 
 // @desc    Get all drivers
 // @route   GET /api/drivers
@@ -155,19 +156,28 @@ const createDriverInvoice = async (req, res) => {
     } = req.body;
 
     let status = "visibleToAll";
-    if (deductionReason && (talabatDeductionAmount || companyDeductionAmount)) {
+    let notification_recipient_role = undefined;
+
+    const isDeductionRequest =
+      deductionReason && (talabatDeductionAmount || companyDeductionAmount);
+
+    if (isDeductionRequest) {
       switch (req.user.role) {
         case "Admin":
           status = "approved";
+          notification_recipient_role = "Accountant";
           break;
         case "Manager":
           status = "pendingAdminReview";
+          notification_recipient_role = "Admin";
           break;
         case "Employee":
           status = "pendingManagerReview";
+          notification_recipient_role = "Manager";
           break;
         case "Accountant":
           status = "pendingAdminReview";
+          notification_recipient_role = "Admin";
           break;
       }
     }
@@ -201,6 +211,20 @@ const createDriverInvoice = async (req, res) => {
     });
 
     await newInvoice.save();
+
+    if (isDeductionRequest && req.user.role !== "Admin") {
+      const notification = new Notification({
+        driverId,
+        heading: `${driver.firstName} ${driver.lastName} Deduction Alert`,
+        role: [notification_recipient_role],
+        notification_type: "Driver_Deduction",
+        message: `${req.user.firstName} ${req.user.lastName} (${
+          req.user.role
+        }) has made a deduction request on ${new Date().toDateString()}`,
+      });
+
+      await notification.save();
+    }
 
     return res.status(201).json({
       status: "Success",
@@ -503,6 +527,8 @@ const updateInvoiceStatus = async (req, res) => {
   try {
     const { status } = req.body;
 
+    const isRejected = status.toLowerCase().includes("rejected");
+
     const invoice = await DriverInvoice.findByIdAndUpdate(
       req.params.id,
       { status },
@@ -510,7 +536,43 @@ const updateInvoiceStatus = async (req, res) => {
         new: true,
         runValidators: true,
       }
-    ).populate("driver");
+    )
+      .populate("driver")
+      .populate("user");
+
+    console.log("Invoice", invoice);
+
+    let notification_recipient_role = undefined;
+    switch (req.user.role) {
+      case "Admin":
+        notification_recipient_role = isRejected
+          ? [invoice.user.role]
+          : uniq(["Accountant", invoice.user.role]);
+        break;
+      case "Manager":
+        notification_recipient_role = isRejected
+          ? [invoice.user.role]
+          : ["Admin"];
+        break;
+    }
+
+    for (const role of notification_recipient_role) {
+      const notification = new Notification({
+        forUserId: role === invoice.user.role ? invoice.user._id : undefined,
+        heading: `${invoice.driver.firstName} ${invoice.driver.lastName} Deduction Alert`,
+        role: [role],
+        notification_type: "Driver_Deduction",
+        message: `${req.user.firstName} ${req.user.lastName} (${
+          req.user.role
+        }) has ${
+          isRejected ? "rejected " : "approved"
+        } deduction request on ${new Date().toDateString()}`,
+      });
+
+      console.log("notification", notification);
+
+      await notification.save();
+    }
 
     res.status(200).json({
       status: "Success",

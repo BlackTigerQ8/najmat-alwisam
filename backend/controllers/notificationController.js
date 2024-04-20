@@ -6,7 +6,7 @@ const getAllNotifications = async (req, res) => {
     const userRole = req.user.role;
     const userId = req.user.id;
 
-    const notifications = await fetchVisibleNotifications({ userRole });
+    const notifications = await fetchVisibleNotifications({ userRole, userId });
 
     const unreadNotifications = await fetchUnreadNotifications({
       userRole,
@@ -85,15 +85,15 @@ const markAllNotificationsRead = async (req, res) => {
   }
 };
 
-async function fetchVisibleNotifications({ userRole }) {
+async function fetchVisibleNotifications({ userRole, userId }) {
   return await Notification.find({
-    role: userRole,
+    $or: [{ role: userRole }, { forUserId: userId }],
     status: "visible",
   }).sort({ createdAt: -1 });
 }
 
 async function fetchUnreadNotifications({ userRole, userId }) {
-  const notifications = await fetchVisibleNotifications({ userRole });
+  const notifications = await fetchVisibleNotifications({ userRole, userId });
 
   // Fetch read notifications for the user
   const readNotifications = await ReadNotification.find({ userId });

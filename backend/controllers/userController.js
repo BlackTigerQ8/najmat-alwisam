@@ -3,7 +3,9 @@ const { Message } = require("../models/messageModel");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const EmployeeInvoice = require("../models/employeeInvoiceModel");
+const Notification = require("../models/notificationModel");
 const { getMonthDateRange } = require("../utils/date");
+const { uniq } = require("lodash");
 
 // @desc    Get all users
 // @route   GET /api/users
@@ -415,18 +417,23 @@ const createEmployeeDeductionInvoice = async (req, res) => {
     } = req.body;
 
     let status = undefined;
+    let notification_recipient_role = undefined;
     switch (req.user.role) {
       case "Admin":
         status = "approved";
+        notification_recipient_role = "Accountant";
         break;
       case "Manager":
         status = "pendingAdminReview";
+        notification_recipient_role = "Admin";
         break;
       case "Employee":
         status = "pendingManagerReview";
+        notification_recipient_role = "Manager";
         break;
       case "Accountant":
         status = "pendingAdminReview";
+        notification_recipient_role = "Admin";
         break;
     }
 
@@ -448,6 +455,19 @@ const createEmployeeDeductionInvoice = async (req, res) => {
     });
 
     await newInvoice.save();
+
+    if (req.user.role !== "Admin") {
+      const notification = new Notification({
+        heading: `${user.firstName} ${user.lastName} Deduction Alert`,
+        role: [notification_recipient_role],
+        notification_type: "Employee_Deduction",
+        message: `${req.user.firstName} ${req.user.lastName} (${
+          req.user.role
+        }) has made a deduction request on ${new Date().toDateString()}`,
+      });
+
+      await notification.save();
+    }
 
     return res.status(201).json({
       status: "Success",
@@ -523,6 +543,8 @@ const updateInvoiceStatus = async (req, res) => {
   try {
     const { status } = req.body;
 
+    const isRejected = status.toLowerCase().includes("rejected");
+
     const invoice = await EmployeeInvoice.findByIdAndUpdate(
       req.params.id,
       { status },
@@ -530,7 +552,46 @@ const updateInvoiceStatus = async (req, res) => {
         new: true,
         runValidators: true,
       }
-    ).populate("user");
+    )
+      .populate("user")
+      .populate("invoiceAddedBy");
+
+    console.log("Invoice", invoice);
+
+    let notification_recipient_role = undefined;
+    switch (req.user.role) {
+      case "Admin":
+        notification_recipient_role = isRejected
+          ? [invoice.invoiceAddedBy.role]
+          : uniq(["Accountant", invoice.invoiceAddedBy.role]);
+        break;
+      case "Manager":
+        notification_recipient_role = isRejected
+          ? [invoice.invoiceAddedBy.role]
+          : ["Admin"];
+        break;
+    }
+
+    for (const role of notification_recipient_role) {
+      const notification = new Notification({
+        forUserId:
+          role === invoice.invoiceAddedBy.role
+            ? invoice.invoiceAddedBy._id
+            : undefined,
+        heading: `${invoice.user.firstName} ${invoice.user.lastName} Deduction Alert`,
+        role: [role],
+        notification_type: "Employee_Deduction",
+        message: `${req.user.firstName} ${req.user.lastName} (${
+          req.user.role
+        }) has ${
+          isRejected ? "rejected " : "approved"
+        } deduction request on ${new Date().toDateString()}`,
+      });
+
+      console.log("notification", notification);
+
+      await notification.save();
+    }
 
     res.status(200).json({
       status: "Success",

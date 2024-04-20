@@ -44,7 +44,16 @@ async function addSingleDriverNotifications(driver) {
     healthInsuranceExpiryDate
   );
 
-  console.log("daysUntilExpiryForIdCard", daysUntilExpiryForIdCard);
+  console.log(
+    "daysUntilExpiryForIdCard=",
+    daysUntilExpiryForIdCard,
+    "daysUntilExpiryForPassport=",
+    daysUntilExpiryForPassport,
+    "daysUntilExpiryForContract=",
+    daysUntilExpiryForContract,
+    "daysUntilExpiryForInsurance=",
+    daysUntilExpiryForInsurance
+  );
 
   if (
     daysUntilExpiryForIdCard > 0 &&
@@ -91,15 +100,20 @@ async function addSingleDriverNotifications(driver) {
   }
 }
 
-async function addNotification({ driverId, fieldName, expiryDate }) {
+async function addNotification({
+  driverId,
+  fieldName,
+  expiryDate,
+  driverName,
+}) {
   const notification = new Notification({
     driverId,
-    additionalDetails: {
-      fieldName,
-      expiryDate,
-    },
+    heading: `${fieldName} Expiration Alert`,
     role: NOTIFICATION_RECIPIENTS,
     notification_type: "Driver_Documents_Expiry",
+    message: `${driverName} (Driver) ${fieldName} will expire on ${new Date(
+      expiryDate
+    ).toDateString()}`,
   });
 
   await notification.save();
