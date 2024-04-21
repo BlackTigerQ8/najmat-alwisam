@@ -586,6 +586,34 @@ const updateInvoiceStatus = async (req, res) => {
   }
 };
 
+const resetInvoices = async (req, res) => {
+  try {
+    console.log("In reset invoices method");
+    const driverInvoices = await getDriverInvoices(["visibleToAll"]);
+    console.log("visible driver invoices", driverInvoices);
+
+    for (const invoice of driverInvoices) {
+      invoice.status = "archived";
+      invoice.archivedAt = new Date();
+      invoice.archivedBy = req.user._id;
+
+      console.log("invoice", invoice);
+
+      await invoice.save();
+    }
+
+    res.status(200).json({
+      status: "Success",
+      data: "Invoices archived",
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: "Error",
+      message: error.message,
+    });
+  }
+};
+
 module.exports = {
   getAllDrivers,
   getDriver,
@@ -597,4 +625,5 @@ module.exports = {
   getDriverSalaries,
   overrideDriverSalary,
   updateInvoiceStatus,
+  resetInvoices,
 };

@@ -4,6 +4,7 @@ const {
   getAllInvoices,
   overrideDriverSalary,
   updateInvoiceStatus,
+  resetInvoices,
 } = require("../controllers/driverController");
 const { protect, restrictTo } = require("../middleware/authMiddleware");
 
@@ -23,6 +24,13 @@ router.put(
   protect,
   restrictTo("Admin", "Accountant", "Manager"),
   updateInvoiceStatus
+);
+
+router.put(
+  "/reset",
+  protect,
+  restrictTo("Admin", "Employee", "Manager"),
+  resetInvoices
 );
 
 router

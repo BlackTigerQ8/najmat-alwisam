@@ -88,6 +88,27 @@ export const updateDriverInvoice = createAsyncThunk(
   }
 );
 
+export const resetDriverInvoices = createAsyncThunk(
+  "invoice/resetDriverInvoices",
+  async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.put(
+        `${API_URL}/driver-invoice/reset`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response.data.message || error.message);
+    }
+  }
+);
+
 export const updateEmployeeInvoice = createAsyncThunk(
   "invoice/driverInvoiceStatus",
   async ({ values }) => {
@@ -225,6 +246,32 @@ const driverInvoiceSlice = createSlice({
         state.employeeInvoicesStatus = "failed";
         state.employeeInvoicesError = action.error.message;
         toast.error("Can't update a user invoice, you can try later!", {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+        });
+      })
+      .addCase(resetDriverInvoices.pending, (state) => {
+        state.status = "loading";
+      })
+      .addCase(resetDriverInvoices.fulfilled, (state, action) => {
+        state.status = "succeeded";
+        state.driverInvoices = [];
+        state.error = null;
+        toast.success("Invoices are reset successfully!", {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+        });
+      })
+      .addCase(resetDriverInvoices.rejected, (state, action) => {
+        state.status = "failed";
+        state.error = action.error.message;
+        toast.error("Can't reset a driver invoice, you can try later!", {
           position: "top-right",
           autoClose: 3000,
           hideProgressBar: false,

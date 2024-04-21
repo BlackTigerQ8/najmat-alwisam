@@ -37,6 +37,13 @@ const driverInvoiceSchema = new mongoose.Schema({
     default: "pendingManagerReview",
   },
   remarks: { type: String },
+  archivedAt: {
+    type: Date,
+  },
+  archivedBy: {
+    ref: "User",
+    type: mongoose.Schema.Types.ObjectId,
+  },
 });
 
 module.exports = mongoose.model("DriverInvoice", driverInvoiceSchema);

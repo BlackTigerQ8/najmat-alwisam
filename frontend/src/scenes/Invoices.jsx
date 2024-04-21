@@ -11,6 +11,7 @@ import {
   fetchInvoices,
   createDriverInvoice,
   fetchEmployeeInvoices,
+  resetDriverInvoices,
 } from "../redux/invoiceSlice";
 
 const InvoicesArchive = () => {
@@ -61,7 +62,11 @@ const InvoicesArchive = () => {
   }, [drivers, getInvoiceData]);
 
   const [editRowsModel, setEditRowsModel] = useState({});
-  const [selectedRowIds, setSelectedRowIds] = useState([]);
+  
+
+  const resetInvoices = useCallback(() => {
+    dispatch(resetDriverInvoices())
+  }, [dispatch])
 
   const columns = [
     {
@@ -196,6 +201,8 @@ const InvoicesArchive = () => {
     }
   };
 
+ 
+
   return (
     <Box m="20px">
       <Header title="INVOICES" subtitle="List of Invoice Blanaces" />
@@ -206,7 +213,7 @@ const InvoicesArchive = () => {
           "& > div": { gridColumn: isNonMobile ? undefined : "span 5" },
         }}
       >
-        <Button type="submit" color="secondary" variant="contained">
+        <Button onClick={resetInvoices} color="secondary" variant="contained">
           Reset
         </Button>
       </Box>
