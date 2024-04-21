@@ -26,7 +26,6 @@ const InvoicesArchive = () => {
     localStorage.getItem("token");
 
   const invoices = useSelector((state) => state.invoice?.driverInvoices || []);
-  
 
   const getInvoiceData = useCallback(
     (driverId) => {
