@@ -48,7 +48,7 @@ export const fetchArchivedInvoices = createAsyncThunk(
 );
 
 export const searchArchivedInvoices = createAsyncThunk(
-  "invoice/fetchArchivedInvoices",
+  "invoice/searchArchivedInvoices",
   async (token) => {
     try {
       const response = await axios.get(`${API_URL}/driver-invoice/archived`, {
