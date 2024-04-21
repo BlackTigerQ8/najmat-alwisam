@@ -506,6 +506,22 @@ const sendMessage = async (req, res) => {
     // Save the new message
     await newMessage.save();
 
+    for (const selectedUser of selectedUsers) {
+      const notification = new Notification({
+        forUserId: selectedUser,
+        heading: `New Message Alert`,
+        role: [req.user.role],
+        notification_type: "New_Message",
+        message: `${req.user.firstName} ${req.user.lastName} (${
+          req.user.role
+        }) has sent you a message on ${new Date().toDateString()}`,
+      });
+
+      console.log("notification", notification);
+
+      await notification.save();
+    }
+
     // Return success response if all messages are sent successfully
     res.status(200).json({
       status: "Success",

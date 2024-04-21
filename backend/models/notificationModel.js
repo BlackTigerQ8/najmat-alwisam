@@ -9,6 +9,7 @@ const NOTIFICATION_TYPE = [
   "Driver_Deduction",
   "Driver_Documents_Expiry",
   "Employee_Deduction",
+  "New_Message"
 ];
 
 const notificationSchema = new mongoose.Schema({
