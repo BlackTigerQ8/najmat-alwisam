@@ -272,14 +272,17 @@ const getAllInvoices = async (req, res) => {
   }
 };
 
-const getDriverInvoices = async (status = ["visibleToAll", "approved"]) => {
+const getDriverInvoices = async (
+  status = ["visibleToAll", "approved"],
+  { optionalStartDate, optionalEndDate }
+) => {
   const { startDate, endDate } = getMonthDateRange();
 
   const driverInvoices = await DriverInvoice.find({
     status: { $in: status },
     invoiceDate: {
-      $gte: startDate,
-      $lt: endDate,
+      $gte: optionalStartDate || startDate,
+      $lt: optionalEndDate || endDate,
     },
   }).populate("driver");
 
@@ -632,7 +635,21 @@ const fetchArchivedInvoices = async (req, res) => {
 
 const filterArchivedInvoices = async (req, res) => {
   try {
-    const driverInvoices = await getDriverInvoices(["visibleToAllArchived"]);
+    console.log("In filter archived invoices ", req.query);
+
+    const { year, month } = req.query;
+
+    if (!year || !month) {
+      throw new Error("Required parameters are missing from request params");
+    }
+
+    const startDate = new Date(year, month - 1, 1);
+    const endDate = new Date(year, month - 1, 31);
+
+    const driverInvoices = await getDriverInvoices(["visibleToAllArchived"], {
+      optionalStartDate: startDate,
+      optionalEndDate: endDate,
+    });
 
     res.status(200).json({
       status: "Success",

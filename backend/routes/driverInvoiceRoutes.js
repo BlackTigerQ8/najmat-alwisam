@@ -36,19 +36,19 @@ router.put(
 );
 
 router
-  .route("/archived")
-  .get(
-    protect,
-    restrictTo("Employee", "Admin", "Manager"),
-    fetchArchivedInvoices
-  );
-
-router
   .route("/archived/search")
   .get(
     protect,
     restrictTo("Employee", "Admin", "Manager"),
     filterArchivedInvoices
+  );
+
+router
+  .route("/archived")
+  .get(
+    protect,
+    restrictTo("Employee", "Admin", "Manager"),
+    fetchArchivedInvoices
   );
 
 router

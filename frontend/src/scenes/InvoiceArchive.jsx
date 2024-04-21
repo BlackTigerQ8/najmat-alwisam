@@ -18,7 +18,7 @@ import { Formik } from "formik";
 
 const initialValues = {
   month: "",
-  year: ""
+  year: new Date().getFullYear()
 };
 
 const searchSchema = yup.object().shape({
@@ -174,21 +174,10 @@ const Invoices = () => {
     );
   }
 
-  const handleUpdate = (row) => {
-    try {
-      const { cash, mainOrder, additionalOrder, hour } = row;
-      dispatch(
-        createDriverInvoice({
-          values: { cash, mainOrder, additionalOrder, hour, driverId: row._id },
-        })
-      );
-    } catch (error) {
-      console.error("Row does not have a valid _id field:", row);
-    }
-  };
+  
 
-  function handleSubmit(){
-    dispatch(searchArchivedInvoices())
+  function handleSubmit(values){
+    dispatch(searchArchivedInvoices(values))
   }
 
   return (

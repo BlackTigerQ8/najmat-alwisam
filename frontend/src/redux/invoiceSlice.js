@@ -49,13 +49,17 @@ export const fetchArchivedInvoices = createAsyncThunk(
 
 export const searchArchivedInvoices = createAsyncThunk(
   "invoice/searchArchivedInvoices",
-  async (token) => {
+  async (values) => {
     try {
-      const response = await axios.get(`${API_URL}/driver-invoice/archived`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const token = localStorage.getItem("token");
+      const response = await axios.get(
+        `${API_URL}/driver-invoice/archived/search?year=${values.year}&month=${values.month}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
       return response.data;
     } catch (error) {
       throw new Error(error.response.data.message || error.message);
