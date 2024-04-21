@@ -9,6 +9,7 @@ const invoiceStatus = [
   "adminRejected",
   "archived",
   "overridden",
+  "visibleToAllArchived",
 ];
 
 const driverInvoiceSchema = new mongoose.Schema({

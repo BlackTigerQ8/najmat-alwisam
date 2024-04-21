@@ -11,6 +11,8 @@ const initialState = {
   employeeInvoices: [],
   employeeInvoicesStatus: "",
   employeeInvoicesError: null,
+
+  archivedDriverInvoices: [],
 };
 
 export const fetchInvoices = createAsyncThunk(
@@ -18,6 +20,38 @@ export const fetchInvoices = createAsyncThunk(
   async (token) => {
     try {
       const response = await axios.get(`${API_URL}/driver-invoice/invoice`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response.data.message || error.message);
+    }
+  }
+);
+
+export const fetchArchivedInvoices = createAsyncThunk(
+  "invoice/fetchArchivedInvoices",
+  async (token) => {
+    try {
+      const response = await axios.get(`${API_URL}/driver-invoice/archived`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response.data.message || error.message);
+    }
+  }
+);
+
+export const searchArchivedInvoices = createAsyncThunk(
+  "invoice/fetchArchivedInvoices",
+  async (token) => {
+    try {
+      const response = await axios.get(`${API_URL}/driver-invoice/archived`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -146,6 +180,30 @@ const driverInvoiceSlice = createSlice({
         state.error = null;
       })
       .addCase(fetchInvoices.rejected, (state, action) => {
+        state.status = "failed";
+        state.error = action.error.message;
+      })
+      .addCase(fetchArchivedInvoices.pending, (state) => {
+        state.status = "loading";
+      })
+      .addCase(fetchArchivedInvoices.fulfilled, (state, action) => {
+        state.status = "succeeded";
+        state.archivedDriverInvoices = action.payload.data.driverInvoices;
+        state.error = null;
+      })
+      .addCase(fetchArchivedInvoices.rejected, (state, action) => {
+        state.status = "failed";
+        state.error = action.error.message;
+      })
+      .addCase(searchArchivedInvoices.pending, (state) => {
+        state.status = "loading";
+      })
+      .addCase(searchArchivedInvoices.fulfilled, (state, action) => {
+        state.status = "succeeded";
+        state.archivedDriverInvoices = action.payload.data.driverInvoices;
+        state.error = null;
+      })
+      .addCase(searchArchivedInvoices.rejected, (state, action) => {
         state.status = "failed";
         state.error = action.error.message;
       })

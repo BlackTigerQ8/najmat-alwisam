@@ -5,6 +5,8 @@ const {
   overrideDriverSalary,
   updateInvoiceStatus,
   resetInvoices,
+  fetchArchivedInvoices,
+  filterArchivedInvoices,
 } = require("../controllers/driverController");
 const { protect, restrictTo } = require("../middleware/authMiddleware");
 
@@ -32,6 +34,22 @@ router.put(
   restrictTo("Admin", "Employee", "Manager"),
   resetInvoices
 );
+
+router
+  .route("/archived")
+  .get(
+    protect,
+    restrictTo("Employee", "Admin", "Manager"),
+    fetchArchivedInvoices
+  );
+
+router
+  .route("/archived/search")
+  .get(
+    protect,
+    restrictTo("Employee", "Admin", "Manager"),
+    filterArchivedInvoices
+  );
 
 router
   .route("/override")

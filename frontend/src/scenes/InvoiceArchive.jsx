@@ -1,19 +1,31 @@
 import React, { useMemo, useEffect, useState, useCallback } from "react";
-import { Box, Button, TextField, useTheme } from "@mui/material";
+import { Box, Button, Select, useTheme, MenuItem, InputLabel, FormControl, TextField } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import { tokens } from "../theme";
 import Header from "../components/Header";
-import UpdateIcon from "@mui/icons-material/Update";
 import { useSelector, useDispatch } from "react-redux";
 import { fetchDrivers } from "../redux/driversSlice";
 import { pulsar } from "ldrs";
 import useMediaQuery from "@mui/material/useMediaQuery";
+import * as yup from "yup";
 import {
-  fetchInvoices,
+  fetchArchivedInvoices,
   createDriverInvoice,
   fetchEmployeeInvoices,
+  searchArchivedInvoices,
 } from "../redux/invoiceSlice";
 import { Formik } from "formik";
+
+const initialValues = {
+  month: "",
+  year: ""
+};
+
+const searchSchema = yup.object().shape({
+  month: yup.number().required("Select a month"),
+  year: yup.number().required("Select a year"),
+});
+
 
 const Invoices = () => {
   const theme = useTheme();
@@ -27,7 +39,7 @@ const Invoices = () => {
     useSelector((state) => state.drivers.token) ||
     localStorage.getItem("token");
 
-  const invoices = useSelector((state) => state.invoice?.driverInvoices || []);
+  const invoices = useSelector((state) => state.invoice?.archivedDriverInvoices || []);
 
   const getInvoiceData = useCallback(
     (driverId) => {
@@ -63,7 +75,7 @@ const Invoices = () => {
   }, [drivers, getInvoiceData]);
 
   const [editRowsModel, setEditRowsModel] = useState({});
-  const [selectedRowIds, setSelectedRowIds] = useState([]);
+  
 
   const columns = [
     {
@@ -73,7 +85,7 @@ const Invoices = () => {
     {
       field: "name",
       headerName: "Name",
-      flex: 1,
+      flex: 0.75,
       cellClassName: "name-column--cell",
       renderCell: ({ row: { firstName, lastName } }) => {
         return (
@@ -87,7 +99,6 @@ const Invoices = () => {
     {
       field: "phone",
       headerName: "Phone Number",
-      flex: 1,
       justifyContent: "center",
     },
     {
@@ -113,19 +124,18 @@ const Invoices = () => {
     {
       field: "additionalOrder",
       headerName: "Additional orders",
+      flex: 0.2
     },
   ];
 
-  const initialValues = {
-    InvoicesMonth: "",
-  };
+  
 
   useEffect(() => {
-    //if (status === "succeeded") {
+    
     dispatch(fetchDrivers(token));
-    dispatch(fetchInvoices(token));
+    dispatch(fetchArchivedInvoices(token));
     dispatch(fetchEmployeeInvoices(token));
-    //}
+    
   }, [token, dispatch]);
 
   pulsar.register();
@@ -177,18 +187,21 @@ const Invoices = () => {
     }
   };
 
+  function handleSubmit(){
+    dispatch(searchArchivedInvoices())
+  }
+
   return (
     <Box m="20px">
-      <Header title="INVOICES" subtitle="List of Invoice Blanaces" />
-      <Formik initialValues={initialValues} validationSchema={1} onSubmit={1}>
+      <Header title="Archived Invoices" subtitle="List of archived invoices" />
+      <Formik initialValues={initialValues} validationSchema={searchSchema} onSubmit={handleSubmit}>
         {({
-          values,
-          errors,
-          touched,
-          handleBlur,
-          handleChange,
-          handleSubmit,
-          setFieldValue,
+         values,
+         errors,
+         touched,
+         handleBlur,
+         handleChange,
+         handleSubmit,
         }) => (
           <form onSubmit={handleSubmit}>
             <Box
@@ -199,20 +212,49 @@ const Invoices = () => {
                 "& > div": { gridColumn: isNonMobile ? undefined : "span 5" },
               }}
             >
-              <TextField
-                fullWidth
-                variant="filled"
-                type="text"
-                label="Select Month"
-                onBlur={handleBlur}
-                onChange={handleChange}
-                value={values.InvoicesMonth}
-                name="InvoicesMonth"
-                error={!!touched.InvoicesMonth && !!errors.InvoicesMonth}
-                helperText={touched.InvoicesMonth && errors.InvoicesMonth}
-                sx={{ gridColumn: "span 3" }}
-              />
+               <FormControl
+                    fullWidth
+                    variant="filled"
+                    sx={{ gridColumn: "span 1" }}
+                  >
+                    <InputLabel htmlFor="month">
+                      Select month
+                    </InputLabel>
+              <Select
+                      label="month"
+                      value={values.month}
+                      onChange={handleChange}
+                      onBlur={handleBlur}
+                      name="month"
+                      error={
+                        !!touched.month &&
+                        !!errors.month
+                      }
+                      helperText={
+                        touched.month && errors.month
+                      }
+                    >
+                      {
+                        Array.from({ length: 12 }, (_, index) => <MenuItem value={index+1} key={index +1}>{index+1}</MenuItem>)
+                      }
+                      
+                      
+                    </Select>
+                    </FormControl>
 
+                    <TextField
+                    fullWidth
+                    variant="filled"
+                    type="number"
+                    label="Year"
+                    onBlur={handleBlur}
+                    onChange={handleChange}
+                    value={values.year}
+                    name="year"
+                    error={!!touched.year && !!errors.year}
+                    helperText={touched.year && errors.year}
+                    sx={{ gridColumn: "span 1" }}
+                  />
               <Button type="submit" color="secondary" variant="contained">
                 Search
               </Button>

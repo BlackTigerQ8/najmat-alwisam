@@ -588,16 +588,13 @@ const updateInvoiceStatus = async (req, res) => {
 
 const resetInvoices = async (req, res) => {
   try {
-    console.log("In reset invoices method");
     const driverInvoices = await getDriverInvoices(["visibleToAll"]);
     console.log("visible driver invoices", driverInvoices);
 
     for (const invoice of driverInvoices) {
-      invoice.status = "archived";
+      invoice.status = "visibleToAllArchived";
       invoice.archivedAt = new Date();
       invoice.archivedBy = req.user._id;
-
-      console.log("invoice", invoice);
 
       await invoice.save();
     }
@@ -607,6 +604,44 @@ const resetInvoices = async (req, res) => {
       data: "Invoices archived",
     });
   } catch (error) {
+    res.status(500).json({
+      status: "Error",
+      message: error.message,
+    });
+  }
+};
+
+const fetchArchivedInvoices = async (req, res) => {
+  try {
+    const driverInvoices = await getDriverInvoices(["visibleToAllArchived"]);
+
+    res.status(200).json({
+      status: "Success",
+      data: {
+        driverInvoices,
+      },
+    });
+  } catch (error) {
+    console.log("Get all archived invoice", error);
+    res.status(500).json({
+      status: "Error",
+      message: error.message,
+    });
+  }
+};
+
+const filterArchivedInvoices = async (req, res) => {
+  try {
+    const driverInvoices = await getDriverInvoices(["visibleToAllArchived"]);
+
+    res.status(200).json({
+      status: "Success",
+      data: {
+        driverInvoices,
+      },
+    });
+  } catch (error) {
+    console.log("Get all archived invoice", error);
     res.status(500).json({
       status: "Error",
       message: error.message,
@@ -626,4 +661,6 @@ module.exports = {
   overrideDriverSalary,
   updateInvoiceStatus,
   resetInvoices,
+  fetchArchivedInvoices,
+  filterArchivedInvoices,
 };
