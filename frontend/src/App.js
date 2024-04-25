@@ -216,6 +216,16 @@ function App() {
                   <Route exact path="/faq" element={<Faq />} />
                   <Route exact path="/geography" element={<Geography />} />
                   <Route exact path="/calendar" element={<Calendar />} />
+
+                  {userRole === "Employee" && (
+                    <>
+                      <Route
+                        exact
+                        path="/archive"
+                        element={<InvoicesArchive />}
+                      />
+                    </>
+                  )}
                 </>
               ) : (
                 <Route path="/login" element={<Login />} />
