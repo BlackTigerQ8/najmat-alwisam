@@ -10,22 +10,20 @@ import useMediaQuery from "@mui/material/useMediaQuery";
 import * as yup from "yup";
 import {
   fetchArchivedInvoices,
-  createDriverInvoice,
   fetchEmployeeInvoices,
   searchArchivedInvoices,
 } from "../redux/invoiceSlice";
 import { Formik } from "formik";
 
 const initialValues = {
-  month: "",
-  year: new Date().getFullYear()
+  startDate: "",
+  endDate: "",
 };
 
 const searchSchema = yup.object().shape({
-  month: yup.number().required("Select a month"),
-  year: yup.number().required("Select a year"),
+  startDate: yup.string().required("Select starting date"),
+  endDate: yup.string().required("Select ending date")
 });
-
 
 const Invoices = () => {
   const theme = useTheme();
@@ -47,6 +45,8 @@ const Invoices = () => {
         (invoice) => invoice.driver._id === driverId
       );
 
+     
+
       return driverInvoices.reduce((result, invoice) => {
         result.mainOrder = invoice.mainOrder + (result.mainOrder || 0);
         result.additionalOrder =
@@ -57,6 +57,9 @@ const Invoices = () => {
           invoice.additionalSalary + (result.additionalSalary || 0);
         result.deductionAmount =
           (invoice.deductionAmount || 0) + (result.deductionAmount || 0);
+          if(invoice.mainOrder || invoice.additionalOrder || invoice.hour || invoice.cash ){
+          result.invoiceDate = invoice.invoiceDate;
+          }
 
         return result;
       }, {});
@@ -66,11 +69,11 @@ const Invoices = () => {
 
   const driverWithInvoices = useMemo(() => {
     return drivers.map((driver) => {
-      const { cash, hour, mainOrder, additionalOrder } = getInvoiceData(
+      const { cash, hour, mainOrder, additionalOrder, invoiceDate } = getInvoiceData(
         driver._id
       );
 
-      return { ...driver, cash, hour, mainOrder, additionalOrder };
+      return { ...driver, cash, hour, mainOrder, additionalOrder, invoiceDate };
     });
   }, [drivers, getInvoiceData]);
 
@@ -125,6 +128,22 @@ const Invoices = () => {
       field: "additionalOrder",
       headerName: "Additional orders",
       flex: 0.2
+    },
+    {
+      field: "invoiceDate",
+      headerName: "Date",
+      headerAlign: "center",
+      align: "center",
+      valueFormatter: (params) => {
+
+        if(!params.value) return ""
+
+        const date = new Date(params.value);
+        const formattedDate = `${date.getDate()}/${
+          date.getMonth() + 1
+        }/${date.getFullYear()}`;
+        return formattedDate;
+      },
     },
   ];
 
@@ -183,7 +202,9 @@ const Invoices = () => {
   return (
     <Box m="20px">
       <Header title="Archived Invoices" subtitle="List of archived invoices" />
-      <Formik initialValues={initialValues} validationSchema={searchSchema} onSubmit={handleSubmit}>
+      <Formik initialValues={initialValues} 
+      validationSchema={searchSchema}
+       onSubmit={handleSubmit}>
         {({
          values,
          errors,
@@ -201,49 +222,32 @@ const Invoices = () => {
                 "& > div": { gridColumn: isNonMobile ? undefined : "span 5" },
               }}
             >
-               <FormControl
-                    fullWidth
-                    variant="filled"
-                    sx={{ gridColumn: "span 1" }}
-                  >
-                    <InputLabel htmlFor="month">
-                      Select month
-                    </InputLabel>
-              <Select
-                      label="month"
-                      value={values.month}
-                      onChange={handleChange}
-                      onBlur={handleBlur}
-                      name="month"
-                      error={
-                        !!touched.month &&
-                        !!errors.month
-                      }
-                      helperText={
-                        touched.month && errors.month
-                      }
-                    >
-                      {
-                        Array.from({ length: 12 }, (_, index) => <MenuItem value={index+1} key={index +1}>{index+1}</MenuItem>)
-                      }
-                      
-                      
-                    </Select>
-                    </FormControl>
-
-                    <TextField
-                    fullWidth
-                    variant="filled"
-                    type="number"
-                    label="Year"
-                    onBlur={handleBlur}
-                    onChange={handleChange}
-                    value={values.year}
-                    name="year"
-                    error={!!touched.year && !!errors.year}
-                    helperText={touched.year && errors.year}
-                    sx={{ gridColumn: "span 1" }}
-                  />
+              <TextField
+              fullWidth
+              variant="filled"
+              type="date"
+              label="Starting Date"
+              onBlur={handleBlur}
+              onChange={handleChange}
+              value={values.startDate}
+              name="startDate"
+              error={!!touched.startDate && !!errors.startDate}
+              helperText={touched.startDate && errors.startDate}
+              sx={{ gridColumn: "span 1" }}
+            />
+            <TextField
+              fullWidth
+              variant="filled"
+              type="date"
+              label="Ending Date"
+              onBlur={handleBlur}
+              onChange={handleChange}
+              value={values.endDate}
+              name="endDate"
+              error={!!touched.endDate && !!errors.endDate}
+              helperText={touched.endDate && errors.endDate}
+              sx={{ gridColumn: "span 1" }}
+            />
               <Button type="submit" color="secondary" variant="contained">
                 Search
               </Button>

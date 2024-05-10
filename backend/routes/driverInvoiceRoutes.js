@@ -37,7 +37,7 @@ router.put(
 
 router
   .route("/archived/search")
-  .get(
+  .post(
     protect,
     restrictTo("Employee", "Admin", "Manager"),
     filterArchivedInvoices

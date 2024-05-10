@@ -52,8 +52,9 @@ export const searchArchivedInvoices = createAsyncThunk(
   async (values) => {
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.get(
-        `${API_URL}/driver-invoice/archived/search?year=${values.year}&month=${values.month}`,
+      const response = await axios.post(
+        `${API_URL}/driver-invoice/archived/search`,
+        values,
         {
           headers: {
             Authorization: `Bearer ${token}`,

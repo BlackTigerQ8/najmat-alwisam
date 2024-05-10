@@ -45,6 +45,10 @@ const InvoicesArchive = () => {
         result.deductionAmount =
           (invoice.deductionAmount || 0) + (result.deductionAmount || 0);
 
+          if(invoice.mainOrder || invoice.additionalOrder || invoice.hour || invoice.cash ){
+          result.invoiceDate = invoice.invoiceDate;
+          }
+
         return result;
       }, {});
     },
@@ -53,11 +57,11 @@ const InvoicesArchive = () => {
 
   const driverWithInvoices = useMemo(() => {
     return drivers.map((driver) => {
-      const { cash, hour, mainOrder, additionalOrder } = getInvoiceData(
+      const { cash, hour, mainOrder, additionalOrder, invoiceDate } = getInvoiceData(
         driver._id
       );
 
-      return { ...driver, cash, hour, mainOrder, additionalOrder };
+      return { ...driver, cash, hour, mainOrder, additionalOrder,invoiceDate };
     });
   }, [drivers, getInvoiceData]);
 
@@ -73,6 +77,7 @@ const InvoicesArchive = () => {
       field: "sequenceNumber",
       headerName: "NO.",
     },
+    
     {
       field: "name",
       headerName: "Name",
@@ -118,6 +123,22 @@ const InvoicesArchive = () => {
       field: "additionalOrder",
       headerName: "Additional orders",
       editable: true,
+    },
+    {
+      field: "invoiceDate",
+      headerName: "Date",
+      headerAlign: "center",
+      align: "center",
+      valueFormatter: (params) => {
+
+        if(!params.value) return ""
+
+        const date = new Date(params.value);
+        const formattedDate = `${date.getDate()}/${
+          date.getMonth() + 1
+        }/${date.getFullYear()}`;
+        return formattedDate;
+      },
     },
     {
       field: "actions",
