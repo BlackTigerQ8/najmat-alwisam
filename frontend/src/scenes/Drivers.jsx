@@ -68,18 +68,9 @@ const Drivers = () => {
       headerName: "Car Plate Number",
     },
     {
-      field: "driverLicense",
-      headerName: "Driver License",
-    },
-    {
-      field: "workPass",
-      headerName: "Work Pass",
-    },
-    {
       field: "contractType",
       headerName: "Contract Type",
     },
-
     {
       field: "actions",
       headerName: "Actions",

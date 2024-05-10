@@ -53,17 +53,12 @@ const driverSchema = new mongoose.Schema({
     type: String,
     required: [true, "Car plate number is required"],
   },
-  carRegisteration: {
-    type: String,
-    required: [true, "Car registeration is required"],
-  },
   carRegisterationExpiryDate: {
     type: Date,
     required: [true, "Car registeration expiry date is required"],
   },
   workPass: {
     type: String,
-    required: [true, "Work pass is required"],
   },
   gasCard: {
     type: Number,

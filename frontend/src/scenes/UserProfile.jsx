@@ -111,6 +111,8 @@ const UserProfile = () => {
         if (values.uploadedFile)
           formData.append("uploadedFile", values.uploadedFile);
 
+        formData.set("email", values.email.toLowerCase());
+
         await dispatch(updateUser({ userId: userInfo._id, formData }));
       } else {
         console.error("User information is undefined or does not have _id");

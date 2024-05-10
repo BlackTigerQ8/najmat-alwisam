@@ -25,7 +25,11 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    dispatch(loginUser(credentials));
+    const lowercaseCredentials = {
+      ...credentials,
+      email: credentials.email.toLowerCase(),
+    };
+    dispatch(loginUser(lowercaseCredentials));
   };
 
   pulsar.register();
@@ -83,6 +87,7 @@ const Login = () => {
           margin="normal"
           variant="outlined"
           fullWidth
+          inputProps={{ autoCapitalize: "none" }}
           sx={{
             ".MuiTextField-root": {
               marginBottom: 2,

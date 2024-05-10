@@ -93,7 +93,12 @@ const Form = () => {
 
       Object.keys(values).forEach((key) => {
         if (key !== "uploadedFile") {
-          formData.append(key, values[key] || undefined);
+          formData.append(
+            key,
+            key === "email"
+              ? values[key].toLowerCase()
+              : values[key] || undefined
+          );
         }
       });
 

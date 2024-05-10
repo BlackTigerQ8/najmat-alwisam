@@ -41,7 +41,6 @@ const initialValues = {
   contractExpiryDate: "",
   driverLicenseExpiryDate: "",
   carPlateNumber: "",
-  carRegisteration: "",
   carRegisterationExpiryDate: "",
   workPass: "",
   gasCard: 0,
@@ -74,9 +73,8 @@ const driverSchema = yup.object().shape({
   vehicle: yup.string().required("required"),
   driverLicenseExpiryDate: yup.string().required("required"),
   carPlateNumber: yup.string().required("required"),
-  carRegisteration: yup.string().required("required"),
   carRegisterationExpiryDate: yup.string().required("required"),
-  workPass: yup.string().required("required"),
+  workPass: yup.string(),
   contractType: yup.string().required("required"),
   talabatId: yup.string().required("required"),
   mainSalary: yup.number().required("required"),
@@ -323,19 +321,6 @@ const DriverForm = () => {
                   touched.driverLicenseExpiryDate &&
                   errors.driverLicenseExpiryDate
                 }
-                sx={{ gridColumn: "span 2" }}
-              />
-              <TextField
-                fullWidth
-                variant="filled"
-                type="text"
-                label="Car Registeration"
-                onBlur={handleBlur}
-                onChange={handleChange}
-                value={values.carRegisteration}
-                name="carRegisteration"
-                error={!!touched.carRegisteration && !!errors.carRegisteration}
-                helperText={touched.carRegisteration && errors.carRegisteration}
                 sx={{ gridColumn: "span 2" }}
               />
               <TextField

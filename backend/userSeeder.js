@@ -20,7 +20,7 @@ const createRandomUsers = async () => {
       lastSequenceNumber = lastUser.sequenceNumber;
     }
 
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < 3; i++) {
       const firstName = faker.person.firstName();
       const lastName = faker.person.lastName();
       const roles = ["Accountant", "Employee", "Manager"];
@@ -81,4 +81,4 @@ const deleteAllUsers = async () => {
 };
 
 // createRandomUsers();
-deleteAllUsers();
+// deleteAllUsers();
