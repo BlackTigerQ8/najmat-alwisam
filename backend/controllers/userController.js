@@ -109,14 +109,21 @@ const updateUser = async (req, res) => {
 
     const uploadedFile = req.file;
     const filePath = uploadedFile ? uploadedFile.path : null;
-    const user = await User.findByIdAndUpdate(
-      req.params.id,
-      { ...req.body, file: filePath ?? req.body.file },
-      {
-        new: true,
-        runValidators: true,
-      }
-    );
+
+    // Prepare the updated data
+    const updateData = { ...req.body, file: filePath ?? req.body.file };
+
+    // Check if password is included in the request body and hash it
+    if (req.body.password) {
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(req.body.password, salt);
+      updateData.password = hashedPassword;
+    }
+
+    const user = await User.findByIdAndUpdate(req.params.id, updateData, {
+      new: true,
+      runValidators: true,
+    });
 
     res.status(200).json({
       status: "Success",
