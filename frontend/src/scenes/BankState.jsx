@@ -105,7 +105,9 @@ const BankState = () => {
     }, 0);
   }, [searchStatus, bankStatement, searchResults]);
 
-  console.log("totalSpends", totalSpends);
+  const totalBalance = useMemo(() => {
+    return totalDeposits - totalSpends;
+  }, [totalDeposits, totalSpends]);
 
   const columns = [
     {
@@ -435,7 +437,7 @@ const BankState = () => {
           onEditCellChange={handleCellValueChange}
         />
         <Typography variant="h4" color="secondary" mt={4}>
-          Total spends:
+          Total withdrawals :
           <strong>
             <span> {totalSpends} </span> KD
           </strong>
@@ -444,6 +446,12 @@ const BankState = () => {
           Total deposits:
           <strong>
             <span> {totalDeposits} </span> KD
+          </strong>
+        </Typography>
+        <Typography variant="h4" color="secondary" mt={4}>
+          Current Balance:
+          <strong>
+            <span> {totalBalance} </span> KD
           </strong>
         </Typography>
       </Box>

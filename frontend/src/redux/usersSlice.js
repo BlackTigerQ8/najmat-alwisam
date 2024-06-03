@@ -26,7 +26,6 @@ export const fetchSalaries = createAsyncThunk(
           Authorization: `Bearer ${token}`,
         },
       });
-
       return response.data;
     } catch (error) {
       throw new Error(error.response.data.message || error.message);

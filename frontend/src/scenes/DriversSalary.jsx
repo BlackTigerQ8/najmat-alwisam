@@ -55,6 +55,31 @@ const DriversSalary = () => {
     }, 0);
   }, [driversSalaries]);
 
+  const totalMonthlySalary = useMemo(() => {
+    return driversSalaries.reduce((total, driver) => {
+      return (
+        total +
+        Number(driver.salaryMainOrders) +
+        Number(driver.salaryAdditionalOrders)
+      );
+    }, 0);
+  }, [driversSalaries]);
+
+  const totalMonthlyDeduction = useMemo(() => {
+    return driversSalaries.reduce((total, driver) => {
+      return (
+        total +
+        Number(driver.talabatDeductionAmount) +
+        Number(driver.companyDeductionAmount) +
+        Number(driver.pettyCashDeductionAmount)
+      );
+    }, 0);
+  }, [driversSalaries]);
+
+  const totalNetSalary = useMemo(() => {
+    return totalMonthlySalary - totalMonthlyDeduction;
+  }, [totalMonthlySalary, totalMonthlyDeduction]);
+
   const columns = [
     {
       field: "sequenceNumber",
@@ -222,11 +247,6 @@ const DriversSalary = () => {
     },
   ];
 
-  let totalNetSalary = {
-    carDrivers: 150,
-    bikeDrivers: 120,
-  };
-
   const calculateColumnSum = (fieldName) => {
     return driversSalaries.reduce((total, driver) => {
       return total + (driver[fieldName] || 0);
@@ -361,11 +381,23 @@ const DriversSalary = () => {
           <Header title="NOTES" />
           <Typography color={colors.greenAccent[500]} fontSize={24}>
             Total net salary for car drivers:
-            <strong> ${netCarDriversSalary}</strong>
+            <strong> {netCarDriversSalary} KD</strong>
           </Typography>
           <Typography color={colors.greenAccent[500]} fontSize={24}>
             Total net salary for bike drivers:
-            <strong> ${netBikeDriversSalary}</strong>
+            <strong> {netBikeDriversSalary} KD</strong>
+          </Typography>
+          <Typography color={colors.greenAccent[500]} fontSize={24}>
+            Total monthly salary:
+            <strong> {totalMonthlySalary} KD</strong>
+          </Typography>
+          <Typography color={colors.greenAccent[500]} fontSize={24}>
+            Total monthly deduction:
+            <strong> {totalMonthlyDeduction} KD</strong>
+          </Typography>
+          <Typography color={colors.greenAccent[500]} fontSize={24}>
+            Total net salary:
+            <strong> {totalNetSalary} KD</strong>
           </Typography>
         </Box>
       </Box>

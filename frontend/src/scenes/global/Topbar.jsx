@@ -101,7 +101,7 @@ const Topbar = () => {
             </Badge>
           </IconButton>
         </Link>
-        {userRole === "Admin" && (
+        {(userRole === "Admin" || userRole === "Manager") && (
           <IconButton onClick={() => navigate(`/user-profile/${userId}`)}>
             <SettingsOutlinedIcon />
           </IconButton>

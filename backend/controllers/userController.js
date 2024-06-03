@@ -283,6 +283,7 @@ const getEmployeesSalary = async (_req, res) => {
         status: "Success",
         data: {
           employeeSalaries: users.map((user) => ({
+            sequenceNumber: user.sequenceNumber,
             firstName: user.firstName,
             lastName: user.lastName,
             mainSalary: user.mainSalary,
