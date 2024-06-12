@@ -258,8 +258,8 @@ const getAllInvoices = async (req, res) => {
   }
 };
 
-async function getEmployeeInvoices(status = ["approved"]) {
-  const { startDate, endDate } = getMonthDateRange();
+async function getEmployeeInvoices(status = ["approved"], customDates) {
+  const { startDate, endDate } = customDates || getMonthDateRange();
 
   const invoices = await EmployeeInvoice.find({
     status: { $in: status },
@@ -272,9 +272,16 @@ async function getEmployeeInvoices(status = ["approved"]) {
   return invoices.filter((invoice) => invoice.user);
 }
 
-const getEmployeesSalary = async (_req, res) => {
+const getEmployeesSalary = async (req, res) => {
   try {
-    const invoices = await getEmployeeInvoices();
+    const startDate = req.query.startDate || undefined;
+    const endDate = req.query.endDate || undefined;
+
+    const status =
+      startDate && endDate ? ["approved", "archived"] : ["approved"];
+    const dateFilter =
+      startDate && endDate ? { startDate, endDate } : undefined;
+    const invoices = await getEmployeeInvoices(status, dateFilter);
 
     if (!invoices.length) {
       const users = await User.find({ role: { $ne: "Admin" } });

@@ -1,5 +1,5 @@
-import React, { useEffect } from "react";
-import { Box, Button, useTheme } from "@mui/material";
+import React, { useEffect,useState } from "react";
+import { Box, Button, useTheme,TextField,FormControl,InputLabel,Select,MenuItem } from "@mui/material";
 import Header from "../components/Header";
 import { DataGrid } from "@mui/x-data-grid";
 import { tokens } from "../theme";
@@ -7,16 +7,43 @@ import UpdateIcon from "@mui/icons-material/Update";
 import { pulsar } from "ldrs";
 import { useSelector, useDispatch } from "react-redux";
 import { fetchSalaries, updateAdditionalSalary } from "../redux/usersSlice";
+import { subMonths, addMonths, startOfMonth, endOfMonth } from "date-fns";
+
+
 
 const EmployeesSalary = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const dispatch = useDispatch();
-  const users = useSelector((state) => state.users.users);
-  const filteredUsers = users.filter((user) => user.role !== "Admin");
   const status = useSelector((state) => state.user.salariesStatus);
   const salaries = useSelector((state) => state.users.salaries);
   const error = useSelector((state) => state.user.error);
+  const [startMonth, setStartMonth] = useState(new Date().getMonth());
+  const [startYear, setStartYear] = useState(new Date().getFullYear());
+  const [endMonth, setEndMonth] = useState(new Date().getMonth());
+  const [endYear, setEndYear] = useState(new Date().getFullYear());
+
+
+  console.log('startMonth=', startMonth, ', startYear=', startYear)
+  console.log('endMonth=', endMonth, ', endYear=', endYear)
+  
+  const handleStartMonthChange = (event) => {
+    setStartMonth(event.target.value);
+  };
+
+  const handleStartYearChange = (event) => {
+    setStartYear(event.target.value);
+  };
+
+  const handleEndMonthChange = (event) => {
+    setEndMonth(event.target.value);
+  };
+
+  const handleEndYearChange = (event) => {
+    setEndYear(event.target.value);
+  };
+
+  
 
   const columns = [
     {
@@ -57,8 +84,15 @@ const EmployeesSalary = () => {
       type: Number,
     },
     {
+      field: "companyDeductionAmount",
+      headerName: "Company Deduction",
+      flex: 1,
+      //editable: true, //Intentionally commented this as deductions should be done through deduction form only
+      type: Number,
+    },
+    {
       field: "totalSalary",
-      headerName: "Total Salary",
+      headerName: "Net Salary",
       flex: 1,
       renderCell: ({
         row: { additionalSalary, mainSalary, companyDeductionAmount },
@@ -77,13 +111,7 @@ const EmployeesSalary = () => {
         );
       },
     },
-    {
-      field: "companyDeductionAmount",
-      headerName: "Company Deduction",
-      flex: 1,
-      //editable: true, //Intentionally commented this as deductions should be done through deduction form only
-      type: Number,
-    },
+    
     {
       field: "deductionReason",
       headerName: "Deduction Reason",
@@ -121,6 +149,10 @@ const EmployeesSalary = () => {
         );
       },
     },
+  ];
+
+  const onSearchSubmit = async () => [
+    dispatch(fetchSalaries({ startDate: startOfMonth(new Date(startYear, startMonth)), endDate: endOfMonth(new Date(endYear, endMonth)) })),
   ];
 
   useEffect(() => {
@@ -180,6 +212,47 @@ const EmployeesSalary = () => {
   return (
     <Box m="20px">
       <Header title="EMPLOYEES SALARY" subtitle="Employees Salary Page" />
+      <Box display="flex" justifyContent="flex-end" mb={2}>
+      <FormControl sx={{ minWidth: 120, mr: 2 }}>
+          <InputLabel>Start Month</InputLabel>
+          <Select value={startMonth} onChange={handleStartMonthChange} label="Start Month">
+            {[...Array(12).keys()].map((month) => (
+              <MenuItem key={month} value={month}>
+                {new Date(0, month).toLocaleString("default", { month: "long" })}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+        <TextField
+          type="number"
+          label="Start Year"
+          value={startYear}
+          onChange={handleStartYearChange}
+          sx={{ width: 100, mr: 2 }}
+        />
+         <FormControl sx={{ minWidth: 120, mr: 2 }}>
+          <InputLabel>End Month</InputLabel>
+          <Select value={endMonth} onChange={handleEndMonthChange} label="End Month">
+            {[...Array(12).keys()].map((month) => (
+              <MenuItem key={month} value={month}>
+                {new Date(0, month).toLocaleString("default", { month: "long" })}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+        <TextField
+          type="number"
+          label="End Year"
+          value={endYear}
+          onChange={handleEndYearChange}
+          sx={{ width: 100 }}
+        />
+         <Box display="flex" sx={{ gridColumn: "span 1" }}>
+              <Button onClick={onSearchSubmit} color="secondary" variant="contained">
+                Search
+              </Button>
+            </Box>
+      </Box>
       <Box
         mt="40px"
         height="75vh"
