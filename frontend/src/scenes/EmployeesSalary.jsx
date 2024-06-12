@@ -1,5 +1,5 @@
-import React, {useRef, useEffect,useState } from "react";
-import { Box, Button, useTheme,TextField,FormControl,InputLabel,Select,MenuItem } from "@mui/material";
+import React, {useRef, useEffect,useState, useMemo } from "react";
+import { Box, Button, useTheme,TextField,FormControl,InputLabel,Select,MenuItem,Typography } from "@mui/material";
 import Header from "../components/Header";
 import { DataGrid } from "@mui/x-data-grid";
 import { tokens } from "../theme";
@@ -50,7 +50,16 @@ const EmployeesSalary = () => {
     setEndYear(event.target.value);
   };
 
-  
+  const netEmployeesSalaries = useMemo(() => {
+    return salaries.reduce((total, employee) => {
+      return (
+        total +
+        Number(employee.additionalSalary) +
+        Number(employee.mainSalary) -
+        Number(employee.companyDeductionAmount) 
+        );
+    }, 0);
+  }, [salaries]);  
 
   const columns = [
     {
@@ -299,6 +308,14 @@ const EmployeesSalary = () => {
           columns={columns}
           getRowId={(row) => row._id}
         />
+          <Box mt="20px">
+          <Header title="NOTES" />
+          <Typography color={colors.greenAccent[500]} fontSize={24}>
+            Total net salary for the employees:
+            <strong> {netEmployeesSalaries} KD</strong>
+          </Typography>
+          
+        </Box>
       </Box>
     </Box>
   );
