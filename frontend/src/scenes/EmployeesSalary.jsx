@@ -1,4 +1,4 @@
-import React, { useEffect,useState } from "react";
+import React, {useRef, useEffect,useState } from "react";
 import { Box, Button, useTheme,TextField,FormControl,InputLabel,Select,MenuItem } from "@mui/material";
 import Header from "../components/Header";
 import { DataGrid } from "@mui/x-data-grid";
@@ -7,7 +7,9 @@ import UpdateIcon from "@mui/icons-material/Update";
 import { pulsar } from "ldrs";
 import { useSelector, useDispatch } from "react-redux";
 import { fetchSalaries, updateAdditionalSalary } from "../redux/usersSlice";
-import { subMonths, addMonths, startOfMonth, endOfMonth } from "date-fns";
+import { startOfMonth, endOfMonth } from "date-fns";
+import { PrintLogo } from "./PrintLogo";
+import { useReactToPrint } from 'react-to-print';
 
 
 
@@ -22,7 +24,12 @@ const EmployeesSalary = () => {
   const [startYear, setStartYear] = useState(new Date().getFullYear());
   const [endMonth, setEndMonth] = useState(new Date().getMonth());
   const [endYear, setEndYear] = useState(new Date().getFullYear());
+  const componentRef = useRef();
 
+  const handlePrint = useReactToPrint({
+    content: () => componentRef.current,
+    documentTitle: 'Employees Salary Report',
+  });
 
   console.log('startMonth=', startMonth, ', startYear=', startYear)
   console.log('endMonth=', endMonth, ', endYear=', endYear)
@@ -252,8 +259,14 @@ const EmployeesSalary = () => {
                 Search
               </Button>
             </Box>
+            <Box display="flex" sx={{ gridColumn: "span 1" }}>
+        <Button onClick={handlePrint} color="primary" variant="contained">
+          Print
+        </Button>
+      </Box>
       </Box>
       <Box
+       ref={componentRef}
         mt="40px"
         height="75vh"
         sx={{
@@ -279,6 +292,8 @@ const EmployeesSalary = () => {
           },
         }}
       >
+
+        <PrintLogo />
         <DataGrid
           rows={Array.isArray(salaries) ? salaries : []}
           columns={columns}
