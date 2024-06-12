@@ -367,7 +367,19 @@ const getDriverSalaries = async (req, res) => {
     };
   }
 
-  const driverInvoices = await getDriverInvoices(["approved"]);
+  const startDate = req.query.startDate || undefined;
+  const endDate = req.query.endDate || undefined;
+
+  const status = startDate && endDate ? ["approved", "archived"] : ["approved"];
+  const dateFilter =
+    startDate && endDate
+      ? {
+          optionalStartDate: startDate,
+          optionalEndDate: endDate,
+        }
+      : undefined;
+
+  const driverInvoices = await getDriverInvoices(status, dateFilter);
 
   console.log("driverInvoices", driverInvoices);
 

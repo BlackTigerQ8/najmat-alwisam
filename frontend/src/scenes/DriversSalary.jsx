@@ -1,5 +1,5 @@
-import React, { useEffect, useState, useMemo } from "react";
-import { Box, Button, Typography, useTheme } from "@mui/material";
+import React, { useEffect, useState, useMemo, useRef } from "react";
+import { Box, Button, Typography, useTheme, FormControl, InputLabel, Select, MenuItem,TextField } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import { tokens } from "../theme";
 import Header from "../components/Header";
@@ -7,6 +7,9 @@ import UpdateIcon from "@mui/icons-material/Update";
 import { useSelector, useDispatch } from "react-redux";
 import { overrideDriverSalary, fetchSalaries } from "../redux/driversSlice";
 import { pulsar } from "ldrs";
+import { PrintLogo } from "./PrintLogo";
+import { useReactToPrint } from 'react-to-print';
+import { startOfMonth, endOfMonth } from "date-fns";
 
 const DriversSalary = () => {
   const theme = useTheme();
@@ -18,6 +21,36 @@ const DriversSalary = () => {
   const token =
     useSelector((state) => state.drivers.token) ||
     localStorage.getItem("token");
+    const [startMonth, setStartMonth] = useState(new Date().getMonth());
+  const [startYear, setStartYear] = useState(new Date().getFullYear());
+  const [endMonth, setEndMonth] = useState(new Date().getMonth());
+  const [endYear, setEndYear] = useState(new Date().getFullYear());
+  const componentRef = useRef();
+
+  const handlePrint = useReactToPrint({
+    content: () => componentRef.current,
+    documentTitle: 'Drivers Salary Report',
+  });
+
+  console.log('startMonth=', startMonth, ', startYear=', startYear)
+  console.log('endMonth=', endMonth, ', endYear=', endYear)
+  
+  const handleStartMonthChange = (event) => {
+    setStartMonth(event.target.value);
+  };
+
+  const handleStartYearChange = (event) => {
+    setStartYear(event.target.value);
+  };
+
+  const handleEndMonthChange = (event) => {
+    setEndMonth(event.target.value);
+  };
+
+  const handleEndYearChange = (event) => {
+    setEndYear(event.target.value);
+  };
+
 
   const [editRowsModel, setEditRowsModel] = useState({});
 
@@ -276,9 +309,9 @@ const DriversSalary = () => {
 
   useEffect(() => {
     //if (status === "succeeded") {
-    dispatch(fetchSalaries(token));
+    dispatch(fetchSalaries());
     //}
-  }, [token, dispatch]);
+  }, [ dispatch]);
 
   pulsar.register();
   if (status === "loading") {
@@ -340,12 +373,63 @@ const DriversSalary = () => {
     }
   };
 
+  const onSearchSubmit = async () => [
+    dispatch(fetchSalaries({ startDate: startOfMonth(new Date(startYear, startMonth)), endDate: endOfMonth(new Date(endYear, endMonth)) })),
+  ];
+
   return (
     <Box m="20px">
       <Header title="DRIVERS SALARY" subtitle="List of Drivers" />
+      <Box display="flex" justifyContent="flex-end" mb={2}>
+      <FormControl sx={{ minWidth: 120, mr: 2 }}>
+          <InputLabel>Start Month</InputLabel>
+          <Select value={startMonth} onChange={handleStartMonthChange} label="Start Month">
+            {[...Array(12).keys()].map((month) => (
+              <MenuItem key={month} value={month}>
+                {new Date(0, month).toLocaleString("default", { month: "long" })}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+        <TextField
+          type="number"
+          label="Start Year"
+          value={startYear}
+          onChange={handleStartYearChange}
+          sx={{ width: 100, mr: 2 }}
+        />
+         <FormControl sx={{ minWidth: 120, mr: 2 }}>
+          <InputLabel>End Month</InputLabel>
+          <Select value={endMonth} onChange={handleEndMonthChange} label="End Month">
+            {[...Array(12).keys()].map((month) => (
+              <MenuItem key={month} value={month}>
+                {new Date(0, month).toLocaleString("default", { month: "long" })}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+        <TextField
+          type="number"
+          label="End Year"
+          value={endYear}
+          onChange={handleEndYearChange}
+          sx={{ width: 100 }}
+        />
+         <Box display="flex" sx={{ gridColumn: "span 1" }}>
+              <Button onClick={onSearchSubmit} color="secondary" variant="contained">
+                Search
+              </Button>
+            </Box>
+            <Box display="flex" sx={{ gridColumn: "span 1" }}>
+        <Button onClick={handlePrint} color="primary" variant="contained">
+          Print
+        </Button>
+      </Box>
+      </Box>
       <Box
         mt="40px"
         height="75vh"
+        ref={componentRef}
         sx={{
           "& .MuiDataGrid-root": {
             border: "none",
@@ -369,6 +453,7 @@ const DriversSalary = () => {
           },
         }}
       >
+        <PrintLogo/>
         <DataGrid
           // checkboxSelection
           rows={rowsWithSum}

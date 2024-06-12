@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 import { toast } from "react-toastify";
+import { formatDate } from "../utils/dateUtil";
 
 const API_URL = process.env.REACT_APP_API_URL;
 
@@ -122,17 +123,28 @@ export const overrideDriverSalary = createAsyncThunk(
   }
 );
 
+function buildDateQueryStringParams(params) {
+  if (!params) return "";
+
+  return `?startDate=${formatDate(params.startDate)}&endDate=${formatDate(
+    params.endDate
+  )}`;
+}
+
 export const fetchSalaries = createAsyncThunk(
   "driver/fetchSalaries",
-  async () => {
+  async (params) => {
     const token = localStorage.getItem("token");
     try {
       // Inside the code where you make API requests
-      const response = await axios.get(`${API_URL}/drivers/salaries`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await axios.get(
+        `${API_URL}/drivers/salaries${buildDateQueryStringParams(params)}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
       return response.data;
     } catch (error) {
