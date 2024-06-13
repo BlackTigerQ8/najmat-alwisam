@@ -8,9 +8,9 @@ import { pulsar } from "ldrs";
 import { useSelector, useDispatch } from "react-redux";
 import { fetchSalaries, updateAdditionalSalary } from "../redux/usersSlice";
 import { startOfMonth, endOfMonth } from "date-fns";
-import { PrintLogo } from "./PrintLogo";
 import { useReactToPrint } from 'react-to-print';
-
+import PrintableTable from './PrintableTable'
+import styles from './Print.module.css'
 
 
 const EmployeesSalary = () => {
@@ -18,7 +18,7 @@ const EmployeesSalary = () => {
   const colors = tokens(theme.palette.mode);
   const dispatch = useDispatch();
   const status = useSelector((state) => state.user.salariesStatus);
-  const salaries = useSelector((state) => state.users.salaries);
+  const salaries = useSelector((state) => state.users.salaries).map((salary, index) => ({sequenceNumber:index +1,...salary}));
   const error = useSelector((state) => state.user.error);
   const [startMonth, setStartMonth] = useState(new Date().getMonth());
   const [startYear, setStartYear] = useState(new Date().getFullYear());
@@ -152,7 +152,7 @@ const EmployeesSalary = () => {
       filterable: false,
       renderCell: (params) => {
         return (
-          <Box display="flex" justifyContent="center">
+          <Box display="flex" justifyContent="center" >
             <Button
               variant="contained"
               color="primary"
@@ -263,19 +263,19 @@ const EmployeesSalary = () => {
           onChange={handleEndYearChange}
           sx={{ width: 100 }}
         />
-         <Box display="flex" sx={{ gridColumn: "span 1" }}>
+         <Box display="flex" sx={{ gridColumn: "span 1" }} marginLeft={"20px"}>
               <Button onClick={onSearchSubmit} color="secondary" variant="contained">
                 Search
               </Button>
             </Box>
-            <Box display="flex" sx={{ gridColumn: "span 1" }}>
+            <Box display="flex" sx={{ gridColumn: "span 1" }} marginLeft={"20px"}>
         <Button onClick={handlePrint} color="primary" variant="contained">
           Print
         </Button>
       </Box>
       </Box>
       <Box
-       ref={componentRef}
+       
         mt="40px"
         height="75vh"
         sx={{
@@ -302,13 +302,16 @@ const EmployeesSalary = () => {
         }}
       >
 
-        <PrintLogo />
+        
         <DataGrid
           rows={Array.isArray(salaries) ? salaries : []}
           columns={columns}
           getRowId={(row) => row._id}
+          className={styles.grid}
         />
-          <Box mt="20px">
+
+<PrintableTable rows={salaries} columns={columns} ref={componentRef} />
+          <Box mt="20px" className={styles.notes}>
           <Header title="NOTES" />
           <Typography color={colors.greenAccent[500]} fontSize={24}>
             Total net salary for the employees:

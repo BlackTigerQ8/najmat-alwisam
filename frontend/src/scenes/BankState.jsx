@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, useMemo } from "react";
+import React, { useEffect, useState, useCallback, useMemo,useRef } from "react";
 import {
   Box,
   useTheme,
@@ -23,6 +23,9 @@ import {
 } from "../redux/bankStatementSlice";
 import { Formik } from "formik";
 import useMediaQuery from "@mui/material/useMediaQuery";
+import PrintableTable from './PrintableTable'
+import { useReactToPrint } from 'react-to-print';
+import styles from './Print.module.css'
 
 const initialValues = {
   statementDate: "",
@@ -50,6 +53,13 @@ const rowSchema = yup.object().shape({
 });
 
 const BankState = () => {
+  const componentRef = useRef();
+
+  const handlePrint = useReactToPrint({
+    content: () => componentRef.current,
+    documentTitle: 'Bank statement Report',
+  });
+  
   const isNonMobile = useMediaQuery("(min-width: 600px)");
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
@@ -71,6 +81,8 @@ const BankState = () => {
     useSelector((state) => state.bankStatement.token) ||
     localStorage.getItem("token");
   const [editRowsModel, setEditRowsModel] = useState({});
+
+  
 
   const getStatementsByAccountNumber = useCallback(
     (selectedAccountNumber) => {
@@ -425,17 +437,25 @@ const BankState = () => {
             )}
           </Formik>
         </Box>
-
+ 
         <Box mb="20px">
-          <BankStatementSearchForm isNonMobile={isNonMobile} />
+          <BankStatementSearchForm isNonMobile={isNonMobile} handlePrint={handlePrint} />
         </Box>
+        <Box
+ mt="40px"
+ height="75vh"
+ >
+
+  
         <DataGrid
           rows={searchStatus ? searchResults : bankStatement}
           columns={columns}
           getRowId={(row) => row._id}
           editRowsModel={editRowsModel}
           onEditCellChange={handleCellValueChange}
+          className={styles.grid}
         />
+        <PrintableTable rows={searchStatus ? searchStatus: bankStatement} columns={columns} ref={componentRef} />
         <Typography variant="h4" color="secondary" mt={4}>
           Total withdrawals :
           <strong>
@@ -454,12 +474,15 @@ const BankState = () => {
             <span> {totalBalance} </span> KD
           </strong>
         </Typography>
+        </Box>
       </Box>
     </Box>
   );
 };
 
-export function BankStatementSearchForm({ isNonMobile }) {
+export function BankStatementSearchForm({ isNonMobile,handlePrint }) {
+
+  
   const dispatch = useDispatch();
 
   const onSearchSubmit = async (values) => [
@@ -484,10 +507,10 @@ export function BankStatementSearchForm({ isNonMobile }) {
           <Box
             display="grid"
             gap="30px"
-            gridTemplateColumns="repeat(4, minmax(0, 1fr))"
+            gridTemplateColumns="repeat(5, minmax(0, 1fr))"
             sx={{
               "& > div": {
-                gridColumn: isNonMobile ? undefined : "span 4",
+                gridColumn: isNonMobile ? undefined : "span 5",
               },
             }}
           >
@@ -547,7 +570,14 @@ export function BankStatementSearchForm({ isNonMobile }) {
                 Search
               </Button>
             </Box>
-          </Box>
+           
+            <Box display="flex" sx={{ gridColumn: "span 1" }}>
+        <Button onClick={handlePrint} color="primary" variant="contained">
+          Print
+        </Button>
+      </Box>
+      </Box>
+          
         </form>
       )}
     </Formik>

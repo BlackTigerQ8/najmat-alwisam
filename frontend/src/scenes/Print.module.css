@@ -1,0 +1,41 @@
+
+
+.logo{
+    display: none;
+    @media print {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+}
+
+.hidden{
+  display: flex;
+  @media print {
+    display: none !important;
+   
+  }
+}
+
+.table, .notes {
+  @media print {
+    margin-left: 10px;
+    margin-right: 10px;
+  }
+}
+
+.table{
+  display: none;
+  @media print {
+    display: flex;
+    height: 100%;
+    flex-direction: column;
+    gap: 20px;
+  }
+}
+
+.grid{
+  @media print {
+    display: none !important;
+  }
+}

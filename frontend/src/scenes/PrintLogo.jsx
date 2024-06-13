@@ -1,5 +1,5 @@
 import Logo from "../assets/nj-logo.png";
-import styles from './PrintLogo.module.css'
+import styles from './Print.module.css'
 
 export function PrintLogo(){
     

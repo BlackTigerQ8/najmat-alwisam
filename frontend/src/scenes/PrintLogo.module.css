@@ -1,8 +1,0 @@
-.logo{
-    display: none;
-    @media print {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-}

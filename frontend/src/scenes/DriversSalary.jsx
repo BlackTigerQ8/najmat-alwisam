@@ -7,9 +7,10 @@ import UpdateIcon from "@mui/icons-material/Update";
 import { useSelector, useDispatch } from "react-redux";
 import { overrideDriverSalary, fetchSalaries } from "../redux/driversSlice";
 import { pulsar } from "ldrs";
-import { PrintLogo } from "./PrintLogo";
 import { useReactToPrint } from 'react-to-print';
 import { startOfMonth, endOfMonth } from "date-fns";
+import PrintableTable from './PrintableTable'
+import styles from './Print.module.css'
 
 const DriversSalary = () => {
   const theme = useTheme();
@@ -415,13 +416,13 @@ const DriversSalary = () => {
           onChange={handleEndYearChange}
           sx={{ width: 100 }}
         />
-         <Box display="flex" sx={{ gridColumn: "span 1" }}>
+         <Box display="flex" sx={{ gridColumn: "span 1" }} marginLeft={"20px"}>
               <Button onClick={onSearchSubmit} color="secondary" variant="contained">
                 Search
               </Button>
             </Box>
-            <Box display="flex" sx={{ gridColumn: "span 1" }}>
-        <Button onClick={handlePrint} color="primary" variant="contained">
+            <Box display="flex" sx={{ gridColumn: "span 1" }} marginLeft={"20px"}>
+        <Button onClick={handlePrint} color="primary" variant="contained" >
           Print
         </Button>
       </Box>
@@ -429,7 +430,6 @@ const DriversSalary = () => {
       <Box
         mt="40px"
         height="75vh"
-        ref={componentRef}
         sx={{
           "& .MuiDataGrid-root": {
             border: "none",
@@ -453,7 +453,7 @@ const DriversSalary = () => {
           },
         }}
       >
-        <PrintLogo/>
+       
         <DataGrid
           // checkboxSelection
           rows={rowsWithSum}
@@ -461,8 +461,11 @@ const DriversSalary = () => {
           getRowId={(row) => row._id}
           editRowsModel={editRowsModel}
           onEditRowsModelChange={(newModel) => setEditRowsModel(newModel)}
+          className={styles.grid}
         />
-        <Box mt="20px">
+        <PrintableTable rows={rowsWithSum} columns={columns} ref={componentRef} />
+
+        <Box mt="20px"className={styles.notes}>
           <Header title="NOTES" />
           <Typography color={colors.greenAccent[500]} fontSize={24}>
             Total net salary for car drivers:
