@@ -28,6 +28,8 @@ async function addSingleDriverNotifications(driver) {
     notification_type: "Driver_Documents_Expiry",
   });
 
+  const driverName = `${driver.firstName} ${driver.lastName}`;
+
   const {
     idExpiryDate,
     passportExpiryDate,
@@ -63,6 +65,7 @@ async function addSingleDriverNotifications(driver) {
       driverId: driver._id,
       fieldName: "ID Card",
       expiryDate: idExpiryDate,
+      driverName,
     });
   }
 
@@ -74,6 +77,7 @@ async function addSingleDriverNotifications(driver) {
       driverId: driver._id,
       fieldName: "Passport",
       expiryDate: passportExpiryDate,
+      driverName,
     });
   }
 
@@ -85,6 +89,7 @@ async function addSingleDriverNotifications(driver) {
       driverId: driver._id,
       fieldName: "Contract",
       expiryDate: contractExpiryDate,
+      driverName,
     });
   }
 
@@ -96,6 +101,7 @@ async function addSingleDriverNotifications(driver) {
       driverId: driver._id,
       fieldName: "Health Insurance",
       expiryDate: healthInsuranceExpiryDate,
+      driverName,
     });
   }
 }

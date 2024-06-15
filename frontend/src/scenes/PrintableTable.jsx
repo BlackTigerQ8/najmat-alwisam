@@ -1,6 +1,7 @@
 import React, { forwardRef } from 'react';
 import {PrintLogo} from './PrintLogo';
 import styles from './Print.module.css'
+import './basePrint.css';
 
 const PrintableTable = forwardRef(({ rows, columns }, ref) => {
 
