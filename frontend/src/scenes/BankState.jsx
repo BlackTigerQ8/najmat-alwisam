@@ -1,4 +1,10 @@
-import React, { useEffect, useState, useCallback, useMemo,useRef } from "react";
+import React, {
+  useEffect,
+  useState,
+  useCallback,
+  useMemo,
+  useRef,
+} from "react";
 import {
   Box,
   useTheme,
@@ -23,9 +29,9 @@ import {
 } from "../redux/bankStatementSlice";
 import { Formik } from "formik";
 import useMediaQuery from "@mui/material/useMediaQuery";
-import PrintableTable from './PrintableTable'
-import { useReactToPrint } from 'react-to-print';
-import styles from './Print.module.css'
+import PrintableTable from "./PrintableTable";
+import { useReactToPrint } from "react-to-print";
+import styles from "./Print.module.css";
 
 const initialValues = {
   statementDate: "",
@@ -57,9 +63,9 @@ const BankState = () => {
 
   const handlePrint = useReactToPrint({
     content: () => componentRef.current,
-    documentTitle: 'Bank statement Report',
+    documentTitle: "Bank statement Report",
   });
-  
+
   const isNonMobile = useMediaQuery("(min-width: 600px)");
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
@@ -81,8 +87,6 @@ const BankState = () => {
     useSelector((state) => state.bankStatement.token) ||
     localStorage.getItem("token");
   const [editRowsModel, setEditRowsModel] = useState({});
-
-  
 
   const getStatementsByAccountNumber = useCallback(
     (selectedAccountNumber) => {
@@ -437,52 +441,52 @@ const BankState = () => {
             )}
           </Formik>
         </Box>
- 
-        <Box mb="20px">
-          <BankStatementSearchForm isNonMobile={isNonMobile} handlePrint={handlePrint} />
-        </Box>
-        <Box
- mt="40px"
- height="75vh"
- >
 
-  
-        <DataGrid
-          rows={searchStatus ? searchResults : bankStatement}
-          columns={columns}
-          getRowId={(row) => row._id}
-          editRowsModel={editRowsModel}
-          onEditCellChange={handleCellValueChange}
-          className={styles.grid}
-        />
-        <PrintableTable rows={searchStatus ? searchStatus: bankStatement} columns={columns} ref={componentRef} />
-        <Typography variant="h4" color="secondary" mt={4}>
-          Total withdrawals :
-          <strong>
-            <span> {totalSpends} </span> KD
-          </strong>
-        </Typography>
-        <Typography variant="h4" color="secondary" mt={4}>
-          Total deposits:
-          <strong>
-            <span> {totalDeposits} </span> KD
-          </strong>
-        </Typography>
-        <Typography variant="h4" color="secondary" mt={4}>
-          Current Balance:
-          <strong>
-            <span> {totalBalance} </span> KD
-          </strong>
-        </Typography>
+        <Box mb="20px">
+          <BankStatementSearchForm
+            isNonMobile={isNonMobile}
+            handlePrint={handlePrint}
+          />
+        </Box>
+        <Box mt="40px" height="75vh">
+          <DataGrid
+            rows={searchStatus ? searchResults : bankStatement}
+            columns={columns}
+            getRowId={(row) => row._id}
+            editRowsModel={editRowsModel}
+            onEditCellChange={handleCellValueChange}
+            className={styles.grid}
+          />
+          <PrintableTable
+            rows={searchStatus ? searchStatus : bankStatement}
+            columns={columns}
+            ref={componentRef}
+          />
+          <Typography variant="h4" color="secondary" mt={4}>
+            Total withdrawals :
+            <strong>
+              <span> {totalSpends} </span> KD
+            </strong>
+          </Typography>
+          <Typography variant="h4" color="secondary" mt={4}>
+            Total deposits:
+            <strong>
+              <span> {totalDeposits} </span> KD
+            </strong>
+          </Typography>
+          <Typography variant="h4" color="secondary" mt={4}>
+            Current Balance:
+            <strong>
+              <span> {totalBalance} </span> KD
+            </strong>
+          </Typography>
         </Box>
       </Box>
     </Box>
   );
 };
 
-export function BankStatementSearchForm({ isNonMobile,handlePrint }) {
-
-  
+export function BankStatementSearchForm({ isNonMobile, handlePrint }) {
   const dispatch = useDispatch();
 
   const onSearchSubmit = async (values) => [
@@ -570,14 +574,13 @@ export function BankStatementSearchForm({ isNonMobile,handlePrint }) {
                 Search
               </Button>
             </Box>
-           
+
             <Box display="flex" sx={{ gridColumn: "span 1" }}>
-        <Button onClick={handlePrint} color="primary" variant="contained">
-          Print
-        </Button>
-      </Box>
-      </Box>
-          
+              <Button onClick={handlePrint} color="primary" variant="contained">
+                Print
+              </Button>
+            </Box>
+          </Box>
         </form>
       )}
     </Formik>

@@ -1,5 +1,14 @@
 import React, { useMemo, useEffect, useState, useCallback } from "react";
-import { Box, Button, Select, useTheme, MenuItem, InputLabel, FormControl, TextField } from "@mui/material";
+import {
+  Box,
+  Button,
+  Select,
+  useTheme,
+  MenuItem,
+  InputLabel,
+  FormControl,
+  TextField,
+} from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import { tokens } from "../theme";
 import Header from "../components/Header";
@@ -22,7 +31,7 @@ const initialValues = {
 
 const searchSchema = yup.object().shape({
   startDate: yup.string().required("Select starting date"),
-  endDate: yup.string().required("Select ending date")
+  endDate: yup.string().required("Select ending date"),
 });
 
 const Invoices = () => {
@@ -37,15 +46,15 @@ const Invoices = () => {
     useSelector((state) => state.drivers.token) ||
     localStorage.getItem("token");
 
-  const invoices = useSelector((state) => state.invoice?.archivedDriverInvoices || []);
+  const invoices = useSelector(
+    (state) => state.invoice?.archivedDriverInvoices || []
+  );
 
   const getInvoiceData = useCallback(
     (driverId) => {
       const driverInvoices = invoices.filter(
         (invoice) => invoice.driver._id === driverId
       );
-
-     
 
       return driverInvoices.reduce((result, invoice) => {
         result.mainOrder = invoice.mainOrder + (result.mainOrder || 0);
@@ -57,9 +66,14 @@ const Invoices = () => {
           invoice.additionalSalary + (result.additionalSalary || 0);
         result.deductionAmount =
           (invoice.deductionAmount || 0) + (result.deductionAmount || 0);
-          if(invoice.mainOrder || invoice.additionalOrder || invoice.hour || invoice.cash ){
+        if (
+          invoice.mainOrder ||
+          invoice.additionalOrder ||
+          invoice.hour ||
+          invoice.cash
+        ) {
           result.invoiceDate = invoice.invoiceDate;
-          }
+        }
 
         return result;
       }, {});
@@ -69,16 +83,21 @@ const Invoices = () => {
 
   const driverWithInvoices = useMemo(() => {
     return drivers.map((driver) => {
-      const { cash, hour, mainOrder, additionalOrder, invoiceDate } = getInvoiceData(
-        driver._id
-      );
+      const { cash, hour, mainOrder, additionalOrder, invoiceDate } =
+        getInvoiceData(driver._id);
 
-      return { ...driver, cash, hour, mainOrder, additionalOrder, invoiceDate };
+      return {
+        ...driver,
+        cash: cash ? cash.toFixed(2) : cash,
+        hour,
+        mainOrder,
+        additionalOrder,
+        invoiceDate,
+      };
     });
   }, [drivers, getInvoiceData]);
 
   const [editRowsModel, setEditRowsModel] = useState({});
-  
 
   const columns = [
     {
@@ -127,7 +146,7 @@ const Invoices = () => {
     {
       field: "additionalOrder",
       headerName: "Additional orders",
-      flex: 0.2
+      flex: 0.2,
     },
     {
       field: "invoiceDate",
@@ -135,8 +154,7 @@ const Invoices = () => {
       headerAlign: "center",
       align: "center",
       valueFormatter: (params) => {
-
-        if(!params.value) return ""
+        if (!params.value) return "";
 
         const date = new Date(params.value);
         const formattedDate = `${date.getDate()}/${
@@ -147,14 +165,10 @@ const Invoices = () => {
     },
   ];
 
-  
-
   useEffect(() => {
-    
     dispatch(fetchDrivers(token));
     dispatch(fetchArchivedInvoices(token));
     dispatch(fetchEmployeeInvoices(token));
-    
   }, [token, dispatch]);
 
   pulsar.register();
@@ -193,25 +207,25 @@ const Invoices = () => {
     );
   }
 
-  
-
-  function handleSubmit(values){
-    dispatch(searchArchivedInvoices(values))
+  function handleSubmit(values) {
+    dispatch(searchArchivedInvoices(values));
   }
 
   return (
     <Box m="20px">
       <Header title="Archived Invoices" subtitle="List of archived invoices" />
-      <Formik initialValues={initialValues} 
-      validationSchema={searchSchema}
-       onSubmit={handleSubmit}>
+      <Formik
+        initialValues={initialValues}
+        validationSchema={searchSchema}
+        onSubmit={handleSubmit}
+      >
         {({
-         values,
-         errors,
-         touched,
-         handleBlur,
-         handleChange,
-         handleSubmit,
+          values,
+          errors,
+          touched,
+          handleBlur,
+          handleChange,
+          handleSubmit,
         }) => (
           <form onSubmit={handleSubmit}>
             <Box
@@ -223,31 +237,31 @@ const Invoices = () => {
               }}
             >
               <TextField
-              fullWidth
-              variant="filled"
-              type="date"
-              label="Starting Date"
-              onBlur={handleBlur}
-              onChange={handleChange}
-              value={values.startDate}
-              name="startDate"
-              error={!!touched.startDate && !!errors.startDate}
-              helperText={touched.startDate && errors.startDate}
-              sx={{ gridColumn: "span 1" }}
-            />
-            <TextField
-              fullWidth
-              variant="filled"
-              type="date"
-              label="Ending Date"
-              onBlur={handleBlur}
-              onChange={handleChange}
-              value={values.endDate}
-              name="endDate"
-              error={!!touched.endDate && !!errors.endDate}
-              helperText={touched.endDate && errors.endDate}
-              sx={{ gridColumn: "span 1" }}
-            />
+                fullWidth
+                variant="filled"
+                type="date"
+                label="Starting Date"
+                onBlur={handleBlur}
+                onChange={handleChange}
+                value={values.startDate}
+                name="startDate"
+                error={!!touched.startDate && !!errors.startDate}
+                helperText={touched.startDate && errors.startDate}
+                sx={{ gridColumn: "span 1" }}
+              />
+              <TextField
+                fullWidth
+                variant="filled"
+                type="date"
+                label="Ending Date"
+                onBlur={handleBlur}
+                onChange={handleChange}
+                value={values.endDate}
+                name="endDate"
+                error={!!touched.endDate && !!errors.endDate}
+                helperText={touched.endDate && errors.endDate}
+                sx={{ gridColumn: "span 1" }}
+              />
               <Button type="submit" color="secondary" variant="contained">
                 Search
               </Button>
