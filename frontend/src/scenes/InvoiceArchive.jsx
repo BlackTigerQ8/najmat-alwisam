@@ -8,7 +8,9 @@ import {
   InputLabel,
   FormControl,
   TextField,
+  IconButton,
 } from "@mui/material";
+import ClearIcon from "@mui/icons-material/Clear";
 import { DataGrid } from "@mui/x-data-grid";
 import { tokens } from "../theme";
 import Header from "../components/Header";
@@ -27,6 +29,7 @@ import { Formik } from "formik";
 const initialValues = {
   startDate: "",
   endDate: "",
+  selectedDriver: [],
 };
 
 const searchSchema = yup.object().shape({
@@ -226,6 +229,7 @@ const Invoices = () => {
           handleBlur,
           handleChange,
           handleSubmit,
+          setFieldValue,
         }) => (
           <form onSubmit={handleSubmit}>
             <Box
@@ -262,6 +266,43 @@ const Invoices = () => {
                 helperText={touched.endDate && errors.endDate}
                 sx={{ gridColumn: "span 1" }}
               />
+              <FormControl
+                fullWidth
+                sx={{ gridColumn: "span 2", position: "relative" }}
+              >
+                <InputLabel id="select-driver-label">Select Driver</InputLabel>
+                <Select
+                  labelId="select-driver-label"
+                  id="select-drivers"
+                  multiple
+                  value={values.selectedDriver || []}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  error={!!touched.selectedDriver && !!errors.selectedDriver}
+                  name="selectedDriver"
+                  label="Select Drivers"
+                >
+                  {drivers.map((driver) => (
+                    <MenuItem key={driver._id} value={driver._id}>
+                      {driver.firstName} {driver.lastName}
+                    </MenuItem>
+                  ))}
+                </Select>
+                {values.selectedDriver.length > 0 && (
+                  <IconButton
+                    onClick={() => setFieldValue("selectedDriver", [])}
+                    style={{
+                      position: "absolute",
+                      top: "50%",
+                      right: "8px",
+                      transform: "translateY(-50%)",
+                    }}
+                  >
+                    <ClearIcon />
+                  </IconButton>
+                )}
+              </FormControl>
+
               <Button type="submit" color="secondary" variant="contained">
                 Search
               </Button>

@@ -48,6 +48,7 @@ import CoSpends from "./scenes/CoSpends";
 import Profits from "./scenes/Profits";
 import Income from "./scenes/Income";
 import InvoicesArchive from "./scenes/InvoiceArchive";
+import CompanyFiles from "./scenes/CompanyFiles";
 
 function App() {
   const [theme, colorMode] = useMode();
@@ -203,6 +204,11 @@ function App() {
                     </>
                   )}
 
+                  <Route
+                    exact
+                    path="/company-files"
+                    element={<CompanyFiles />}
+                  />
                   <Route exact path="/contact" element={<Contact />} />
                   <Route exact path="/messages" element={<Messages />} />
                   <Route exact path="/bar" element={<Bar />} />

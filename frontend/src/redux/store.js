@@ -10,6 +10,7 @@ import pettyCashReducer from "./pettyCashSlice";
 import companyIncomeReducer from "./companyIncomeSlice";
 import bankStatementReducer from "./bankStatementSlice";
 import spendTypeReducer from "./spendTypeSlice";
+import companyFilesReducer from "./companyFilesSlice";
 
 const persistConfig = {
   key: "root",
@@ -26,6 +27,7 @@ const rootReducer = combineReducers({
   bankStatement: bankStatementReducer,
   spendType: spendTypeReducer,
   companyIncome: companyIncomeReducer,
+  companyFiles: companyFilesReducer,
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);

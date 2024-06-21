@@ -14,12 +14,16 @@ import {
 } from "../redux/invoiceSlice";
 import CloseOutlinedIcon from "@mui/icons-material/CloseOutlined";
 import CheckOutlinedIcon from "@mui/icons-material/CheckOutlined";
+import RemoveRedEyeOutlinedIcon from "@mui/icons-material/RemoveRedEyeOutlined";
+import { useParams } from "react-router-dom";
 
 const AdminInvoices = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const dispatch = useDispatch();
-
+  const drivers = useSelector((state) => state.drivers.drivers);
+  const params = useParams();
+  const driverInfo = drivers.find((d) => d._id === params.id);
   const driverInvoiceStatus = useSelector((state) => state.invoice.status);
   const employeeInvoiceStatus = useSelector(
     (state) => state.invoice.employeeInvoicesStatus
@@ -90,9 +94,6 @@ const AdminInvoices = () => {
 
     return combinedInvoices;
   }, [invoices, userInvoices]);
-
-  console.log("invoices", invoices);
-  console.log("userInvoices", userInvoices);
   const token =
     useSelector((state) => state.drivers.token) ||
     localStorage.getItem("token");
@@ -147,6 +148,27 @@ const AdminInvoices = () => {
       flex: 1,
     },
     {
+      field: "preview",
+      headerName: "Preview",
+      width: 150,
+      headerAlign: "center",
+      align: "center",
+      sortable: false,
+      filterable: false,
+      renderCell: (params) => {
+        return (
+          <Button
+            variant="contained"
+            color="secondary"
+            onClick={() => handleViewFile(params.row)}
+            // disabled={!params.row.uploadedFile && !driverInfo?.file}
+          >
+            <RemoveRedEyeOutlinedIcon />
+          </Button>
+        );
+      },
+    },
+    {
       field: "actions",
       headerName: "Actions",
       width: 150,
@@ -155,7 +177,6 @@ const AdminInvoices = () => {
       sortable: false,
       filterable: false,
       renderCell: (params) => {
-        console.log("params.row", params.row);
         return (
           <Box display="flex" justifyContent="center">
             <Button
@@ -171,7 +192,7 @@ const AdminInvoices = () => {
                 })
               }
               startIcon={<CloseOutlinedIcon />}
-            ></Button>
+            />
             <Button
               variant="contained"
               color="secondary"
@@ -184,7 +205,7 @@ const AdminInvoices = () => {
                 })
               }
               startIcon={<CheckOutlinedIcon />}
-            ></Button>
+            />
           </Box>
         );
       },
@@ -246,6 +267,18 @@ const AdminInvoices = () => {
       }
     } catch (error) {
       console.error("Row does not have a valid _id field:");
+    }
+  };
+
+  const handleViewFile = (values) => {
+    const fileUrl = values.uploadedFile
+      ? URL.createObjectURL(values.uploadedFile)
+      : driverInfo?.file
+      ? `${process.env.REACT_APP_API_URL}/${driverInfo.file}`
+      : null;
+
+    if (fileUrl) {
+      window.open(fileUrl, "_blank");
     }
   };
 

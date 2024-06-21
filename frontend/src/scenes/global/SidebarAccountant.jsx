@@ -261,6 +261,13 @@ const SidebarA = () => {
               selected={selected}
               setSelected={setSelected}
             />
+            <Item
+              title="Company Files"
+              to="/company-files"
+              icon={<ContactsOutlinedIcon />}
+              selected={selected}
+              setSelected={setSelected}
+            />
           </Box>
         </Menu>
       </ProSidebar>
