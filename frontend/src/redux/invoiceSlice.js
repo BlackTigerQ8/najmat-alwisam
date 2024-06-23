@@ -148,6 +148,27 @@ export const resetDriverInvoices = createAsyncThunk(
   }
 );
 
+export const resetSingleDriverInvoice = createAsyncThunk(
+  "invoice/resetSingleDriverInvoice",
+  async ({ params }) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.put(
+        `${API_URL}/driver-invoice/reset/drivers/${params.driverId}`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response.data.message || error.message);
+    }
+  }
+);
+
 export const updateEmployeeInvoice = createAsyncThunk(
   "invoice/driverInvoiceStatus",
   async ({ values }) => {
@@ -332,6 +353,34 @@ const driverInvoiceSlice = createSlice({
         });
       })
       .addCase(resetDriverInvoices.rejected, (state, action) => {
+        state.status = "failed";
+        state.error = action.error.message;
+        toast.error("Can't reset a driver invoice, you can try later!", {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+        });
+      })
+      .addCase(resetSingleDriverInvoice.pending, (state) => {
+        state.status = "loading";
+      })
+      .addCase(resetSingleDriverInvoice.fulfilled, (state, action) => {
+        state.status = "succeeded";
+        state.driverInvoices = state.driverInvoices.filter(
+          (d) => d.driver._id !== action.payload.data.driverId
+        );
+        state.error = null;
+        toast.success("Invoices are reset successfully!", {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+        });
+      })
+      .addCase(resetSingleDriverInvoice.rejected, (state, action) => {
         state.status = "failed";
         state.error = action.error.message;
         toast.error("Can't reset a driver invoice, you can try later!", {

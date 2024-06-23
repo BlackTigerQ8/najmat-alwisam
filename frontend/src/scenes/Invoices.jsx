@@ -12,7 +12,9 @@ import {
   createDriverInvoice,
   fetchEmployeeInvoices,
   resetDriverInvoices,
+  resetSingleDriverInvoice
 } from "../redux/invoiceSlice";
+import DeleteIcon from "@mui/icons-material/Delete";
 
 const InvoicesArchive = () => {
   const theme = useTheme();
@@ -159,6 +161,13 @@ const InvoicesArchive = () => {
               onClick={() => handleUpdate(params.row)}
               startIcon={<UpdateIcon />}
             ></Button>
+            <Button
+              variant="contained"
+              color="secondary"
+              size="small"
+              onClick={() => handleDelete(params.row._id)}
+              startIcon={<DeleteIcon />}
+            ></Button>
           </Box>
         );
       },
@@ -219,6 +228,15 @@ const InvoicesArchive = () => {
       );
     } catch (error) {
       console.error("Row does not have a valid _id field:", row);
+    }
+  };
+
+  const handleDelete = (driverId) => {
+    try {
+      debugger;
+      dispatch(resetSingleDriverInvoice({params:{driverId} }))
+    } catch (error) {
+      console.error("Error resetting driver");
     }
   };
 

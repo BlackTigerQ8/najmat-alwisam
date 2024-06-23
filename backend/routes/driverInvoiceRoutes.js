@@ -7,6 +7,7 @@ const {
   resetInvoices,
   fetchArchivedInvoices,
   filterArchivedInvoices,
+  resetDriverInvoices,
 } = require("../controllers/driverController");
 const { protect, restrictTo } = require("../middleware/authMiddleware");
 
@@ -26,6 +27,13 @@ router.put(
   protect,
   restrictTo("Admin", "Accountant", "Manager"),
   updateInvoiceStatus
+);
+
+router.put(
+  "/reset/drivers/:driverId",
+  protect,
+  restrictTo("Admin", "Employee", "Manager"),
+  resetDriverInvoices
 );
 
 router.put(

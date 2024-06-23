@@ -629,6 +629,41 @@ const resetInvoices = async (req, res) => {
   }
 };
 
+const resetDriverInvoices = async (req, res) => {
+  try {
+    const allDriverInvoices = await getDriverInvoices(["visibleToAll"]);
+
+    console.log("All driver invoices", allDriverInvoices);
+    const driverInvoices = allDriverInvoices.filter(
+      (invoice) => invoice.driver._id.toString() === req.params.driverId
+    );
+
+    console.log("visible driver invoices", driverInvoices);
+
+    for (const invoice of driverInvoices) {
+      invoice.status = "visibleToAllArchived";
+      invoice.archivedAt = new Date();
+      invoice.archivedBy = req.user._id;
+
+      await invoice.save();
+    }
+
+    res.status(200).json({
+      status: "Success",
+      data: {
+        driverId: req.params.driverId,
+        message: "Driver invoice archived",
+        invoicesArchived: driverInvoices,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: "Error",
+      message: error.message,
+    });
+  }
+};
+
 const fetchArchivedInvoices = async (req, res) => {
   try {
     const driverInvoices = await getDriverInvoices(["visibleToAllArchived"]);
@@ -690,4 +725,5 @@ module.exports = {
   resetInvoices,
   fetchArchivedInvoices,
   filterArchivedInvoices,
+  resetDriverInvoices,
 };
