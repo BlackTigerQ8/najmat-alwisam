@@ -53,6 +53,8 @@ const Invoices = () => {
     (state) => state.invoice?.archivedDriverInvoices || []
   );
 
+  const [selectedDriverIds, setSelectedDriverIds] = useState([])
+
   const getInvoiceData = useCallback(
     (driverId) => {
       const driverInvoices = invoices.filter(
@@ -85,7 +87,7 @@ const Invoices = () => {
   );
 
   const driverWithInvoices = useMemo(() => {
-    return drivers.map((driver) => {
+    const invoices = drivers.map((driver) => {
       const { cash, hour, mainOrder, additionalOrder, invoiceDate } =
         getInvoiceData(driver._id);
 
@@ -98,7 +100,11 @@ const Invoices = () => {
         invoiceDate,
       };
     });
-  }, [drivers, getInvoiceData]);
+
+    if(!selectedDriverIds.length) return invoices
+
+    return invoices.filter(invoice => selectedDriverIds.includes(invoice._id))
+  }, [drivers, getInvoiceData, selectedDriverIds]);
 
   const [editRowsModel, setEditRowsModel] = useState({});
 
@@ -211,8 +217,11 @@ const Invoices = () => {
   }
 
   function handleSubmit(values) {
+    setSelectedDriverIds(values.selectedDriver || [])
     dispatch(searchArchivedInvoices(values));
   }
+
+ 
 
   return (
     <Box m="20px">
