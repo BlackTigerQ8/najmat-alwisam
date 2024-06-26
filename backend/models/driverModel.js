@@ -68,13 +68,12 @@ const driverSchema = new mongoose.Schema({
     type: Date,
     required: [true, "Enter Health Insurance Expiry Date"],
   },
-  phoneSerialNumber: {
+  carType: {
     type: String,
-    required: [true, "Phone Serial Number is required"],
   },
-  phoneContractNumber: {
+  employeeCompanyNumber: {
     type: String,
-    required: [true, "Phone Contract Number is required"],
+    required: [true, "Employee Company Number is required"],
   },
   iban: {
     type: String,

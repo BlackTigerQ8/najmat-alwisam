@@ -1,5 +1,4 @@
 const mongoose = require("mongoose");
-const bcrypt = require("bcryptjs");
 const Driver = require("./models/driverModel");
 const { faker } = require("@faker-js/faker");
 const connectDB = require("./config/db.js");
@@ -76,11 +75,8 @@ const createRandomDrivers = async () => {
         min: 1000000000,
         max: 9999999999,
       });
-      const phoneSerialNumber = faker.datatype.number({
-        min: 1000000000,
-        max: 9999999999,
-      });
-      const phoneContractNumber = faker.datatype.number({
+      const carType = faker.vehicle.type();
+      const employeeCompanyNumber = faker.datatype.number({
         min: 1000000000,
         max: 9999999999,
       });
@@ -131,8 +127,8 @@ const createRandomDrivers = async () => {
         workPass,
         gasCard,
         healthInsuranceExpiryDate,
-        phoneSerialNumber,
-        phoneContractNumber,
+        carType,
+        employeeCompanyNumber,
         iban,
         vehicle,
         contractType,

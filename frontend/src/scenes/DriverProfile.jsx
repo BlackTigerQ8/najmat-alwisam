@@ -53,7 +53,7 @@ const DriverProfile = ({ driverId }) => {
     workPass: "",
     gasCard: 0,
     healthInsuranceExpiryDate: "",
-    phoneSerialNumber: "",
+    carType: "",
     iban: "",
     vehicle: "",
     contractType: "",
@@ -461,16 +461,16 @@ const DriverProfile = ({ driverId }) => {
                 fullWidth
                 variant="filled"
                 type="text"
-                label="Phone Serial Number"
+                label="Car type"
                 onBlur={handleBlur}
                 onChange={handleChange}
-                value={values.phoneSerialNumber}
-                name="phoneSerialNumber"
+                value={values.carType}
+                name="carType"
                 error={
-                  !!touched.phoneSerialNumber && !!errors.phoneSerialNumber
+                  !!touched.carType && !!errors.carType
                 }
                 helperText={
-                  touched.phoneSerialNumber && errors.phoneSerialNumber
+                  touched.carType && errors.carType
                 }
                 sx={{ gridColumn: "span 2" }}
               />
@@ -478,16 +478,16 @@ const DriverProfile = ({ driverId }) => {
                 fullWidth
                 variant="filled"
                 type="text"
-                label="Phone Contract Number"
+                label="Employee Company Number"
                 onBlur={handleBlur}
                 onChange={handleChange}
-                value={values.phoneContractNumber}
-                name="phoneContractNumber"
+                value={values.employeeCompanyNumber}
+                name="employeeCompanyNumber"
                 error={
-                  !!touched.phoneContractNumber && !!errors.phoneContractNumber
+                  !!touched.employeeCompanyNumber && !!errors.employeeCompanyNumber
                 }
                 helperText={
-                  touched.phoneContractNumber && errors.phoneContractNumber
+                  touched.employeeCompanyNumber && errors.employeeCompanyNumber
                 }
                 sx={{ gridColumn: "span 2" }}
               />

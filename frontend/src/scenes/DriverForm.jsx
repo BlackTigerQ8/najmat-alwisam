@@ -45,7 +45,7 @@ const initialValues = {
   workPass: "",
   gasCard: 0,
   healthInsuranceExpiryDate: "",
-  phoneSerialNumber: "",
+  carType: "",
   iban: "",
   vehicle: "",
   contractType: "",
@@ -81,8 +81,8 @@ const driverSchema = yup.object().shape({
   gasCard: yup.number().required("required"),
   healthInsuranceExpiryDate: yup.string().required("required"),
   iban: yup.string().required("required"),
-  phoneSerialNumber: yup.string().required("required"),
-  phoneContractNumber: yup.string().required("required"),
+  carType: yup.string(),
+  employeeCompanyNumber: yup.string().required("required"),
   uploadedFile: yup
     .mixed()
     .required("required")
@@ -404,16 +404,16 @@ const DriverForm = () => {
                 fullWidth
                 variant="filled"
                 type="text"
-                label="Phone Serial Number"
+                label="Car type"
                 onBlur={handleBlur}
                 onChange={handleChange}
-                value={values.phoneSerialNumber}
-                name="phoneSerialNumber"
+                value={values.carType}
+                name="carType"
                 error={
-                  !!touched.phoneSerialNumber && !!errors.phoneSerialNumber
+                  !!touched.carType && !!errors.carType
                 }
                 helperText={
-                  touched.phoneSerialNumber && errors.phoneSerialNumber
+                  touched.carType && errors.carType
                 }
                 sx={{ gridColumn: "span 2" }}
               />
@@ -421,16 +421,16 @@ const DriverForm = () => {
                 fullWidth
                 variant="filled"
                 type="text"
-                label="Phone Contract Number"
+                label="Employee Company Number"
                 onBlur={handleBlur}
                 onChange={handleChange}
-                value={values.phoneContractNumber}
-                name="phoneContractNumber"
+                value={values.employeeCompanyNumber}
+                name="employeeCompanyNumber"
                 error={
-                  !!touched.phoneContractNumber && !!errors.phoneContractNumber
+                  !!touched.employeeCompanyNumber && !!errors.employeeCompanyNumber
                 }
                 helperText={
-                  touched.phoneContractNumber && errors.phoneContractNumber
+                  touched.employeeCompanyNumber && errors.employeeCompanyNumber
                 }
                 sx={{ gridColumn: "span 2" }}
               />
