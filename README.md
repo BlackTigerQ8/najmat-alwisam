@@ -39,7 +39,5 @@ Builds the app for production to the `build` folder.\
 It correctly bundles React in production mode and optimizes the build for the best performance.
 
 ### Created by Eng. Abdullah Alenezi
-
-### Civil Engineer & Full Stack Developer
-
-### https://www.aaalenezi.com
+## Civil Engineer & Full Stack Developer
+## https://www.aaalenezi.com
