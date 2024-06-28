@@ -24,14 +24,6 @@ Open [http://localhost:5000](http://localhost:8000) to view it in your browser.
 admin@gmail.com (Admin)
 Password: 112233
 
-manager@gmail.com (Manager)
-Password: 123123
-
-employee@gmail.com (Employee)
-Password: 123123
-
-accountant@gmail.com (Accountant)
-Password: 123123
 
 ### `npm run build`
 
@@ -39,5 +31,5 @@ Builds the app for production to the `build` folder.\
 It correctly bundles React in production mode and optimizes the build for the best performance.
 
 ### Created by Eng. Abdullah Alenezi
-## Civil Engineer & Full Stack Developer
-## https://www.aaalenezi.com
+#### Civil Engineer & Full Stack Developer
+#### https://www.aaalenezi.com
