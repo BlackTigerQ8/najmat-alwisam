@@ -87,7 +87,7 @@ export const fetchEmployeeInvoices = createAsyncThunk(
 // Create driver invoice
 export const createDriverInvoice = createAsyncThunk(
   "invoice/createDriverInvoice",
-  async ({ values }) => {
+  async (values) => {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.post(
@@ -96,6 +96,7 @@ export const createDriverInvoice = createAsyncThunk(
         {
           headers: {
             Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data",
           },
         }
       );

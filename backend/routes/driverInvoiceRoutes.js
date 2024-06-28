@@ -10,6 +10,7 @@ const {
   resetDriverInvoices,
 } = require("../controllers/driverController");
 const { protect, restrictTo } = require("../middleware/authMiddleware");
+const { driverInvoicesUpload } = require("./uploadRoutes");
 
 const router = express.Router();
 
@@ -19,6 +20,7 @@ router
   .post(
     protect,
     restrictTo("Admin", "Manager", "Employee", "Accountant"),
+    driverInvoicesUpload.single("uploadedFile"),
     createDriverInvoice
   );
 

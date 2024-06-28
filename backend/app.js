@@ -35,6 +35,11 @@ app.use(
   express.static("uploads/drivers/contracts/Talabat")
 );
 
+app.use(
+  "/api/uploads/drivers/invoices",
+  express.static("uploads/drivers/invoices")
+);
+
 ///// MIDDLEWARE /////
 if (process.env.NODE_ENV === "development") {
   app.use(morgan("dev"));

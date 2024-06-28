@@ -45,6 +45,9 @@ const driverInvoiceSchema = new mongoose.Schema({
     ref: "User",
     type: mongoose.Schema.Types.ObjectId,
   },
+  file: {
+    type: String,
+  },
 });
 
 module.exports = mongoose.model("DriverInvoice", driverInvoiceSchema);

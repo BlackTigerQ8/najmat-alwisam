@@ -65,6 +65,7 @@ const AdminInvoices = () => {
         talabatDeductionAmount: driverInvoice.talabatDeductionAmount,
         ...driverInvoice.driver,
         type: "driver",
+        file: driverInvoice.file
       });
 
       sequenceNumber++;
@@ -87,6 +88,7 @@ const AdminInvoices = () => {
         talabatDeductionAmount: 0,
         type: "user",
         ...userInvoice.user,
+        file: userInvoice.file
       });
 
       sequenceNumber++;
@@ -156,12 +158,15 @@ const AdminInvoices = () => {
       sortable: false,
       filterable: false,
       renderCell: (params) => {
+        
+
+        if(!params.row.file) return null 
         return (
           <Button
             variant="contained"
             color="secondary"
             onClick={() => handleViewFile(params.row)}
-            // disabled={!params.row.uploadedFile && !driverInfo?.file}
+            
           >
             <RemoveRedEyeOutlinedIcon />
           </Button>
@@ -271,10 +276,9 @@ const AdminInvoices = () => {
   };
 
   const handleViewFile = (values) => {
-    const fileUrl = values.uploadedFile
-      ? URL.createObjectURL(values.uploadedFile)
-      : driverInfo?.file
-      ? `${process.env.REACT_APP_API_URL}/${driverInfo.file}`
+    debugger;
+    const fileUrl = values?.file
+      ? `${process.env.REACT_APP_API_URL}/${values?.file}`
       : null;
 
     if (fileUrl) {

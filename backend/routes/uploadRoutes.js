@@ -133,8 +133,25 @@ router.post(
   }
 );
 
+const driverInvoices = multer.diskStorage({
+  destination: (req, _file, cb) => {
+    cb(null, "./uploads/drivers/invoices");
+  },
+  filename(req, file, cb) {
+    cb(null, getUploadFileName(file));
+  },
+});
+
+const driverInvoicesUpload = multer({
+  storage: driverInvoices,
+  fileFilter: function (req, file, cb) {
+    checkPdfFileType(file, cb, "invoices");
+  },
+});
+
 module.exports = {
   contractUpload,
   driverContractUpload,
   router,
+  driverInvoicesUpload,
 };

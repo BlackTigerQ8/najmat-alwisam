@@ -220,11 +220,16 @@ const InvoicesArchive = () => {
 
   const handleUpdate = (row) => {
     try {
+      const formData = new FormData();
+      formData.append("cash",cash);
+      formData.append("mainOrder",mainOrder);
+      formData.append("additionalOrder",additionalOrder);
+      formData.append("hour",hour);
+      formData.append("driverId",row._id);
+
       const { cash, mainOrder, additionalOrder, hour } = row;
       dispatch(
-        createDriverInvoice({
-          values: { cash, mainOrder, additionalOrder, hour, driverId: row._id },
-        })
+        createDriverInvoice(formData)
       );
     } catch (error) {
       console.error("Row does not have a valid _id field:", row);

@@ -143,6 +143,10 @@ const deleteDriver = async (req, res) => {
 // @access  Private/Admin_Manager_Employee
 const createDriverInvoice = async (req, res) => {
   try {
+    const uploadedFile = req.file;
+    const filePath = uploadedFile ? uploadedFile.path : null;
+
+    console.log("filePath", filePath);
     const {
       driverId,
       hour = 0,
@@ -208,6 +212,7 @@ const createDriverInvoice = async (req, res) => {
       invoiceDate,
       user: req.user.id,
       status,
+      file: filePath,
     });
 
     await newInvoice.save();

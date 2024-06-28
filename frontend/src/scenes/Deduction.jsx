@@ -106,21 +106,30 @@ const Deduction = () => {
 
   async function handleFormSubmit(values) {
     try {
+      const formData = new FormData();
+      formData.append("uploadedFile", values.uploadedFile);
+
+      Object.keys(values).forEach((key) => {
+        if (key !== "uploadedFile" && key!== 'selectedDriver' &&values[key]) {
+          formData.append(key, values[key]);
+        }
+      });
+
+
       if (values.selectedDriver) {
+
+        formData.append("driverId", values.selectedDriver);
+        
+
         dispatch(
-          createDriverInvoice({
-            values: {
-              ...values,
-              driverId: values.selectedDriver,
-            },
-          })
+          createDriverInvoice(formData)
         );
       } else if (values.selectedUser) {
         dispatch(
           createUserInvoice({
             values: {
               ...values,
-              driverId: values.selectedDriver,
+              
             },
           })
         );
