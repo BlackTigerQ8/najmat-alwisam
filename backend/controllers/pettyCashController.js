@@ -67,8 +67,6 @@ const createPettyCash = async (req, res) => {
       .sort({ sequence: -1 })
       .limit(1);
 
-    console.log("latestPettyCash", latestPettyCash);
-
     if (!latestPettyCash) {
       if (!currentBalance)
         throw new Error(

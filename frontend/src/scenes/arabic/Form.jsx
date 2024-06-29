@@ -93,7 +93,7 @@ const Form = () => {
 
       await dispatch(registerUser(formData));
       navigate("/team");
-      console.log("clicked!!!");
+      
     } catch (error) {
       console.error("Error registering user:", error.message);
     }

@@ -32,6 +32,9 @@ const employeeInvoice = new mongoose.Schema({
     required: true,
     ref: "User",
   },
+  file: {
+    type: String,
+  },
 });
 
 module.exports = mongoose.model("EmployeeInvoice", employeeInvoice);

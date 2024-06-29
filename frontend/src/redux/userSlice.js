@@ -78,15 +78,16 @@ export const profileImage = createAsyncThunk(
 // Create user invoice
 export const createUserInvoice = createAsyncThunk(
   "user/createUserInvoice",
-  async ({ values }) => {
+  async (values) => {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.post(
-        `${API_URL}/users/${values.selectedUser}/invoice`,
+        `${API_URL}/users/${values.get("selectedUser")}/invoice`,
         values,
         {
           headers: {
             Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data",
           },
         }
       );

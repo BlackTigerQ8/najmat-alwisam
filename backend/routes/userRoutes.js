@@ -16,7 +16,7 @@ const {
   updateInvoiceStatus,
 } = require("../controllers/userController");
 const { protect, restrictTo } = require("../middleware/authMiddleware");
-const { contractUpload } = require("./uploadRoutes");
+const { contractUpload, userInvoicesUpload } = require("./uploadRoutes");
 
 const router = express.Router();
 
@@ -37,6 +37,7 @@ router
   .post(
     protect,
     restrictTo("Admin", "Manager", "Accountant", "Employee"),
+    userInvoicesUpload.single("uploadedFile"),
     createEmployeeDeductionInvoice
   );
 

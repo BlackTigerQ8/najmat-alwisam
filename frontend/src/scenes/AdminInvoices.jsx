@@ -276,7 +276,6 @@ const AdminInvoices = () => {
   };
 
   const handleViewFile = (values) => {
-    debugger;
     const fileUrl = values?.file
       ? `${process.env.REACT_APP_API_URL}/${values?.file}`
       : null;

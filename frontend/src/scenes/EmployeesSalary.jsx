@@ -31,8 +31,7 @@ const EmployeesSalary = () => {
     documentTitle: 'Employees Salary Report',
   });
 
-  console.log('startMonth=', startMonth, ', startYear=', startYear)
-  console.log('endMonth=', endMonth, ', endYear=', endYear)
+  
   
   const handleStartMonthChange = (event) => {
     setStartMonth(event.target.value);

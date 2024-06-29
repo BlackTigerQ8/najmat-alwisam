@@ -146,7 +146,6 @@ const createDriverInvoice = async (req, res) => {
     const uploadedFile = req.file;
     const filePath = uploadedFile ? uploadedFile.path : null;
 
-    console.log("filePath", filePath);
     const {
       driverId,
       hour = 0,
@@ -386,8 +385,6 @@ const getDriverSalaries = async (req, res) => {
 
   const driverInvoices = await getDriverInvoices(status, dateFilter);
 
-  console.log("driverInvoices", driverInvoices);
-
   for (const invoice of driverInvoices) {
     const {
       mainOrder = 0,
@@ -592,8 +589,6 @@ const updateInvoiceStatus = async (req, res) => {
         } deduction request on ${new Date().toDateString()}`,
       });
 
-      console.log("notification", notification);
-
       await notification.save();
     }
 
@@ -638,12 +633,9 @@ const resetDriverInvoices = async (req, res) => {
   try {
     const allDriverInvoices = await getDriverInvoices(["visibleToAll"]);
 
-    console.log("All driver invoices", allDriverInvoices);
     const driverInvoices = allDriverInvoices.filter(
       (invoice) => invoice.driver._id.toString() === req.params.driverId
     );
-
-    console.log("visible driver invoices", driverInvoices);
 
     for (const invoice of driverInvoices) {
       invoice.status = "visibleToAllArchived";

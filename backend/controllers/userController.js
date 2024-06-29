@@ -390,8 +390,6 @@ const updateEmployeeSalary = async (req, res) => {
     additionalSalary: { $gt: 0 },
   });
 
-  console.log("existingInvoice", existingInvoice);
-
   /** All invoices should be set using yesterday's date */
   const invoiceDate = new Date(currentDate.getTime() - 24 * 60 * 60 * 1000);
 
@@ -431,6 +429,9 @@ const createEmployeeDeductionInvoice = async (req, res) => {
       companyDeductionAmount = 0,
     } = req.body;
 
+    const uploadedFile = req.file;
+    const filePath = uploadedFile ? uploadedFile.path : null;
+
     let status = undefined;
     let notification_recipient_role = undefined;
     switch (req.user.role) {
@@ -467,7 +468,11 @@ const createEmployeeDeductionInvoice = async (req, res) => {
       invoiceDate,
       invoiceAddedBy: req.user.id,
       status,
+      file: filePath,
     });
+
+    const invoices = await EmployeeInvoice.find({});
+    console.log("invoices", invoices);
 
     await newInvoice.save();
 
@@ -531,8 +536,6 @@ const sendMessage = async (req, res) => {
           req.user.role
         }) has sent you a message on ${new Date().toDateString()}`,
       });
-
-      console.log("notification", notification);
 
       await notification.save();
     }
@@ -618,8 +621,6 @@ const updateInvoiceStatus = async (req, res) => {
           isRejected ? "rejected " : "approved"
         } deduction request on ${new Date().toDateString()}`,
       });
-
-      console.log("notification", notification);
 
       await notification.save();
     }

@@ -220,6 +220,7 @@ const InvoicesArchive = () => {
 
   const handleUpdate = (row) => {
     try {
+      const { cash = 0, mainOrder = 0, additionalOrder = 0, hour =0} = row;
       const formData = new FormData();
       formData.append("cash",cash);
       formData.append("mainOrder",mainOrder);
@@ -227,7 +228,7 @@ const InvoicesArchive = () => {
       formData.append("hour",hour);
       formData.append("driverId",row._id);
 
-      const { cash, mainOrder, additionalOrder, hour } = row;
+      
       dispatch(
         createDriverInvoice(formData)
       );
@@ -238,7 +239,6 @@ const InvoicesArchive = () => {
 
   const handleDelete = (driverId) => {
     try {
-      debugger;
       dispatch(resetSingleDriverInvoice({params:{driverId} }))
     } catch (error) {
       console.error("Error resetting driver");

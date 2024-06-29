@@ -37,8 +37,6 @@ async function addSingleDriverNotifications(driver) {
     healthInsuranceExpiryDate,
   } = driver;
 
-  console.log("driver", driver);
-
   const daysUntilExpiryForIdCard = daysUntilExpiry(idExpiryDate);
   const daysUntilExpiryForPassport = daysUntilExpiry(passportExpiryDate);
   const daysUntilExpiryForContract = daysUntilExpiry(contractExpiryDate);

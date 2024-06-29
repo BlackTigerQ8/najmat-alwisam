@@ -110,14 +110,14 @@ const CompanyFiles = () => {
 
   const handleUpdate = ({ id, status, type }) => {
     try {
-      console.log("Updated!");
+      
     } catch (error) {
       console.error("Row does not have a valid _id field:");
     }
   };
 
   const handleViewFile = (values) => {
-    console.log("Previewed!");
+    
   };
 
   const handleDelete = async (companyFileId) => {

@@ -91,8 +91,7 @@ const ManagerInvoices = () => {
     return combinedInvoices;
   }, [invoices, userInvoices]);
 
-  console.log("invoices", invoices);
-  console.log("userInvoices", userInvoices);
+  
   const token =
     useSelector((state) => state.drivers.token) ||
     localStorage.getItem("token");
@@ -155,7 +154,7 @@ const ManagerInvoices = () => {
       sortable: false,
       filterable: false,
       renderCell: (params) => {
-        console.log("params.row", params.row);
+        
         return (
           <Box display="flex" justifyContent="center">
             <Button

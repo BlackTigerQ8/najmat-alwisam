@@ -94,7 +94,7 @@ const PettyCash = () => {
 
   async function handleFormSubmit(values) {
     try {
-      console.log("form values", values);
+      
 
       dispatch(
         searchPettyCash({
@@ -413,7 +413,7 @@ function PettyCashForm({ isNonMobile }) {
 
   async function handleFormSubmit(values, options) {
     try {
-      console.log("on submit", options.resetForm);
+      
       dispatch(
         createPettyCash({
           values: {

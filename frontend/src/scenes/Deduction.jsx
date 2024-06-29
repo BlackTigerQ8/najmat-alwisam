@@ -24,10 +24,6 @@ import { fetchUsers } from "../redux/usersSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { createDriverInvoice } from "../redux/invoiceSlice";
 import { createUserInvoice } from "../redux/userSlice";
-import {
-  createNotification,
-  buildNotificationAlert,
-} from "../redux/notificationSlice";
 import { useParams } from "react-router-dom";
 
 const initialValues = {
@@ -126,12 +122,7 @@ const Deduction = () => {
         );
       } else if (values.selectedUser) {
         dispatch(
-          createUserInvoice({
-            values: {
-              ...values,
-              
-            },
-          })
+          createUserInvoice(formData)
         );
       }
 

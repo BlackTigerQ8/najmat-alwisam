@@ -209,10 +209,8 @@ const usersSlice = createSlice({
     builder
       .addCase(updateUser.pending, (state) => {
         state.status = "loading";
-        console.log("updateUser.pending");
       })
       .addCase(updateUser.fulfilled, (state, action) => {
-        console.log("updateUser.fulfilled");
         state.status = "succeeded";
         const updatedUser = action.payload.data.user;
         state.users = state.users.map((user) =>
