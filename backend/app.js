@@ -19,27 +19,6 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(`${__dirname}/public`));
 
-app.use("/api/uploads/images", express.static("uploads/images"));
-app.use(
-  "/api/uploads/users/contracts",
-  express.static("uploads/users/contracts")
-);
-
-app.use(
-  "/api/uploads/drivers/contracts/Others",
-  express.static("uploads/drivers/contracts/Others")
-);
-
-app.use(
-  "/api/uploads/drivers/contracts/Talabat",
-  express.static("uploads/drivers/contracts/Talabat")
-);
-
-app.use(
-  "/api/uploads/drivers/invoices",
-  express.static("uploads/drivers/invoices")
-);
-
 ///// MIDDLEWARE /////
 if (process.env.NODE_ENV === "development") {
   app.use(morgan("dev"));
