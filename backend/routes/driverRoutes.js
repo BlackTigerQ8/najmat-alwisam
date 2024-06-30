@@ -6,6 +6,9 @@ const {
   updateDriver,
   deleteDriver,
   getDriverSalaries,
+  activateDriver,
+  deactivateDriver,
+  getInactiveDrivers,
 } = require("../controllers/driverController");
 const { protect, restrictTo } = require("../middleware/authMiddleware");
 const { driverContractUpload } = require("./uploadRoutes");
@@ -25,6 +28,12 @@ router
     driverContractUpload.single("uploadedFile"),
     createDriver
   );
+
+router.route("/inactive").get(protect, getInactiveDrivers);
+
+router.route("/:driverId/inactive").put(protect, deactivateDriver);
+router.route("/:driverId/active").put(protect, activateDriver);
+
 router
   .route("/:id")
   .get(protect, getDriver)

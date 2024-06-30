@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const driverStatus = require("../constants/driverStatus");
 
 const driverSchema = new mongoose.Schema({
   sequenceNumber: {
@@ -102,6 +103,11 @@ const driverSchema = new mongoose.Schema({
     type: String,
     required: [true, "File upload is required"],
   },
+  status: {
+    type: String,
+    enum: ["active", "inactive"],
+    default: "active",
+  },
 });
 
 // Pre-save middleware to generate and assign the sequence number
@@ -120,6 +126,10 @@ driverSchema.pre("save", async function (next) {
 
       // Calculate the sequence number based on the last one in the database
       this.sequenceNumber = lastSequenceNumber + 1;
+    }
+
+    if (!this.status) {
+      this.status = driverStatus.Active;
     }
 
     next();

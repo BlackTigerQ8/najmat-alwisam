@@ -2,19 +2,40 @@ const Driver = require("../models/driverModel");
 const DriverInvoice = require("../models/driverInvoiceModel");
 const Notification = require("../models/notificationModel");
 const ReadNotification = require("../models/readNotificationModel");
-const { User } = require("../models/userModel");
-const { addSingleDriverNotifications } = require("../services/driverService");
+const { User, USER_ROLES } = require("../models/userModel");
+const {
+  addSingleDriverNotifications,
+  filterDriversByStatus,
+} = require("../services/driverService");
 const { fetchCurrentMonthPettyCash } = require("./pettyCashController");
 const PettyCash = require("../models/pettyCashModel");
 const { getMonthDateRange } = require("../utils/date");
 const { uniq } = require("lodash");
+const driverStatus = require("../constants/driverStatus");
 
 // @desc    Get all drivers
 // @route   GET /api/drivers
 // @access  Private/Admin_and_Employee
 const getAllDrivers = async (req, res) => {
   try {
-    const drivers = await Driver.find();
+    const drivers = await filterDriversByStatus();
+    res.status(200).json({
+      status: "Success",
+      data: {
+        drivers,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: "Error",
+      message: error.message,
+    });
+  }
+};
+
+const getInactiveDrivers = async (req, res) => {
+  try {
+    const drivers = await filterDriversByStatus(driverStatus.InActive);
     res.status(200).json({
       status: "Success",
       data: {
@@ -341,7 +362,7 @@ const bikeDriverSalary = (
 };
 
 const getDriverSalaries = async (req, res) => {
-  const drivers = await Driver.find({});
+  const drivers = await filterDriversByStatus();
 
   const driversData = {};
 
@@ -708,6 +729,80 @@ const filterArchivedInvoices = async (req, res) => {
   }
 };
 
+const deactivateDriver = async (req, res) => {
+  try {
+    const driver = await Driver.findByIdAndUpdate(
+      req.params.id,
+      { status: driverStatus.InActive },
+      {
+        new: true,
+        runValidators: true,
+      }
+    );
+
+    if (driver) {
+      const notification = new Notification({
+        driverId,
+        heading: `${driver.firstName} ${driver.lastName} Deactivation Alert`,
+        role: [USER_ROLES],
+        notification_type: "Driver_Status_Change",
+        message: `${req.user.firstName} ${req.user.lastName} (${
+          req.user.role
+        }) has deactivated driver on ${new Date().toDateString()}`,
+      });
+
+      await notification.save();
+    }
+
+    res.status(200).json({
+      status: "Success",
+      data: { driver },
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: "Error",
+      message: error.message,
+    });
+  }
+};
+
+const activateDriver = async (req, res) => {
+  try {
+    const driver = await Driver.findByIdAndUpdate(
+      req.params.id,
+      { status: driverStatus.Active },
+      {
+        new: true,
+        runValidators: true,
+      }
+    );
+
+    if (driver) {
+      const notification = new Notification({
+        driverId,
+        heading: `${driver.firstName} ${driver.lastName} Activation Alert`,
+        role: [USER_ROLES],
+        notification_type: "Driver_Status_Change",
+        message: `${req.user.firstName} ${req.user.lastName} (${
+          req.user.role
+        }) has activated driver on ${new Date().toDateString()}`,
+      });
+
+      await notification.save();
+    }
+
+    res.status(200).json({
+      status: "Success",
+      data: { driver },
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: "Error",
+      message: error.message,
+    });
+  }
+};
+
 module.exports = {
   getAllDrivers,
   getDriver,
@@ -723,4 +818,7 @@ module.exports = {
   fetchArchivedInvoices,
   filterArchivedInvoices,
   resetDriverInvoices,
+  getInactiveDrivers,
+  deactivateDriver,
+  activateDriver,
 };

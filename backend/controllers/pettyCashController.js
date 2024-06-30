@@ -46,6 +46,7 @@ const createPettyCash = async (req, res) => {
           "Petty cash invoice cannot be set for driver and user at the same time",
       });
 
+    /** TODO: Add check for inactive driver here */
     if (deductedFromDriver) {
       const driver = await Driver.findById(deductedFromDriver);
 

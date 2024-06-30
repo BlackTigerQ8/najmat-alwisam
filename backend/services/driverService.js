@@ -1,5 +1,6 @@
 const Driver = require("../models/driverModel");
 const Notification = require("../models/notificationModel");
+const driverStatus = require("../constants/driverStatus");
 
 const NOTIFICATION_THRESHOLD_FOR_EXPIRY = 14;
 const NOTIFICATION_RECIPIENTS = ["Admin", "Manager", "Employee"];
@@ -123,7 +124,14 @@ async function addNotification({
   await notification.save();
 }
 
+async function filterDriversByStatus(status = driverStatus.Active) {
+  const drivers = await Driver.find({ status });
+
+  return drivers;
+}
+
 module.exports = {
   addAllDriversNotifications,
   addSingleDriverNotifications,
+  filterDriversByStatus,
 };

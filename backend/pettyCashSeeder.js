@@ -2,9 +2,9 @@ const mongoose = require("mongoose");
 const PettyCash = require("./models/pettyCashModel");
 const { faker } = require("@faker-js/faker");
 const connectDB = require("./config/db.js");
-const Driver = require("./models/driverModel.js");
 const { User } = require("./models/userModel.js");
 const SpendType = require("./models/spendTypeModel.js");
+const { filterDriversByStatus } = require("./services/driverService.js");
 
 const deleteAllPettyCash = async () => {
   try {
@@ -35,7 +35,7 @@ const createRandomPettyCash = async () => {
       lastSerialNumber = sequence + 1;
     }
 
-    const drivers = await Driver.find();
+    const drivers = await filterDriversByStatus();
     const spendTypes = await SpendType.find();
 
     for (let i = 0; i < 10; i++) {
