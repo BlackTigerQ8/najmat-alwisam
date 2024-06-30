@@ -31,9 +31,9 @@ const CompanyFiles = () => {
   const isNonMobile = useMediaQuery("(min-width: 600px)");
   const dispatch = useDispatch();
 
-  const status = useSelector((state) => state.companyFile.status);
-  const error = useSelector((state) => state.companyFile.error);
-  const companyFiles = useSelector((state) => state.companyFile.companyFiles);
+  const status = useSelector((state) => state.companyFiles.status);
+  const error = useSelector((state) => state.companyFiles.error);
+  const companyFiles = useSelector((state) => state.companyFiles.companyFiles) ||[];
 
   const token = localStorage.getItem("token");
 

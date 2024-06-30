@@ -11,6 +11,7 @@ const pettyCash = require("./routes/pettyCashRoutes");
 const companyIncomeRoutes = require("./routes/companyIncomeRoutes");
 const bankStatement = require("./routes/bankStatementRoutes");
 const spendTypeRoutes = require("./routes/spendTypeRoutes");
+const companyFilesRoutes = require("./routes/companyFilesRoutes");
 
 const app = express();
 app.use(cors());
@@ -38,5 +39,6 @@ app.use("/api/petty-cash", pettyCash);
 app.use("/api/bank-statement", bankStatement);
 app.use("/api/spend-types", spendTypeRoutes);
 app.use("/api/company-income", companyIncomeRoutes);
+app.use("/api/company-files", companyFilesRoutes);
 
 module.exports = app;

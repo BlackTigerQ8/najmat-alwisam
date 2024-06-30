@@ -1,16 +1,16 @@
-const companyFile = require("../models/companyFilesModel");
+const CompanyFiles = require("../models/companyFilesModel");
 
 // @desc    Get a Company File
 // @route   GET /api/company-files
 // @access  Private/All
 const getAllCompanyFiles = async (req, res) => {
   try {
-    const companyFile = await CompanyFiles.find();
+    const companyFiles = await CompanyFiles.find({});
 
     res.status(200).json({
       status: "Success",
       data: {
-        companyFile,
+        companyFiles,
       },
     });
   } catch (error) {
