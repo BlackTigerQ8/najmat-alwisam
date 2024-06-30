@@ -4,11 +4,18 @@ const multer = require("multer");
 const router = express.Router();
 const { User } = require("../models/userModel");
 const { protect } = require("../middleware/authMiddleware");
+const iconv = require("iconv-lite");
 
-const getUploadFileName = (file) =>
-  `${Date.now()}-${path.parse(file.originalname).name}${path.extname(
-    file.originalname
+const getUploadFileName = (file) => {
+  const originalName = iconv.decode(
+    Buffer.from(file.originalname, "binary"),
+    "utf8"
+  );
+
+  return `${Date.now()}-${path.parse(originalName).name}${path.extname(
+    originalName
   )}`;
+};
 
 const talabatStorage = multer.diskStorage({
   destination: "./uploads/drivers/contracts/Talabat",
