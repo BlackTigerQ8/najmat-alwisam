@@ -6,6 +6,7 @@ import LightModeOutlinedIcon from "@mui/icons-material/LightModeOutlined";
 import DarkModeOutlinedIcon from "@mui/icons-material/DarkModeOutlined";
 import NotificationsOutlinedIcon from "@mui/icons-material/NotificationsOutlined";
 import SettingsOutlinedIcon from "@mui/icons-material/SettingsOutlined";
+import TranslateOutlinedIcon from "@mui/icons-material/TranslateOutlined";
 import PersonOutlinedIcon from "@mui/icons-material/PersonOutlined";
 import SearchIcon from "@mui/icons-material/Search";
 import { ColorModeContext, tokens } from "../../theme";
@@ -15,6 +16,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { getUserRoleFromToken } from "./getUserRoleFromToken";
 import { fetchNotifications } from "../../redux/notificationSlice";
 import Logo from "../../assets/nj-logo2.png";
+import { useTranslation } from "react-i18next";
 
 const Topbar = () => {
   const theme = useTheme();
@@ -27,10 +29,25 @@ const Topbar = () => {
 
   const notificationsCount = useSelector((state) => state.notifications.count);
   const dispatch = useDispatch();
-
+  const { t, i18n } = useTranslation();
+  const [languageAnchorEl, setLanguageAnchorEl] = useState(null);
+  const [profileAnchorEl, setProfileAnchorEl] = useState(null);
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
   const intervalRef = useRef(null);
+
+  const handleLanguageMenu = (event) => {
+    setLanguageAnchorEl(event.currentTarget);
+  };
+
+  const handleCloseLanguageMenu = () => {
+    setLanguageAnchorEl(null);
+  };
+
+  const toggleLanguage = (language) => {
+    i18n.changeLanguage(language);
+    handleCloseLanguageMenu();
+  };
 
   useEffect(() => {
     dispatch(fetchNotifications());
@@ -83,6 +100,20 @@ const Topbar = () => {
 
       {/* ICONS */}
       <Box display="flex">
+        {/* Language Menu */}
+        <IconButton onClick={handleLanguageMenu}>
+          <TranslateOutlinedIcon />
+        </IconButton>
+        <Menu
+          anchorEl={languageAnchorEl}
+          open={Boolean(languageAnchorEl)}
+          onClose={handleCloseLanguageMenu}
+        >
+          <MenuItem onClick={() => toggleLanguage("en")}>English</MenuItem>
+          <MenuItem onClick={() => toggleLanguage("ar")}>العربية</MenuItem>
+        </Menu>
+
+        {/* Dark/Light Mode Toggle */}
         <IconButton onClick={colorMode.toggleColorMode}>
           {theme.palette.mode === "dark" ? (
             <DarkModeOutlinedIcon />
@@ -124,7 +155,7 @@ const Topbar = () => {
           onClose={handleClose}
         >
           {/* <MenuItem onClick={handleProfileClick}>Profile</MenuItem> */}
-          <MenuItem onClick={handleLogout}>Logout</MenuItem>
+          <MenuItem onClick={handleLogout}>{t("logout")}</MenuItem>
         </Menu>
       </Box>
     </Box>

@@ -25,6 +25,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { createDriverInvoice } from "../redux/invoiceSlice";
 import { createUserInvoice } from "../redux/userSlice";
 import { useParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 const initialValues = {
   deductionReason: "",
@@ -94,6 +95,7 @@ const Deduction = () => {
     localStorage.getItem("token");
   const status = useSelector((state) => state.drivers.status);
   const error = useSelector((state) => state.drivers.error);
+  const { t } = useTranslation();
 
   useEffect(() => {
     dispatch(fetchDrivers(token));
@@ -106,24 +108,17 @@ const Deduction = () => {
       formData.append("uploadedFile", values.uploadedFile);
 
       Object.keys(values).forEach((key) => {
-        if (key !== "uploadedFile" && key!== 'selectedDriver' &&values[key]) {
+        if (key !== "uploadedFile" && key !== "selectedDriver" && values[key]) {
           formData.append(key, values[key]);
         }
       });
 
-
       if (values.selectedDriver) {
-
         formData.append("driverId", values.selectedDriver);
-        
 
-        dispatch(
-          createDriverInvoice(formData)
-        );
+        dispatch(createDriverInvoice(formData));
       } else if (values.selectedUser) {
-        dispatch(
-          createUserInvoice(formData)
-        );
+        dispatch(createUserInvoice(formData));
       }
 
       // TODO: Uncomment this later
@@ -177,10 +172,7 @@ const Deduction = () => {
 
   return (
     <Box m="20px">
-      <Header
-        title="DEDUCT SALARY"
-        subtitle="Deduct Salary from Employee/Driver"
-      />
+      <Header title={t("deductionTitle")} subtitle={t("deductionSubtitle")} />
       <Formik
         initialValues={initialValues}
         validationSchema={userSchema}

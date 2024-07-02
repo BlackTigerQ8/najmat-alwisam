@@ -21,6 +21,7 @@ import { ErrorMessage, Formik } from "formik";
 import { updateDriver } from "../redux/driversSlice";
 import { useNavigate, useParams } from "react-router-dom";
 import * as Yup from "yup";
+import { useTranslation } from "react-i18next";
 
 const DriverProfile = ({ driverId }) => {
   const isNonMobile = useMediaQuery("(min-width: 600px)");
@@ -31,6 +32,7 @@ const DriverProfile = ({ driverId }) => {
   const params = useParams();
   const driverInfo = drivers.find((d) => d._id === params.id);
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const status = useSelector((state) => state.drivers.status);
   const error = useSelector((state) => state.drivers.error);
@@ -191,7 +193,7 @@ const DriverProfile = ({ driverId }) => {
                 fullWidth
                 variant="filled"
                 type="text"
-                label="First Name"
+                label={t("firstName")}
                 onBlur={handleBlur}
                 onChange={handleChange}
                 value={values.firstName}
@@ -204,7 +206,7 @@ const DriverProfile = ({ driverId }) => {
                 fullWidth
                 variant="filled"
                 type="text"
-                label="Last Name"
+                label={t("lastName")}
                 onBlur={handleBlur}
                 onChange={handleChange}
                 value={values.lastName}
@@ -217,7 +219,7 @@ const DriverProfile = ({ driverId }) => {
                 fullWidth
                 variant="filled"
                 type="text"
-                label="Email (optional)"
+                label={t("optionalEmail")}
                 onBlur={handleBlur}
                 onChange={handleChange}
                 value={values.email}
@@ -230,7 +232,7 @@ const DriverProfile = ({ driverId }) => {
                 fullWidth
                 variant="filled"
                 type="number"
-                label="Phone Number"
+                label={t("phone")}
                 onBlur={handleBlur}
                 onChange={handleChange}
                 value={values.phone}
@@ -243,7 +245,7 @@ const DriverProfile = ({ driverId }) => {
                 fullWidth
                 variant="filled"
                 type="number"
-                label="ID Number"
+                label={t("idNumber")}
                 onBlur={handleBlur}
                 onChange={handleChange}
                 value={values.idNumber}
@@ -256,7 +258,7 @@ const DriverProfile = ({ driverId }) => {
                 fullWidth
                 variant="filled"
                 type="date"
-                label="ID Expiry Date"
+                label={t("idExpiryDate")}
                 onBlur={handleBlur}
                 onChange={handleChange}
                 value={
@@ -273,7 +275,7 @@ const DriverProfile = ({ driverId }) => {
                 fullWidth
                 variant="filled"
                 type="text"
-                label="Passport Number"
+                label={t("passport")}
                 onBlur={handleBlur}
                 onChange={handleChange}
                 value={values.passportNumber}
@@ -286,7 +288,7 @@ const DriverProfile = ({ driverId }) => {
                 fullWidth
                 variant="filled"
                 type="date"
-                label="Passport Expiry Date"
+                label={t("passportExpiryDate")}
                 onBlur={handleBlur}
                 onChange={handleChange}
                 value={
@@ -309,7 +311,7 @@ const DriverProfile = ({ driverId }) => {
                 fullWidth
                 variant="filled"
                 type="date"
-                label="Contract Expiry Date"
+                label={t("contractExpiryDate")}
                 onBlur={handleBlur}
                 onChange={handleChange}
                 // Convert the date string to a valid date string (YYYY-MM-DD)
@@ -334,7 +336,7 @@ const DriverProfile = ({ driverId }) => {
                 fullWidth
                 variant="filled"
                 type="date"
-                label="Driver License Expiry Date"
+                label={t("driverLicenseExpiryDate")}
                 onBlur={handleBlur}
                 onChange={handleChange}
                 value={
@@ -359,7 +361,7 @@ const DriverProfile = ({ driverId }) => {
                 fullWidth
                 variant="filled"
                 type="text"
-                label="Car Plate Number"
+                label={t("carPlateNumber")}
                 onBlur={handleBlur}
                 onChange={handleChange}
                 value={values.carPlateNumber}
@@ -372,7 +374,7 @@ const DriverProfile = ({ driverId }) => {
                 fullWidth
                 variant="filled"
                 type="text"
-                label="Car Registeration"
+                label={t("carRegisteration")}
                 onBlur={handleBlur}
                 onChange={handleChange}
                 value={values.carRegisteration}
@@ -385,7 +387,7 @@ const DriverProfile = ({ driverId }) => {
                 fullWidth
                 variant="filled"
                 type="date"
-                label="Car Registeration Expiry Date"
+                label={t("carRegisterationExpiryDate")}
                 onBlur={handleBlur}
                 onChange={handleChange}
                 value={
@@ -410,7 +412,7 @@ const DriverProfile = ({ driverId }) => {
                 fullWidth
                 variant="filled"
                 type="text"
-                label="Work Pass"
+                label={t("workPass")}
                 onBlur={handleBlur}
                 onChange={handleChange}
                 value={values.workPass}
@@ -423,7 +425,7 @@ const DriverProfile = ({ driverId }) => {
                 fullWidth
                 variant="filled"
                 type="number"
-                label="Gas Card Number"
+                label={t("gasCard")}
                 onBlur={handleBlur}
                 onChange={handleChange}
                 value={values.gasCard}
@@ -436,7 +438,7 @@ const DriverProfile = ({ driverId }) => {
                 fullWidth
                 variant="filled"
                 type="date"
-                label="Health Insurance Expiry Date"
+                label={t("healthInsuranceExpiryDate")}
                 onBlur={handleBlur}
                 onChange={handleChange}
                 value={
@@ -461,30 +463,27 @@ const DriverProfile = ({ driverId }) => {
                 fullWidth
                 variant="filled"
                 type="text"
-                label="Car type"
+                label={t("carType")}
                 onBlur={handleBlur}
                 onChange={handleChange}
                 value={values.carType}
                 name="carType"
-                error={
-                  !!touched.carType && !!errors.carType
-                }
-                helperText={
-                  touched.carType && errors.carType
-                }
+                error={!!touched.carType && !!errors.carType}
+                helperText={touched.carType && errors.carType}
                 sx={{ gridColumn: "span 2" }}
               />
               <TextField
                 fullWidth
                 variant="filled"
                 type="text"
-                label="Employee Company Number"
+                label={t("employeeCompanyNumber")}
                 onBlur={handleBlur}
                 onChange={handleChange}
                 value={values.employeeCompanyNumber}
                 name="employeeCompanyNumber"
                 error={
-                  !!touched.employeeCompanyNumber && !!errors.employeeCompanyNumber
+                  !!touched.employeeCompanyNumber &&
+                  !!errors.employeeCompanyNumber
                 }
                 helperText={
                   touched.employeeCompanyNumber && errors.employeeCompanyNumber
@@ -495,7 +494,7 @@ const DriverProfile = ({ driverId }) => {
                 fullWidth
                 variant="filled"
                 type="text"
-                label="IBAN"
+                label={t("iban")}
                 onBlur={handleBlur}
                 onChange={handleChange}
                 value={values.iban}
@@ -509,7 +508,7 @@ const DriverProfile = ({ driverId }) => {
                 variant="filled"
                 sx={{ gridColumn: "span 2" }}
               >
-                <InputLabel htmlFor="vehicle">Vehicle</InputLabel>
+                <InputLabel htmlFor="vehicle">{t("vehicle")}</InputLabel>
                 <Select
                   label="Vehicle"
                   value={values.vehicle}
@@ -519,16 +518,19 @@ const DriverProfile = ({ driverId }) => {
                   error={!!touched.vehicle && !!errors.vehicle}
                   helperText={touched.vehicle && errors.vehicle}
                 >
-                  <MenuItem value={"Car"}>Car</MenuItem>
-                  <MenuItem value={"Bike"}>Bike</MenuItem>
+                  <MenuItem value="Car">{t("car")}</MenuItem>
+                  <MenuItem value="Bike">{t("bike")}</MenuItem>
                 </Select>
               </FormControl>
+
               <FormControl
                 fullWidth
                 variant="filled"
                 sx={{ gridColumn: "span 2" }}
               >
-                <InputLabel htmlFor="contractType">Contract Type</InputLabel>
+                <InputLabel htmlFor="contractType">
+                  {t("contractType")}
+                </InputLabel>
                 <Select
                   label="contractType"
                   value={values.contractType}
@@ -538,15 +540,15 @@ const DriverProfile = ({ driverId }) => {
                   error={!!touched.contractType && !!errors.contractType}
                   helperText={touched.contractType && errors.contractType}
                 >
-                  <MenuItem value={"Talabat"}>Talabat</MenuItem>
-                  <MenuItem value={"Others"}>Others</MenuItem>
+                  <MenuItem value={"Talabat"}>{t("talabat")}</MenuItem>
+                  <MenuItem value={"Others"}>{t("others")}</MenuItem>
                 </Select>
               </FormControl>
               <TextField
                 fullWidth
                 variant="filled"
                 type="text"
-                label="Talabat ID"
+                label={t("talabatId")}
                 onBlur={handleBlur}
                 onChange={handleChange}
                 value={values.talabatId}
@@ -559,7 +561,7 @@ const DriverProfile = ({ driverId }) => {
                 fullWidth
                 variant="filled"
                 type="number"
-                label="Main Salary"
+                label={t("mainSalary")}
                 onBlur={handleBlur}
                 onChange={handleChange}
                 value={values.mainSalary}
@@ -570,7 +572,7 @@ const DriverProfile = ({ driverId }) => {
               />
               <FormControl fullWidth sx={{ gridColumn: "span 2" }}>
                 <InputLabel shrink htmlFor="uploadedFile">
-                  Upload File
+                  {t("uploadFile")}
                 </InputLabel>
                 <Input
                   id="uploadedFile"
@@ -599,13 +601,13 @@ const DriverProfile = ({ driverId }) => {
                   sx={{ gridColumn: "span 2", marginTop: "15px" }}
                   disabled={!values.uploadedFile && !driverInfo.file}
                 >
-                  View Uploaded File
+                  {t("viewUploadedFile")}
                 </Button>
               </FormControl>
             </Box>
             <Box display="flex" justifyContent="end" mt="20px">
               <Button type="submit" color="secondary" variant="contained">
-                Update
+                {t("update")}
               </Button>
             </Box>
           </form>

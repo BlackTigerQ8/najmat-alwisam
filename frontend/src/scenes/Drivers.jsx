@@ -13,6 +13,7 @@ import { useNavigate } from "react-router-dom";
 import Header from "../components/Header";
 import { useSelector, useDispatch } from "react-redux";
 import { fetchDrivers, deleteDriver } from "../redux/driversSlice";
+import { useTranslation } from "react-i18next";
 
 const Drivers = () => {
   const theme = useTheme();
@@ -21,6 +22,7 @@ const Drivers = () => {
   const drivers = useSelector((state) => state.drivers.drivers);
   const status = useSelector((state) => state.drivers.status);
   const error = useSelector((state) => state.drivers.error);
+  const { t } = useTranslation();
 
   const token =
     useSelector((state) => state.drivers.token) ||
@@ -35,8 +37,8 @@ const Drivers = () => {
     },
     {
       field: "name",
-      headerName: "Name",
-      flex: 0.25,
+      headerName: t("name"),
+      flex: 1,
       cellClassName: "name-column--cell",
       renderCell: ({ row: { firstName, lastName } }) => {
         return (
@@ -47,17 +49,12 @@ const Drivers = () => {
       },
     },
     {
-      field: "email",
-      headerName: "Email",
-      flex: 0.25,
-    },
-    {
       field: "phone",
-      headerName: "Phone Number",
+      headerName: t("phone"),
     },
     {
       field: "idNumber",
-      headerName: "Civil ID",
+      headerName: t("civilId"),
       type: Number,
       headerAlign: "left",
       align: "left",
@@ -65,15 +62,15 @@ const Drivers = () => {
 
     {
       field: "carPlateNumber",
-      headerName: "Car Plate Number",
+      headerName: t("carPlateNumber"),
     },
     {
       field: "contractType",
-      headerName: "Contract Type",
+      headerName: t("contractType"),
     },
     {
       field: "actions",
-      headerName: "Actions",
+      headerName: t("actions"),
       width: 150,
       headerAlign: "center",
       align: "center",
@@ -195,7 +192,7 @@ const Drivers = () => {
 
   return (
     <Box m="20px">
-      <Header title="Drivers" subtitle="Managing the Drivers Members" />
+      <Header title={t("DRIVERS")} subtitle={t("manageDriverMembers")} />
       <Box
         mt="40px"
         height="75vh"

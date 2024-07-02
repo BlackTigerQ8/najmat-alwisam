@@ -22,6 +22,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { tokens } from "../theme";
 import { pulsar } from "ldrs";
+import { useTranslation } from "react-i18next";
 
 const initialValues = {
   firstName: "",
@@ -41,35 +42,35 @@ const initialValues = {
 const phoneRegExp =
   /^((\+[1-9]{1,4}[ -]?)|(\([0-9]{2,3}\)[ -]?)|([0-9]{2,4})[ -]?)*?[0-9]{3,4}[ -]?[0-9]{3,4}$/;
 
-const userSchema = yup.object().shape({
-  firstName: yup.string().required("required"),
-  lastName: yup.string().required("required"),
-  email: yup.string().email("Invalid email!"),
-  phone: yup
-    .string()
-    .matches(phoneRegExp, "Phone number is not valid!")
-    .required("required"),
-  identification: yup.string().required("required"),
-  passport: yup.string().required("required"),
-  contractExpiryDate: yup.string().required("required"),
-  role: yup.string().required("required"),
-  mainSalary: yup.number().required("required"),
-  password: yup
-    .string()
-    .min(6, "Password must be at least 6 characters")
-    .required("Password is required"),
-  confirmPassword: yup
-    .string()
-    .oneOf([yup.ref("password"), null], "Passwords must match")
-    .required("Confirm Password is required"),
-  uploadedFile: yup
-    .mixed()
-    .required("required")
-    .test("fileType", "Only PDF files are allowed", (value) => {
-      if (!value) return true;
-      return value && value.type === "application/pdf";
-    }),
-});
+// const userSchema = yup.object().shape({
+//   firstName: yup.string().required("required"),
+//   lastName: yup.string().required("required"),
+//   email: yup.string().email("Invalid email!"),
+//   phone: yup
+//     .string()
+//     .matches(phoneRegExp, "Phone number is not valid!")
+//     .required("required"),
+//   identification: yup.string().required("required"),
+//   passport: yup.string().required("required"),
+//   contractExpiryDate: yup.string().required("required"),
+//   role: yup.string().required("required"),
+//   mainSalary: yup.number().required("required"),
+//   password: yup
+//     .string()
+//     .min(6, "Password must be at least 6 characters")
+//     .required("Password is required"),
+//   confirmPassword: yup
+//     .string()
+//     .oneOf([yup.ref("password"), null], "Passwords must match")
+//     .required("Confirm Password is required"),
+//   uploadedFile: yup
+//     .mixed()
+//     .required("required")
+//     .test("fileType", "Only PDF files are allowed", (value) => {
+//       if (!value) return true;
+//       return value && value.type === "application/pdf";
+//     }),
+// });
 
 const Form = () => {
   const isNonMobile = useMediaQuery("(min-width: 600px)");
@@ -78,6 +79,7 @@ const Form = () => {
   const { status, error } = useSelector((state) => state.user);
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
+  const { t } = useTranslation();
   const userRole =
     useSelector((state) => state.user.userRole) || getUserRoleFromToken();
   const savedToken = localStorage.getItem("token");
@@ -86,6 +88,38 @@ const Form = () => {
     const storedUserRole = localStorage.getItem("userRole", userRole);
     // const savedUser = JSON.parse(localStorage.getItem("userInfo"));
   }, []);
+
+  const userSchema = yup.object().shape({
+    firstName: yup.string().required(t("firstNameIsRequired")),
+    lastName: yup.string().required(t("lastNameIsRequired")),
+    email: yup.string().email(t("invalidEmail")).required(t("emailIsRequired")),
+    phone: yup
+      .string()
+      .matches(phoneRegExp, t("invalidPhoneNumber"))
+      .required(t("phoneIsRequired")),
+    identification: yup.string().required(t("identificationIsRequired")),
+    passport: yup.string().required(t("passportIsRequired")),
+    contractExpiryDate: yup
+      .string()
+      .required(t("contractExpiryDateIsRequired")),
+    role: yup.string().required(t("roleIsRequired")),
+    mainSalary: yup.number().required(t("mainSalaryIsRequired")),
+    password: yup
+      .string()
+      .min(6, t("passwordMinLength"))
+      .required(t("passwordIsRequired")),
+    confirmPassword: yup
+      .string()
+      .oneOf([yup.ref("password"), null], t("passwordsMustMatch"))
+      .required(t("confirmPasswordIsRequired")),
+    uploadedFile: yup
+      .mixed()
+      .required(t("fileIsRequired"))
+      .test("fileType", t("onlyPDFAllowed"), (value) => {
+        if (!value) return true;
+        return value.type === "application/pdf";
+      }),
+  });
 
   const handleFormSubmit = async (values) => {
     try {
@@ -133,7 +167,7 @@ const Form = () => {
 
   return (
     <Box m="20px">
-      <Header title="CREATE USER" subtitle="Create a New User Profile" />
+      <Header title={t("createUserTitle")} subtitle={t("createUserSubtitle")} />
 
       <Formik
         onSubmit={handleFormSubmit}
@@ -162,7 +196,7 @@ const Form = () => {
                 fullWidth
                 variant="filled"
                 type="text"
-                label="First Name"
+                label={t("firstName")}
                 onBlur={handleBlur}
                 onChange={handleChange}
                 value={values.firstName}
@@ -175,7 +209,7 @@ const Form = () => {
                 fullWidth
                 variant="filled"
                 type="text"
-                label="Last Name"
+                label={t("lastName")}
                 onBlur={handleBlur}
                 onChange={handleChange}
                 value={values.lastName}
@@ -188,7 +222,7 @@ const Form = () => {
                 fullWidth
                 variant="filled"
                 type="text"
-                label="Email"
+                label={t("email")}
                 onBlur={handleBlur}
                 onChange={handleChange}
                 value={values.email ?? undefined}
@@ -201,7 +235,7 @@ const Form = () => {
                 fullWidth
                 variant="filled"
                 type="text"
-                label="Phone Number"
+                label={t("phone")}
                 onBlur={handleBlur}
                 onChange={handleChange}
                 value={values.phone}
@@ -214,7 +248,7 @@ const Form = () => {
                 fullWidth
                 variant="filled"
                 type="text"
-                label="ID Number"
+                label={t("idNumber")}
                 onBlur={handleBlur}
                 onChange={handleChange}
                 value={values.identification}
@@ -227,7 +261,7 @@ const Form = () => {
                 fullWidth
                 variant="filled"
                 type="text"
-                label="Passport Number"
+                label={t("passport")}
                 onBlur={handleBlur}
                 onChange={handleChange}
                 value={values.passport}
@@ -240,7 +274,7 @@ const Form = () => {
                 fullWidth
                 variant="filled"
                 type="number"
-                label="Main Salary"
+                label={t("mainSalary")}
                 onBlur={handleBlur}
                 onChange={handleChange}
                 value={values.mainSalary}
@@ -253,7 +287,7 @@ const Form = () => {
                 fullWidth
                 variant="filled"
                 type="date"
-                label="Contract Expiry Date"
+                label={t("contractExpiryDate")}
                 onBlur={handleBlur}
                 onChange={handleChange}
                 value={values.contractExpiryDate}
@@ -268,7 +302,7 @@ const Form = () => {
               />
               <FormControl fullWidth sx={{ gridColumn: "span 2" }}>
                 <InputLabel shrink htmlFor="uploadedFile">
-                  Upload File
+                  {t("uploadFile")}
                 </InputLabel>
                 <Input
                   id="uploadedFile"
@@ -297,7 +331,7 @@ const Form = () => {
                 variant="filled"
                 sx={{ gridColumn: "span 2" }}
               >
-                <InputLabel htmlFor="role">Role</InputLabel>
+                <InputLabel htmlFor="role">{t("role")}</InputLabel>
                 <Select
                   label="Role"
                   value={values.role}
@@ -307,13 +341,13 @@ const Form = () => {
                   error={!!touched.role && !!errors.role}
                   helperText={touched.role && errors.role}
                 >
-                  <MenuItem value={"Accountant"}>Accountant</MenuItem>
-                  <MenuItem value={"Employee"}>Employee</MenuItem>
+                  <MenuItem value={"Accountant"}>{t("Accountant")}</MenuItem>
+                  <MenuItem value={"Employee"}>{t("Employee")}</MenuItem>
                   {userRole === "Admin" && (
-                    <MenuItem value={"Manager"}>Manager</MenuItem>
+                    <MenuItem value={"Manager"}>{t("Manager")}</MenuItem>
                   )}
                   {userRole === "Admin" && (
-                    <MenuItem value={"Admin"}>Admin</MenuItem>
+                    <MenuItem value={"Admin"}>{t("Admin")}</MenuItem>
                   )}
                 </Select>
               </FormControl>
@@ -321,7 +355,7 @@ const Form = () => {
                 fullWidth
                 variant="filled"
                 type="password"
-                label="Password"
+                label={t("password")}
                 onBlur={handleBlur}
                 onChange={handleChange}
                 value={values.password}
@@ -334,7 +368,7 @@ const Form = () => {
                 fullWidth
                 variant="filled"
                 type="password"
-                label="Confirm Password"
+                label={t("confirmPassword")}
                 onBlur={handleBlur}
                 onChange={handleChange}
                 value={values.confirmPassword}
@@ -346,7 +380,7 @@ const Form = () => {
             </Box>
             <Box display="flex" justifyContent="end" mt="20px">
               <Button type="submit" color="secondary" variant="contained">
-                Create New User
+                {t("createNewUser")}
               </Button>
             </Box>
           </form>

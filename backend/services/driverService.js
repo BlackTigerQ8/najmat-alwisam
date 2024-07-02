@@ -62,7 +62,7 @@ async function addSingleDriverNotifications(driver) {
   ) {
     await addNotification({
       driverId: driver._id,
-      fieldName: "ID Card",
+      fieldName: t("civilId"),
       expiryDate: idExpiryDate,
       driverName,
     });
@@ -74,7 +74,7 @@ async function addSingleDriverNotifications(driver) {
   ) {
     await addNotification({
       driverId: driver._id,
-      fieldName: "Passport",
+      fieldName: t("passport"),
       expiryDate: passportExpiryDate,
       driverName,
     });
@@ -86,7 +86,7 @@ async function addSingleDriverNotifications(driver) {
   ) {
     await addNotification({
       driverId: driver._id,
-      fieldName: "Contract",
+      fieldName: t("contract"),
       expiryDate: contractExpiryDate,
       driverName,
     });
@@ -98,7 +98,7 @@ async function addSingleDriverNotifications(driver) {
   ) {
     await addNotification({
       driverId: driver._id,
-      fieldName: "Health Insurance",
+      fieldName: t("healthInsurance"),
       expiryDate: healthInsuranceExpiryDate,
       driverName,
     });
@@ -113,12 +113,12 @@ async function addNotification({
 }) {
   const notification = new Notification({
     driverId,
-    heading: `${fieldName} Expiration Alert`,
+    heading: `${fieldName} ${t("expirationAlert")}`,
     role: NOTIFICATION_RECIPIENTS,
     notification_type: "Driver_Documents_Expiry",
-    message: `${driverName} (Driver) ${fieldName} will expire on ${new Date(
-      expiryDate
-    ).toDateString()}`,
+    message: `${driverName} ${t("driver")} ${fieldName} ${t(
+      "willExpireOn"
+    )} ${new Date(expiryDate).toDateString()}`,
   });
 
   await notification.save();

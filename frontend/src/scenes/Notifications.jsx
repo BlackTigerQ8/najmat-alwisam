@@ -8,17 +8,17 @@ import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { tokens } from "../theme";
 import { useSelector, useDispatch } from "react-redux";
 import { markAllNotificationsRead } from "../redux/notificationSlice";
+import { useTranslation } from "react-i18next";
 
 const Notifications = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const dispatch = useDispatch();
+  const { t } = useTranslation();
 
   const notifications = useSelector(
     (state) => state.notifications.notifications
   );
-
- 
 
   useEffect(() => {
     if (notifications.length) {
@@ -28,7 +28,7 @@ const Notifications = () => {
 
   return (
     <Box m="20px">
-      <Header title="NOTIFICATIONS" subtitle="Important Notifications Page" />
+      <Header title={t("NOTIFICATIONS")} subtitle={t("notificationTitle")} />
       {notifications.map((notification, index) => (
         <Accordion defaultExpanded key={index}>
           <AccordionSummary expandIcon={<ExpandMoreIcon />}>
@@ -36,9 +36,7 @@ const Notifications = () => {
               {notification.heading}!
             </Typography>
           </AccordionSummary>
-          <AccordionDetails>
-            {notification.message}
-          </AccordionDetails>
+          <AccordionDetails>{notification.message}</AccordionDetails>
         </Accordion>
       ))}
     </Box>

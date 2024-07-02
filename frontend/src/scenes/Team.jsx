@@ -13,6 +13,7 @@ import Header from "../components/Header";
 import { useSelector, useDispatch } from "react-redux";
 import { fetchUsers, deleteUser } from "../redux/usersSlice";
 import { pulsar } from "ldrs";
+import { useTranslation } from "react-i18next";
 
 const Team = () => {
   const theme = useTheme();
@@ -23,6 +24,7 @@ const Team = () => {
   const error = useSelector((state) => state.user.error);
   const filteredUsers = users.filter((user) => user.role !== "Admin");
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const token =
     useSelector((state) => state.user.token) || localStorage.getItem("token");
@@ -34,7 +36,7 @@ const Team = () => {
     },
     {
       field: "name",
-      headerName: "Name",
+      headerName: t("name"),
       flex: 0.75,
       cellClassName: "name-column--cell",
       renderCell: ({ row: { firstName, lastName } }) => {
@@ -53,33 +55,33 @@ const Team = () => {
     },
     {
       field: "email",
-      headerName: "Email",
+      headerName: t("email"),
       flex: 1,
     },
     {
       field: "phone",
-      headerName: "Phone Number",
+      headerName: t("phone"),
       flex: 1,
     },
     {
       field: "identification",
-      headerName: "Civil ID",
+      headerName: t("civilId"),
       type: Number,
       headerAlign: "left",
       align: "left",
     },
     {
       field: "passport",
-      headerName: "Passport",
+      headerName: t("passport"),
     },
     {
       field: "mainSalary",
-      headerName: "Main Salary",
+      headerName: t("mainSalary"),
       type: Number,
     },
     {
       field: "role",
-      headerName: "Access Level",
+      headerName: t("accessLevel"),
       flex: 1,
       headerAlign: "center",
       renderCell: ({ row: { role } }) => {
@@ -101,7 +103,7 @@ const Team = () => {
             {role === "Employee" && <SecurityOutlinedIcon />}
             {role === "Accountant" && <LockOpenOutlinedIcon />}
             <Typography color={colors.grey[100]} sx={{ ml: "5px" }}>
-              {role}
+              {t(role)}
             </Typography>
           </Box>
         );
@@ -109,7 +111,7 @@ const Team = () => {
     },
     {
       field: "actions",
-      headerName: "Actions",
+      headerName: t("actions"),
       width: 150,
       headerAlign: "center",
       align: "center",
@@ -184,7 +186,7 @@ const Team = () => {
 
   return (
     <Box m="20px">
-      <Header title="TEAM" subtitle="Managing the Team Members" />
+      <Header title={t("TEAM")} subtitle={t("manageTeamMembers")} />
       <Box
         mt="40px"
         height="75vh"
