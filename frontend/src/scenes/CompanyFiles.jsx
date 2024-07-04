@@ -16,6 +16,7 @@ import {
   addCompanyFiles,
   deleteCompanyFile,
 } from "../redux/companyFilesSlice";
+import { useTranslation } from "react-i18next";
 
 const initialValues = {
   name: "",
@@ -30,10 +31,11 @@ const CompanyFiles = () => {
   const colors = tokens(theme.palette.mode);
   const isNonMobile = useMediaQuery("(min-width: 600px)");
   const dispatch = useDispatch();
-
+  const { t } = useTranslation();
   const status = useSelector((state) => state.companyFiles.status);
   const error = useSelector((state) => state.companyFiles.error);
-  const companyFiles = useSelector((state) => state.companyFiles.companyFiles) ||[];
+  const companyFiles =
+    useSelector((state) => state.companyFiles.companyFiles) || [];
 
   const token = localStorage.getItem("token");
 
@@ -52,12 +54,12 @@ const CompanyFiles = () => {
   const columns = [
     {
       field: "name",
-      headerName: "Name",
+      headerName: t("name"),
       flex: 1,
     },
     {
       field: "preview",
-      headerName: "Preview",
+      headerName: t("preview"),
       width: 150,
       headerAlign: "center",
       align: "center",
@@ -78,7 +80,7 @@ const CompanyFiles = () => {
     },
     {
       field: "actions",
-      headerName: "Actions",
+      headerName: t("actions"),
       width: 150,
       headerAlign: "center",
       align: "center",
@@ -110,15 +112,12 @@ const CompanyFiles = () => {
 
   const handleUpdate = ({ id, status, type }) => {
     try {
-      
     } catch (error) {
       console.error("Row does not have a valid _id field:");
     }
   };
 
-  const handleViewFile = (values) => {
-    
-  };
+  const handleViewFile = (values) => {};
 
   const handleDelete = async (companyFileId) => {
     try {
@@ -166,7 +165,7 @@ const CompanyFiles = () => {
 
   return (
     <Box m="20px">
-      <Header title="COMPANY FILES" subtitle="Company Files Page" />
+      <Header title={t("companyFiles")} subtitle={t("companyFilesSubtitle")} />
       <Formik
         initialValues={initialValues}
         validationSchema={companyFilesSchema}
@@ -194,7 +193,7 @@ const CompanyFiles = () => {
                 fullWidth
                 variant="filled"
                 type="text"
-                label="Name"
+                label={t("name")}
                 onBlur={handleBlur}
                 onChange={handleChange}
                 value={values.name}
@@ -205,7 +204,7 @@ const CompanyFiles = () => {
               />
 
               <Button type="submit" color="secondary" variant="contained">
-                Upload a new file
+                {t("uploadNewFile")}
               </Button>
             </Box>
           </form>

@@ -12,15 +12,17 @@ import {
   createDriverInvoice,
   fetchEmployeeInvoices,
   resetDriverInvoices,
-  resetSingleDriverInvoice
+  resetSingleDriverInvoice,
 } from "../redux/invoiceSlice";
 import DeleteIcon from "@mui/icons-material/Delete";
+import { useTranslation } from "react-i18next";
 
 const InvoicesArchive = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const isNonMobile = useMediaQuery("(min-width: 600px)");
   const dispatch = useDispatch();
+  const { t } = useTranslation();
   const drivers = useSelector((state) => state.drivers.drivers);
   const status = useSelector((state) => state.drivers.status);
   const error = useSelector((state) => state.drivers.error);
@@ -47,9 +49,14 @@ const InvoicesArchive = () => {
         result.deductionAmount =
           (invoice.deductionAmount || 0) + (result.deductionAmount || 0);
 
-          if(invoice.mainOrder || invoice.additionalOrder || invoice.hour || invoice.cash ){
+        if (
+          invoice.mainOrder ||
+          invoice.additionalOrder ||
+          invoice.hour ||
+          invoice.cash
+        ) {
           result.invoiceDate = invoice.invoiceDate;
-          }
+        }
 
         return result;
       }, {});
@@ -59,30 +66,28 @@ const InvoicesArchive = () => {
 
   const driverWithInvoices = useMemo(() => {
     return drivers.map((driver) => {
-      const { cash, hour, mainOrder, additionalOrder, invoiceDate } = getInvoiceData(
-        driver._id
-      );
+      const { cash, hour, mainOrder, additionalOrder, invoiceDate } =
+        getInvoiceData(driver._id);
 
-      return { ...driver, cash, hour, mainOrder, additionalOrder,invoiceDate };
+      return { ...driver, cash, hour, mainOrder, additionalOrder, invoiceDate };
     });
   }, [drivers, getInvoiceData]);
 
   const [editRowsModel, setEditRowsModel] = useState({});
-  
 
   const resetInvoices = useCallback(() => {
-    dispatch(resetDriverInvoices())
-  }, [dispatch])
+    dispatch(resetDriverInvoices());
+  }, [dispatch]);
 
   const columns = [
     {
       field: "sequenceNumber",
       headerName: "NO.",
     },
-    
+
     {
       field: "name",
-      headerName: "Name",
+      headerName: t("name"),
       flex: 1,
       cellClassName: "name-column--cell",
       renderCell: ({ row: { firstName, lastName } }) => {
@@ -95,45 +100,44 @@ const InvoicesArchive = () => {
     },
     {
       field: "phone",
-      headerName: "Phone Number",
+      headerName: t("phone"),
       flex: 1,
     },
     {
       field: "idNumber",
-      headerName: "Civil ID",
+      headerName: t("idNumber"),
       type: Number,
       headerAlign: "left",
       align: "left",
     },
     {
       field: "cash",
-      headerName: "Cash",
+      headerName: t("cash"),
       editable: true,
       type: Number,
     },
     {
       field: "hour",
-      headerName: "Hours",
+      headerName: t("hours"),
       editable: true,
     },
     {
       field: "mainOrder",
-      headerName: "Main orders",
+      headerName: t("mainOrders"),
       editable: true,
     },
     {
       field: "additionalOrder",
-      headerName: "Additional orders",
+      headerName: t("additionalOrders"),
       editable: true,
     },
     {
       field: "invoiceDate",
-      headerName: "Date",
+      headerName: t("date"),
       headerAlign: "center",
       align: "center",
       valueFormatter: (params) => {
-
-        if(!params.value) return ""
+        if (!params.value) return "";
 
         const date = new Date(params.value);
         const formattedDate = `${date.getDate()}/${
@@ -144,7 +148,7 @@ const InvoicesArchive = () => {
     },
     {
       field: "actions",
-      headerName: "Actions",
+      headerName: t("actions"),
       width: 150,
       headerAlign: "center",
       align: "center",
@@ -220,18 +224,15 @@ const InvoicesArchive = () => {
 
   const handleUpdate = (row) => {
     try {
-      const { cash = 0, mainOrder = 0, additionalOrder = 0, hour =0} = row;
+      const { cash = 0, mainOrder = 0, additionalOrder = 0, hour = 0 } = row;
       const formData = new FormData();
-      formData.append("cash",cash);
-      formData.append("mainOrder",mainOrder);
-      formData.append("additionalOrder",additionalOrder);
-      formData.append("hour",hour);
-      formData.append("driverId",row._id);
+      formData.append("cash", cash);
+      formData.append("mainOrder", mainOrder);
+      formData.append("additionalOrder", additionalOrder);
+      formData.append("hour", hour);
+      formData.append("driverId", row._id);
 
-      
-      dispatch(
-        createDriverInvoice(formData)
-      );
+      dispatch(createDriverInvoice(formData));
     } catch (error) {
       console.error("Row does not have a valid _id field:", row);
     }
@@ -239,17 +240,15 @@ const InvoicesArchive = () => {
 
   const handleDelete = (driverId) => {
     try {
-      dispatch(resetSingleDriverInvoice({params:{driverId} }))
+      dispatch(resetSingleDriverInvoice({ params: { driverId } }));
     } catch (error) {
       console.error("Error resetting driver");
     }
   };
 
- 
-
   return (
     <Box m="20px">
-      <Header title="INVOICES" subtitle="List of Invoice Blanaces" />
+      <Header title={t("invoicesTitle")} subtitle={t("invoicesSubtitle")} />
       <Box
         display="flex"
         justifyContent="flex-end"
@@ -258,7 +257,7 @@ const InvoicesArchive = () => {
         }}
       >
         <Button onClick={resetInvoices} color="secondary" variant="contained">
-          Reset
+          {t("reset")}
         </Button>
       </Box>
       <Box

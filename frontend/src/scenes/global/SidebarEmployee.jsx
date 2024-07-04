@@ -13,6 +13,7 @@ import MoneyOffIcon from "@mui/icons-material/MoneyOff";
 import { useSelector, useDispatch } from "react-redux";
 import { profileImage } from "../../redux/userSlice";
 import { toast } from "react-toastify";
+import { useTranslation } from "react-i18next";
 
 const Item = ({ title, to, icon, selected, setSelected }) => {
   const theme = useTheme();
@@ -37,6 +38,7 @@ const SideBarEmployee = () => {
   const imageUploadInput = useRef(null);
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
+  const { t } = useTranslation();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [selected, setSelected] = useState("Dashboard");
   const userInfo = useSelector((state) => state.user.userInfo);
@@ -109,7 +111,7 @@ const SideBarEmployee = () => {
                 ml="15px"
               >
                 <Typography variant="h3" color={colors.grey[100]}>
-                  EMPLOYEE
+                  {t("Employee")}
                 </Typography>
                 <IconButton onClick={() => setIsCollapsed(!isCollapsed)}>
                   <MenuOutlinedIcon />
@@ -152,7 +154,7 @@ const SideBarEmployee = () => {
                   {userInfo.lastName}
                 </Typography>
                 <Typography variant="h5" color={colors.greenAccent[500]}>
-                  {userInfo.role}
+                  {t(userInfo.role)}
                 </Typography>
               </Box>
             </Box>
@@ -164,52 +166,52 @@ const SideBarEmployee = () => {
               color={colors.grey[300]}
               sx={{ m: "15px 0 5px 20px" }}
             >
-              Pages
+              {t("pages")}
             </Typography>
             <Item
-              title="Driver Form"
+              title={t("driversForm")}
               to="/driver-form"
               icon={<ContactsOutlinedIcon />}
               selected={selected}
               setSelected={setSelected}
             />
             <Item
-              title="Invoices"
+              title={t("invoices")}
               to="/invoices"
               icon={<ReceiptOutlinedIcon />}
               selected={selected}
               setSelected={setSelected}
             />
             <Item
-              title="Deduction"
+              title={t("deduction")}
               to="/deduction"
               icon={<MoneyOffIcon />}
               selected={selected}
               setSelected={setSelected}
             />
             <Item
-              title="Notifications"
+              title={t("notifications")}
               to="/notifications"
               icon={<NotificationsActiveOutlinedIcon />}
               selected={selected}
               setSelected={setSelected}
             />
             <Item
-              title="Contact"
+              title={t("contact")}
               to="/contact"
               icon={<ContactsOutlinedIcon />}
               selected={selected}
               setSelected={setSelected}
             />
             <Item
-              title="Messages"
+              title={t("messages")}
               to="/messages"
               icon={<ContactsOutlinedIcon />}
               selected={selected}
               setSelected={setSelected}
             />
             <Item
-              title="Company Files"
+              title={t("companyFiles")}
               to="/company-files"
               icon={<ContactsOutlinedIcon />}
               selected={selected}

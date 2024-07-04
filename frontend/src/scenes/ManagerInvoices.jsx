@@ -14,11 +14,14 @@ import {
 } from "../redux/invoiceSlice";
 import CloseOutlinedIcon from "@mui/icons-material/CloseOutlined";
 import CheckOutlinedIcon from "@mui/icons-material/CheckOutlined";
+import RemoveRedEyeOutlinedIcon from "@mui/icons-material/RemoveRedEyeOutlined";
+import { useTranslation } from "react-i18next";
 
 const ManagerInvoices = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const dispatch = useDispatch();
+  const { t } = useTranslation();
 
   const driverInvoiceStatus = useSelector((state) => state.invoice.status);
   const employeeInvoiceStatus = useSelector(
@@ -91,7 +94,6 @@ const ManagerInvoices = () => {
     return combinedInvoices;
   }, [invoices, userInvoices]);
 
-  
   const token =
     useSelector((state) => state.drivers.token) ||
     localStorage.getItem("token");
@@ -104,8 +106,8 @@ const ManagerInvoices = () => {
     },
     {
       field: "name",
-      headerName: "Name",
-      flex: 1.75,
+      headerName: t("name"),
+      flex: 1,
       cellClassName: "name-column--cell",
       renderCell: ({ row: { firstName, lastName } }) => {
         return (
@@ -122,39 +124,59 @@ const ManagerInvoices = () => {
     },
     {
       field: "mainSalary",
-      headerName: "Main Salary",
+      headerName: t("mainSalary"),
       flex: 0.5,
     },
     {
       field: "additionalSalary",
-      headerName: "Additional Salary",
+      headerName: t("additionalSalary"),
       flex: 1,
     },
     {
       field: "talabatDeductionAmount",
-      headerName: "Talabat deduction",
+      headerName: t("talabatDeductionAmount"),
       flex: 1,
     },
     {
       field: "companyDeductionAmount",
-      headerName: "Company deduction",
+      headerName: t("companyDeductionAmount"),
       flex: 1,
     },
     {
       field: "deductionReason",
-      headerName: "Deduction Reason",
+      headerName: t("deductionReason"),
       flex: 1,
     },
     {
+      field: "preview",
+      headerName: t("preview"),
+      width: 100,
+      headerAlign: "center",
+      align: "center",
+      sortable: false,
+      filterable: false,
+      renderCell: (params) => {
+        if (!params.row.file) return null;
+        return (
+          <Button
+            variant="contained"
+            color="secondary"
+            onClick={() => handleViewFile(params.row)}
+          >
+            <RemoveRedEyeOutlinedIcon />
+          </Button>
+        );
+      },
+    },
+    {
       field: "actions",
-      headerName: "Actions",
+      headerName: t("actions"),
       width: 150,
       headerAlign: "center",
       align: "center",
       sortable: false,
       filterable: false,
       renderCell: (params) => {
-        
         return (
           <Box display="flex" justifyContent="center">
             <Button
@@ -248,9 +270,22 @@ const ManagerInvoices = () => {
     }
   };
 
+  const handleViewFile = (values) => {
+    const fileUrl = values?.file
+      ? `${process.env.REACT_APP_API_URL}/${values?.file}`
+      : null;
+
+    if (fileUrl) {
+      window.open(fileUrl, "_blank");
+    }
+  };
+
   return (
     <Box m="20px">
-      <Header title="DEDUCTION SALARY" subtitle="Deduction Salary Page" />
+      <Header
+        title={t("deductionInvoicesTitle")}
+        subtitle={t("deductionInvoicesSubtitle")}
+      />
       <Box
         mt="40px"
         height="75vh"

@@ -1,6 +1,7 @@
 const Driver = require("../models/driverModel");
 const Notification = require("../models/notificationModel");
 const driverStatus = require("../constants/driverStatus");
+const i18next = require("../i18n");
 
 const NOTIFICATION_THRESHOLD_FOR_EXPIRY = 14;
 const NOTIFICATION_RECIPIENTS = ["Admin", "Manager", "Employee"];
@@ -23,6 +24,7 @@ function daysUntilExpiry(expiryDate) {
 }
 
 async function addSingleDriverNotifications(driver) {
+  const { t } = i18next;
   // Delete existing notifications for the driver
   await Notification.deleteMany({
     driverId: driver._id,

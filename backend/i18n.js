@@ -1,15 +1,19 @@
-import i18n from "i18next";
-import { initReactI18next } from "react-i18next";
-import LanguageDetector from "i18next-browser-languagedetector";
+const i18next = require("i18next");
+const Backend = require("i18next-node-fs-backend");
+const middleware = require("i18next-express-middleware");
 
-i18n
-  .use(LanguageDetector)
-  .use(initReactI18next)
+i18next
+  .use(Backend)
+  .use(middleware.LanguageDetector)
   .init({
     debug: true,
     fallbackLng: "en",
     interpolation: {
       escapeValue: false,
+    },
+    detection: {
+      order: ["querystring", "cookie"],
+      caches: ["cookie"],
     },
     resources: {
       en: {
@@ -413,4 +417,4 @@ i18n
     },
   });
 
-export default i18n;
+module.exports = i18next;

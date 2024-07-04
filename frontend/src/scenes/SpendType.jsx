@@ -11,6 +11,7 @@ import { pulsar } from "ldrs";
 import { fetchAllSpendTypes, addSpendType } from "../redux/spendTypeSlice";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { deleteSpendType } from "../redux/spendTypeSlice";
+import { useTranslation } from "react-i18next";
 
 const initialValues = {
   name: "",
@@ -25,6 +26,7 @@ const SpendType = () => {
   const colors = tokens(theme.palette.mode);
   const isNonMobile = useMediaQuery("(min-width: 600px)");
   const dispatch = useDispatch();
+  const { t } = useTranslation();
 
   const status = useSelector((state) => state.spendType.status);
   const error = useSelector((state) => state.spendType.error);
@@ -47,12 +49,12 @@ const SpendType = () => {
   const columns = [
     {
       field: "name",
-      headerName: "Name",
+      headerName: t("name"),
       flex: 1,
     },
     {
       field: "actions",
-      headerName: "Actions",
+      headerName: t("actions"),
       width: 150,
       headerAlign: "center",
       align: "center",
@@ -120,7 +122,7 @@ const SpendType = () => {
 
   return (
     <Box m="20px">
-      <Header title="SPEND TYPES" subtitle="Spend type Page" />
+      <Header title={t("spendTypesTitle")} subtitle={t("spendTypesSubtitle")} />
       <Formik
         initialValues={initialValues}
         validationSchema={spendTypeSchema}
@@ -148,7 +150,7 @@ const SpendType = () => {
                 fullWidth
                 variant="filled"
                 type="text"
-                label="Name"
+                label={t("name")}
                 onBlur={handleBlur}
                 onChange={handleChange}
                 value={values.name}
@@ -159,7 +161,7 @@ const SpendType = () => {
               />
 
               <Button type="submit" color="secondary" variant="contained">
-                Add new spend type
+                {t("addNewSpendType")}
               </Button>
             </Box>
           </form>

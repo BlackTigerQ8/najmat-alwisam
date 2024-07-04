@@ -197,7 +197,9 @@ const Deduction = () => {
               }}
             >
               <FormControl fullWidth sx={{ gridColumn: "span 2" }}>
-                <InputLabel id="select-driver-label">Select Driver</InputLabel>
+                <InputLabel id="select-driver-label">
+                  {t("selectDriver")}
+                </InputLabel>
                 <Select
                   labelId="select-driver-label"
                   id="select-driver"
@@ -238,7 +240,9 @@ const Deduction = () => {
                 )}
               </FormControl>
               <FormControl fullWidth sx={{ gridColumn: "span 2" }}>
-                <InputLabel id="select-user-label">Select User</InputLabel>
+                <InputLabel id="select-user-label">
+                  {t("selectUser")}
+                </InputLabel>
                 <Select
                   labelId="select-user-label"
                   id="select-user"
@@ -275,7 +279,7 @@ const Deduction = () => {
                 fullWidth
                 variant="filled"
                 type=""
-                label="Reason of deduction"
+                label={t("reasonOfDeduction")}
                 onBlur={handleBlur}
                 onChange={handleChange}
                 value={values.deductionReason}
@@ -288,7 +292,7 @@ const Deduction = () => {
                 fullWidth
                 variant="filled"
                 type="number"
-                label="Talabat deduction amount (K.D.)"
+                label={t("talabatDeductionAmountKD")}
                 onBlur={handleBlur}
                 onChange={handleChange}
                 value={values.talabatDeductionAmount}
@@ -308,7 +312,7 @@ const Deduction = () => {
                 fullWidth
                 variant="filled"
                 type="number"
-                label="Company deduction amount (K.D.)"
+                label={t("companyDeductionAmountKD")}
                 onBlur={handleBlur}
                 onChange={handleChange}
                 value={values.companyDeductionAmount}
@@ -325,7 +329,7 @@ const Deduction = () => {
               />
               <FormControl fullWidth sx={{ gridColumn: "span 2" }}>
                 <InputLabel shrink htmlFor="uploadedFile">
-                  Upload File
+                  {t("uploadFile")}
                 </InputLabel>
                 <Input
                   id="uploadedFile"
@@ -351,7 +355,7 @@ const Deduction = () => {
             </Box>
             <Box display="flex" justifyContent="end" mt="20px">
               <Button type="submit" color="secondary" variant="contained">
-                Submit
+                {t("submit")}
               </Button>
             </Box>
           </form>

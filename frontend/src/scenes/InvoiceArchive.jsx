@@ -25,6 +25,7 @@ import {
   searchArchivedInvoices,
 } from "../redux/invoiceSlice";
 import { Formik } from "formik";
+import { useTranslation } from "react-i18next";
 
 const initialValues = {
   startDate: "",
@@ -42,6 +43,7 @@ const Invoices = () => {
   const colors = tokens(theme.palette.mode);
   const isNonMobile = useMediaQuery("(min-width: 600px)");
   const dispatch = useDispatch();
+  const { t } = useTranslation();
   const drivers = useSelector((state) => state.drivers.drivers);
   const status = useSelector((state) => state.drivers.status);
   const error = useSelector((state) => state.drivers.error);
@@ -53,7 +55,7 @@ const Invoices = () => {
     (state) => state.invoice?.archivedDriverInvoices || []
   );
 
-  const [selectedDriverIds, setSelectedDriverIds] = useState([])
+  const [selectedDriverIds, setSelectedDriverIds] = useState([]);
 
   const getInvoiceData = useCallback(
     (driverId) => {
@@ -101,9 +103,11 @@ const Invoices = () => {
       };
     });
 
-    if(!selectedDriverIds.length) return invoices
+    if (!selectedDriverIds.length) return invoices;
 
-    return invoices.filter(invoice => selectedDriverIds.includes(invoice._id))
+    return invoices.filter((invoice) =>
+      selectedDriverIds.includes(invoice._id)
+    );
   }, [drivers, getInvoiceData, selectedDriverIds]);
 
   const [editRowsModel, setEditRowsModel] = useState({});
@@ -115,7 +119,7 @@ const Invoices = () => {
     },
     {
       field: "name",
-      headerName: "Name",
+      headerName: t("name"),
       flex: 0.75,
       cellClassName: "name-column--cell",
       renderCell: ({ row: { firstName, lastName } }) => {
@@ -129,37 +133,37 @@ const Invoices = () => {
 
     {
       field: "phone",
-      headerName: "Phone Number",
+      headerName: t("phone"),
       justifyContent: "center",
     },
     {
       field: "idNumber",
-      headerName: "Civil ID",
+      headerName: t("idNumber"),
       type: Number,
       headerAlign: "left",
       align: "left",
     },
     {
       field: "cash",
-      headerName: "Cash",
+      headerName: t("cash"),
       type: Number,
     },
     {
       field: "hour",
-      headerName: "Hours",
+      headerName: t("hours"),
     },
     {
       field: "mainOrder",
-      headerName: "Main orders",
+      headerName: t("mainOrders"),
     },
     {
       field: "additionalOrder",
-      headerName: "Additional orders",
+      headerName: t("additionalOrders"),
       flex: 0.2,
     },
     {
       field: "invoiceDate",
-      headerName: "Date",
+      headerName: t("date"),
       headerAlign: "center",
       align: "center",
       valueFormatter: (params) => {
@@ -217,15 +221,16 @@ const Invoices = () => {
   }
 
   function handleSubmit(values) {
-    setSelectedDriverIds(values.selectedDriver || [])
+    setSelectedDriverIds(values.selectedDriver || []);
     dispatch(searchArchivedInvoices(values));
   }
 
- 
-
   return (
     <Box m="20px">
-      <Header title="Archived Invoices" subtitle="List of archived invoices" />
+      <Header
+        title={t("invoicesArchive")}
+        subtitle={t("invoicesArchiveSubtitle")}
+      />
       <Formik
         initialValues={initialValues}
         validationSchema={searchSchema}
@@ -253,7 +258,7 @@ const Invoices = () => {
                 fullWidth
                 variant="filled"
                 type="date"
-                label="Starting Date"
+                label={t("startingDate")}
                 onBlur={handleBlur}
                 onChange={handleChange}
                 value={values.startDate}
@@ -266,7 +271,7 @@ const Invoices = () => {
                 fullWidth
                 variant="filled"
                 type="date"
-                label="Ending Date"
+                label={t("endingDate")}
                 onBlur={handleBlur}
                 onChange={handleChange}
                 value={values.endDate}
@@ -279,7 +284,9 @@ const Invoices = () => {
                 fullWidth
                 sx={{ gridColumn: "span 2", position: "relative" }}
               >
-                <InputLabel id="select-driver-label">Select Driver</InputLabel>
+                <InputLabel id="select-driver-label">
+                  {t("selectDriver")}
+                </InputLabel>
                 <Select
                   labelId="select-driver-label"
                   id="select-drivers"
@@ -313,7 +320,7 @@ const Invoices = () => {
               </FormControl>
 
               <Button type="submit" color="secondary" variant="contained">
-                Search
+                {t("search")}
               </Button>
             </Box>
           </form>

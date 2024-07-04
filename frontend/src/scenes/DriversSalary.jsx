@@ -1,5 +1,15 @@
 import React, { useEffect, useState, useMemo, useRef } from "react";
-import { Box, Button, Typography, useTheme, FormControl, InputLabel, Select, MenuItem,TextField } from "@mui/material";
+import {
+  Box,
+  Button,
+  Typography,
+  useTheme,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  TextField,
+} from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import { tokens } from "../theme";
 import Header from "../components/Header";
@@ -7,22 +17,24 @@ import UpdateIcon from "@mui/icons-material/Update";
 import { useSelector, useDispatch } from "react-redux";
 import { overrideDriverSalary, fetchSalaries } from "../redux/driversSlice";
 import { pulsar } from "ldrs";
-import { useReactToPrint } from 'react-to-print';
+import { useReactToPrint } from "react-to-print";
 import { startOfMonth, endOfMonth } from "date-fns";
-import PrintableTable from './PrintableTable'
-import styles from './Print.module.css'
+import PrintableTable from "./PrintableTable";
+import styles from "./Print.module.css";
+import { useTranslation } from "react-i18next";
 
 const DriversSalary = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const dispatch = useDispatch();
+  const { t } = useTranslation();
   const driversSalaries = useSelector((state) => state.drivers.salaries);
   const status = useSelector((state) => state.drivers.salariesStatus);
   const error = useSelector((state) => state.drivers.salariesError);
   const token =
     useSelector((state) => state.drivers.token) ||
     localStorage.getItem("token");
-    const [startMonth, setStartMonth] = useState(new Date().getMonth());
+  const [startMonth, setStartMonth] = useState(new Date().getMonth());
   const [startYear, setStartYear] = useState(new Date().getFullYear());
   const [endMonth, setEndMonth] = useState(new Date().getMonth());
   const [endYear, setEndYear] = useState(new Date().getFullYear());
@@ -30,11 +42,9 @@ const DriversSalary = () => {
 
   const handlePrint = useReactToPrint({
     content: () => componentRef.current,
-    documentTitle: 'Drivers Salary Report',
+    documentTitle: "Drivers Salary Report",
   });
 
-  
-  
   const handleStartMonthChange = (event) => {
     setStartMonth(event.target.value);
   };
@@ -50,7 +60,6 @@ const DriversSalary = () => {
   const handleEndYearChange = (event) => {
     setEndYear(event.target.value);
   };
-
 
   const [editRowsModel, setEditRowsModel] = useState({});
 
@@ -121,7 +130,7 @@ const DriversSalary = () => {
     },
     {
       field: "name",
-      headerName: "Name",
+      headerName: t("name"),
       flex: 0.5,
       cellClassName: "name-column--cell",
       renderCell: ({ row: { firstName, lastName } }) => {
@@ -134,21 +143,21 @@ const DriversSalary = () => {
     },
     {
       field: "vehicle",
-      headerName: "Vehicle Type",
+      headerName: t("vehicle"),
       flex: 0.75,
       headerAlign: "center",
       align: "center",
     },
     {
       field: "mainOrder", // NEW
-      headerName: "Main Orders",
+      headerName: t("mainOrders"),
       headerAlign: "center",
       align: "center",
       editable: true,
     },
     {
       field: "additionalOrder", // NEW
-      headerName: "Additional Orders",
+      headerName: t("additionalOrders"),
       type: Number,
       editable: true,
       headerAlign: "center",
@@ -156,7 +165,7 @@ const DriversSalary = () => {
     },
     {
       field: "totalOrders", // NEW (main  + additional)
-      headerName: "Total Orders",
+      headerName: t("totalOrders"),
       type: Number,
       flex: 0.75,
       headerAlign: "center",
@@ -171,7 +180,7 @@ const DriversSalary = () => {
     },
     {
       field: "salaryMainOrders", // NEW
-      headerName: "Salary (Main Orders)",
+      headerName: t("salaryMainOrders"),
       //editable: true,
       flex: 1,
       headerAlign: "center",
@@ -179,7 +188,7 @@ const DriversSalary = () => {
     },
     {
       field: "salaryAdditionalOrders", // NEW
-      headerName: "Salary (Additional Orders)",
+      headerName: t("salaryAdditionalOrders"),
       //editable: true,
       flex: 1,
       headerAlign: "center",
@@ -187,7 +196,7 @@ const DriversSalary = () => {
     },
     {
       field: "finalSalary", // NEW
-      headerName: "Final Salary",
+      headerName: t("finalSalary"),
       headerAlign: "center",
       align: "center",
       renderCell: ({ row: { salaryAdditionalOrders, salaryMainOrders } }) => {
@@ -200,28 +209,28 @@ const DriversSalary = () => {
     },
     {
       field: "talabatDeductionAmount",
-      headerName: "Talabat Deduction",
+      headerName: t("talabatDeductionAmount"),
       headerAlign: "center",
       align: "center",
       editable: true,
     },
     {
       field: "companyDeductionAmount",
-      headerName: "Company Deduction",
+      headerName: t("companyDeductionAmount"),
       headerAlign: "center",
       align: "center",
       editable: true,
     },
     {
       field: "pettyCashDeductionAmount",
-      headerName: "Petty Cash Deduction",
+      headerName: t("pettyCashDeductionAmount"),
       headerAlign: "center",
       align: "center",
       //editable: true,
     },
     {
       field: "netSalary", // NEW
-      headerName: "Net Salary",
+      headerName: t("netSalary"),
       headerAlign: "center",
       align: "center",
       renderCell: ({
@@ -248,13 +257,13 @@ const DriversSalary = () => {
     },
     {
       field: "remarks", // NEW
-      headerName: "Remarks",
+      headerName: t("remarks"),
       headerAlign: "center",
       align: "center",
     },
     {
       field: "actions",
-      headerName: "Actions",
+      headerName: t("actions"),
       width: 150,
       headerAlign: "center",
       align: "center",
@@ -288,7 +297,7 @@ const DriversSalary = () => {
 
   const sumRow = {
     _id: "sum-row",
-    sequenceNumber: "Total",
+    sequenceNumber: t("total"),
     name: "",
     vehicle: "",
     mainOrder: calculateColumnSum("mainOrder"),
@@ -311,7 +320,7 @@ const DriversSalary = () => {
     //if (status === "succeeded") {
     dispatch(fetchSalaries());
     //}
-  }, [ dispatch]);
+  }, [dispatch]);
 
   pulsar.register();
   if (status === "loading") {
@@ -374,57 +383,81 @@ const DriversSalary = () => {
   };
 
   const onSearchSubmit = async () => [
-    dispatch(fetchSalaries({ startDate: startOfMonth(new Date(startYear, startMonth)), endDate: endOfMonth(new Date(endYear, endMonth)) })),
+    dispatch(
+      fetchSalaries({
+        startDate: startOfMonth(new Date(startYear, startMonth)),
+        endDate: endOfMonth(new Date(endYear, endMonth)),
+      })
+    ),
   ];
 
   return (
     <Box m="20px">
-      <Header title="DRIVERS SALARY" subtitle="List of Drivers" />
+      <Header
+        title={t("driversSalaryTitle")}
+        subtitle={t("driversSalarySubtitle")}
+      />
       <Box display="flex" justifyContent="flex-end" mb={2}>
-      <FormControl sx={{ minWidth: 120, mr: 2 }}>
-          <InputLabel>Start Month</InputLabel>
-          <Select value={startMonth} onChange={handleStartMonthChange} label="Start Month">
+        <FormControl sx={{ minWidth: 120, mr: 2 }}>
+          <InputLabel>{t("startMonth")}</InputLabel>
+          <Select
+            value={startMonth}
+            onChange={handleStartMonthChange}
+            label="Start Month"
+          >
             {[...Array(12).keys()].map((month) => (
               <MenuItem key={month} value={month}>
-                {new Date(0, month).toLocaleString("default", { month: "long" })}
+                {new Date(0, month).toLocaleString("default", {
+                  month: "long",
+                })}
               </MenuItem>
             ))}
           </Select>
         </FormControl>
         <TextField
           type="number"
-          label="Start Year"
+          label={t("startYear")}
           value={startYear}
           onChange={handleStartYearChange}
           sx={{ width: 100, mr: 2 }}
         />
-         <FormControl sx={{ minWidth: 120, mr: 2 }}>
-          <InputLabel>End Month</InputLabel>
-          <Select value={endMonth} onChange={handleEndMonthChange} label="End Month">
+        <FormControl sx={{ minWidth: 120, mr: 2 }}>
+          <InputLabel>{t("endMonth")}</InputLabel>
+          <Select
+            value={endMonth}
+            onChange={handleEndMonthChange}
+            label="End Month"
+          >
             {[...Array(12).keys()].map((month) => (
               <MenuItem key={month} value={month}>
-                {new Date(0, month).toLocaleString("default", { month: "long" })}
+                {new Date(0, month).toLocaleString("default", {
+                  month: "long",
+                })}
               </MenuItem>
             ))}
           </Select>
         </FormControl>
         <TextField
           type="number"
-          label="End Year"
+          label={t("endYear")}
           value={endYear}
           onChange={handleEndYearChange}
           sx={{ width: 100 }}
         />
-         <Box display="flex" sx={{ gridColumn: "span 1" }} marginLeft={"20px"}>
-              <Button onClick={onSearchSubmit} color="secondary" variant="contained">
-                Search
-              </Button>
-            </Box>
-            <Box display="flex" sx={{ gridColumn: "span 1" }} marginLeft={"20px"}>
-        <Button onClick={handlePrint} color="primary" variant="contained" >
-          Print
-        </Button>
-      </Box>
+        <Box display="flex" sx={{ gridColumn: "span 1" }} marginLeft={"20px"}>
+          <Button
+            onClick={onSearchSubmit}
+            color="secondary"
+            variant="contained"
+          >
+            {t("search")}
+          </Button>
+        </Box>
+        <Box display="flex" sx={{ gridColumn: "span 1" }} marginLeft={"20px"}>
+          <Button onClick={handlePrint} color="primary" variant="contained">
+            {t("print")}
+          </Button>
+        </Box>
       </Box>
       <Box
         mt="40px"
@@ -452,7 +485,6 @@ const DriversSalary = () => {
           },
         }}
       >
-       
         <DataGrid
           // checkboxSelection
           rows={rowsWithSum}
@@ -462,29 +494,48 @@ const DriversSalary = () => {
           onEditRowsModelChange={(newModel) => setEditRowsModel(newModel)}
           className={styles.grid}
         />
-        <PrintableTable rows={rowsWithSum} columns={columns} ref={componentRef} />
+        <PrintableTable
+          rows={rowsWithSum}
+          columns={columns}
+          ref={componentRef}
+        />
 
-        <Box mt="20px"className={styles.notes}>
+        <Box mt="20px" className={styles.notes}>
           <Header title="NOTES" />
           <Typography color={colors.greenAccent[500]} fontSize={24}>
-            Total net salary for car drivers:
-            <strong> {netCarDriversSalary} KD</strong>
+            {t("carDriversTotalNetSalary")}
+            <strong>
+              {" "}
+              {netCarDriversSalary} {t("kd")}
+            </strong>
           </Typography>
           <Typography color={colors.greenAccent[500]} fontSize={24}>
-            Total net salary for bike drivers:
-            <strong> {netBikeDriversSalary} KD</strong>
+            {t("bikeDriversTotalNetSalary")}
+            <strong>
+              {" "}
+              {netBikeDriversSalary} {t("kd")}
+            </strong>
           </Typography>
           <Typography color={colors.greenAccent[500]} fontSize={24}>
-            Total monthly salary:
-            <strong> {totalMonthlySalary} KD</strong>
+            {t("totalMonthlySalary")}
+            <strong>
+              {" "}
+              {totalMonthlySalary} {t("kd")}
+            </strong>
           </Typography>
           <Typography color={colors.greenAccent[500]} fontSize={24}>
-            Total monthly deduction:
-            <strong> {totalMonthlyDeduction} KD</strong>
+            {t("totalMonthlyDeduction")}
+            <strong>
+              {" "}
+              {totalMonthlyDeduction} {t("kd")}
+            </strong>
           </Typography>
           <Typography color={colors.greenAccent[500]} fontSize={24}>
-            Total net salary:
-            <strong> {totalNetSalary} KD</strong>
+            {t("totalNetSalary")}
+            <strong>
+              {" "}
+              {totalNetSalary} {t("kd")}
+            </strong>
           </Typography>
         </Box>
       </Box>

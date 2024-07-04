@@ -17,6 +17,7 @@ import ContactsOutlinedIcon from "@mui/icons-material/ContactsOutlined";
 import { profileImage } from "../../redux/userSlice";
 import { toast } from "react-toastify";
 import PaymentsOutlinedIcon from "@mui/icons-material/PaymentsOutlined";
+import { useTranslation } from "react-i18next";
 
 const Item = ({ title, to, icon, selected, setSelected }) => {
   const theme = useTheme();
@@ -41,6 +42,7 @@ const SidebarA = () => {
   const imageUploadInput = useRef(null);
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
+  const { t } = useTranslation();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [selected, setSelected] = useState("Dashboard");
   const userInfo = useSelector((state) => state.user.userInfo);
@@ -113,7 +115,7 @@ const SidebarA = () => {
                 ml="15px"
               >
                 <Typography variant="h3" color={colors.grey[100]}>
-                  EMPLOYEE
+                  {t("Accountant")}
                 </Typography>
                 <IconButton onClick={() => setIsCollapsed(!isCollapsed)}>
                   <MenuOutlinedIcon />
@@ -156,7 +158,7 @@ const SidebarA = () => {
                   {userInfo.lastName}
                 </Typography>
                 <Typography variant="h5" color={colors.greenAccent[500]}>
-                  {userInfo.role}
+                  {t(userInfo.role)}
                 </Typography>
               </Box>
             </Box>
@@ -178,91 +180,91 @@ const SidebarA = () => {
               setSelected={setSelected}
             /> */}
             <Item
-              title="Employees Salary"
+              title={t("employeesSalary")}
               to="/employees-salary"
               icon={<PointOfSaleOutlinedIcon />}
               selected={selected}
               setSelected={setSelected}
             />
             <Item
-              title="Drivers Salary"
+              title={t("driversSalary")}
               to="/drivers-salary"
               icon={<PointOfSaleOutlinedIcon />}
               selected={selected}
               setSelected={setSelected}
             />
             <Item
-              title="Deductions"
+              title={t("deduction")}
               to="/deduction"
               icon={<MoneyOffIcon />}
               selected={selected}
               setSelected={setSelected}
             />
             <Item
-              title="Bank Statement"
+              title={t("bankStatement")}
               to="/bank-statement"
               icon={<MonetizationOnOutlinedIcon />}
               selected={selected}
               setSelected={setSelected}
             />
             <Item
-              title="Petty Cash"
+              title={t("pettyCash")}
               to="/petty-cash"
               icon={<AttachMoneyOutlinedIcon />}
               selected={selected}
               setSelected={setSelected}
             />
             <Item
-              title="Notifications"
+              title={t("notifications")}
               to="/notifications"
               icon={<NotificationsActiveOutlinedIcon />}
               selected={selected}
               setSelected={setSelected}
             />
             <Item
-              title="Contact"
+              title={t("contact")}
               to="/contact"
               icon={<ContactsOutlinedIcon />}
               selected={selected}
               setSelected={setSelected}
             />
             <Item
-              title="Messages"
+              title={t("messages")}
               to="/messages"
               icon={<ContactsOutlinedIcon />}
               selected={selected}
               setSelected={setSelected}
             />
             <Item
-              title="Spend type"
+              title={t("spendTypes")}
               to="/spend-type"
               icon={<PointOfSaleOutlinedIcon />}
               selected={selected}
               setSelected={setSelected}
             />
             <Item
-              title="Company Spends"
+              title={t("companySpends")}
               to="/company-spends"
               icon={<PaymentsOutlinedIcon />}
               selected={selected}
               setSelected={setSelected}
             />
             <Item
-              title="Profits and Losses"
+              title={t("profitsAndLosses")}
               to="/profits"
               icon={<PointOfSaleOutlinedIcon />}
               selected={selected}
               setSelected={setSelected}
             />
             <Item
-              title="Company Income"
+              title={t("companyIncome")}
               to="/income"
               icon={<PointOfSaleOutlinedIcon />}
               selected={selected}
               setSelected={setSelected}
             />
             <Item
-              title="Company Files"
+              title={t("companyFiles")}
               to="/company-files"
               icon={<ContactsOutlinedIcon />}
               selected={selected}

@@ -19,6 +19,7 @@ import { pulsar } from "ldrs";
 import { Formik } from "formik";
 import { fetchUsers, sendMessage } from "../redux/usersSlice";
 import { useDispatch, useSelector } from "react-redux";
+import { useTranslation } from "react-i18next";
 
 const initialValues = {
   selectedUsers: [],
@@ -39,6 +40,7 @@ const Contact = () => {
   const { status } = useSelector((state) => state.user);
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
+  const { t } = useTranslation();
   const users = useSelector((state) => state.users.users);
   const userInfo = useSelector((state) => state.user.userInfo);
   const filteredUsers =
@@ -92,10 +94,7 @@ const Contact = () => {
 
   return (
     <Box m="20px">
-      <Header
-        title="CONTACTS"
-        subtitle="List of Contacts for Future Reference"
-      />
+      <Header title={t("contactTitle")} subtitle={t("contactSubtitle")} />
       <Box
         mt="40px"
         height="75vh"
@@ -154,7 +153,9 @@ const Contact = () => {
                   fullWidth
                   sx={{ gridColumn: "span 4", position: "relative" }}
                 >
-                  <InputLabel id="select-user-label">Select User</InputLabel>
+                  <InputLabel id="select-user-label">
+                    {t("selectUser")}
+                  </InputLabel>
                   <Select
                     labelId="select-user-label"
                     id="select-users"
@@ -193,7 +194,7 @@ const Contact = () => {
                   rows={4}
                   variant="filled"
                   type="text"
-                  label="Message"
+                  label={t("message")}
                   onBlur={handleBlur}
                   onChange={handleChange}
                   value={values.message}
@@ -205,7 +206,7 @@ const Contact = () => {
               </Box>
               <Box display="flex" justifyContent="end" mt="20px">
                 <Button type="submit" color="secondary" variant="contained">
-                  Send
+                  {t("send")}
                 </Button>
               </Box>
             </form>

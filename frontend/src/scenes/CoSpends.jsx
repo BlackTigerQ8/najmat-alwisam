@@ -10,11 +10,13 @@ import { pulsar } from "ldrs";
 import { fetchAllSpendTypes } from "../redux/spendTypeSlice";
 import { fetchDrivers } from "../redux/driversSlice";
 import { fetchUsers } from "../redux/usersSlice";
+import { useTranslation } from "react-i18next";
 
 const CoSpends = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const dispatch = useDispatch();
+  const { t } = useTranslation();
 
   const pettyCash = useSelector((state) => state.pettyCash.pettyCash);
   const bankStatement = useSelector(
@@ -43,60 +45,71 @@ const CoSpends = () => {
       remarks: item.spendsRemarks,
       ...item,
     }));
-    const bankStatementData = bankStatement.filter(x => x.spends >0).map((item) => ({
-      date: item.statementDate,
-      source: "BankStatement",
-      remarks: item.statementRemarks,
-      cashAmount: item.spends,
-      ...item,
-    }));
+    const bankStatementData = bankStatement
+      .filter((x) => x.spends > 0)
+      .map((item) => ({
+        date: item.statementDate,
+        source: "BankStatement",
+        remarks: item.statementRemarks,
+        cashAmount: item.spends,
+        ...item,
+      }));
     return [...pettyCashData, ...bankStatementData];
   }, [pettyCash, bankStatement]);
 
   const columns = [
-    { field: "date", headerName: "Date", flex: 1, 
-    valueFormatter: (params) => {  
-
-      const date = new Date(params.value);
-      const formattedDate = `${date.getDate()}/${
-        date.getMonth() + 1
-      }/${date.getFullYear()}`;
-      return formattedDate;
+    {
+      field: "date",
+      headerName: t("date"),
+      flex: 1,
+      valueFormatter: (params) => {
+        const date = new Date(params.value);
+        const formattedDate = `${date.getDate()}/${
+          date.getMonth() + 1
+        }/${date.getFullYear()}`;
+        return formattedDate;
+      },
     },
-   },
-    { field: "source", headerName: "From", flex: 1 },
-    { field: "name", headerName: "Spends Type", flex: 1,
-    renderCell: ({ row: { spendType } }) => {
+    { field: "source", headerName: t("from"), flex: 1 },
+    {
+      field: "name",
+      headerName: t("spendTypes"),
+      flex: 1,
+      renderCell: ({ row: { spendType } }) => {
+        if (!spendType) return null;
 
-      if(!spendType) return null;
+        const { name = undefined } = spendTypes.find(
+          (s) => s._id === spendType
+        );
 
-      const { name = undefined } = spendTypes.find(
-        (s) => s._id === spendType
-      );
+        return (
+          <Box display="flex" justifyContent="center" borderRadius="4px">
+            {name}
+          </Box>
+        );
+      },
+    },
+    { field: "cashAmount", headerName: t("cashSpends"), flex: 1 },
+    {
+      field: "fetchedDeduction",
+      headerName: t("deductedFrom"),
+      flex: 1,
+      renderCell: ({ row: { deductedFromDriver, deductedFromUser } }) => {
+        if (!deductedFromDriver && !deductedFromUser) return null;
 
-      return (
-        <Box display="flex" justifyContent="center" borderRadius="4px">
-          {name}
-        </Box>
-      );
-    }, },
-    { field: "cashAmount", headerName: "Cash Spends", flex: 1 },
-    { field: "fetchedDeduction", headerName: "Deducted From", flex: 1,
-    renderCell: ({ row: { deductedFromDriver, deductedFromUser } }) => {
-      if (!deductedFromDriver && !deductedFromUser) return null;
+        const { firstName = undefined, lastName = undefined } =
+          deductedFromDriver
+            ? drivers.find((d) => d._id === deductedFromDriver)
+            : users.find((u) => u._id === deductedFromUser);
 
-      const { firstName = undefined, lastName = undefined } =
-        deductedFromDriver
-          ? drivers.find((d) => d._id === deductedFromDriver)
-          : users.find((u) => u._id === deductedFromUser);
-
-      return (
-        <Box display="flex" justifyContent="center" borderRadius="4px">
-          {firstName} {lastName}
-        </Box>
-      );
-    }, },
-    { field: "remarks", headerName: "Remarks", flex: 1 },
+        return (
+          <Box display="flex" justifyContent="center" borderRadius="4px">
+            {firstName} {lastName}
+          </Box>
+        );
+      },
+    },
+    { field: "remarks", headerName: t("remarks"), flex: 1 },
   ];
 
   pulsar.register();
@@ -137,7 +150,10 @@ const CoSpends = () => {
 
   return (
     <Box m="20px">
-      <Header title="COMPANY SPENDS" subtitle="Spend type Page" />
+      <Header
+        title={t("companySpendsTitle")}
+        subtitle={t("companySpendsSubtitle")}
+      />
       <Box
         mt="40px"
         mb="40px"

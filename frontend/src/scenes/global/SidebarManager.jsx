@@ -16,6 +16,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { profileImage } from "../../redux/userSlice";
 import AnonImage from "../../assets/profileImage.png";
 import { toast } from "react-toastify";
+import { useTranslation } from "react-i18next";
 
 const Item = ({ title, to, icon, selected, setSelected }) => {
   const theme = useTheme();
@@ -39,6 +40,7 @@ const Item = ({ title, to, icon, selected, setSelected }) => {
 const SidebarM = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
+  const { t } = useTranslation();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [selected, setSelected] = useState("Dashboard");
   const userInfo = useSelector((state) => state.user.userInfo);
@@ -113,7 +115,7 @@ const SidebarM = () => {
                 ml="15px"
               >
                 <Typography variant="h3" color={colors.grey[100]}>
-                  MANAGER
+                  {t("Manager")}
                 </Typography>
                 <IconButton onClick={() => setIsCollapsed(!isCollapsed)}>
                   <MenuOutlinedIcon />
@@ -156,7 +158,7 @@ const SidebarM = () => {
                   {userInfo.lastName}
                 </Typography>
                 <Typography variant="h5" color={colors.greenAccent[500]}>
-                  {userInfo.role}
+                  {t(userInfo.role)}
                 </Typography>
               </Box>
             </Box>
@@ -175,17 +177,17 @@ const SidebarM = () => {
               color={colors.grey[300]}
               sx={{ m: "15px 0 5px 20px" }}
             >
-              Pages
+              {t("pages")}
             </Typography>
             <Item
-              title="Manage Team"
+              title={t("manageTeam")}
               to="/team"
               icon={<PeopleOutlinedIcon />}
               selected={selected}
               setSelected={setSelected}
             />
             <Item
-              title="Manage Drivers"
+              title={t("manageDrivers")}
               to="/drivers"
               icon={<PeopleOutlinedIcon />}
               selected={selected}
@@ -196,52 +198,52 @@ const SidebarM = () => {
               color={colors.grey[300]}
               sx={{ m: "15px 0 5px 20px" }}
             >
-              Forms
+              {t("forms")}
             </Typography>
             <Item
-              title="Profile Form"
+              title={t("profileForm")}
               to="/form"
               icon={<PersonOutlinedIcon />}
               selected={selected}
               setSelected={setSelected}
             />
             <Item
-              title="Driver Form"
+              title={t("driversForm")}
               to="/driver-form"
               icon={<ContactsOutlinedIcon />}
               selected={selected}
               setSelected={setSelected}
             />
             <Item
-              title="Drivers Invoices"
+              title={t("driversInvoices")}
               to="/invoices"
               icon={<ReceiptOutlinedIcon />}
               selected={selected}
               setSelected={setSelected}
             />
             <Item
-              title="Deduction Invoices"
+              title={t("deductionInvoices")}
               to="/manager-invoices"
               icon={<ReceiptOutlinedIcon />}
               selected={selected}
               setSelected={setSelected}
             />
             <Item
-              title="Deduction"
+              title={t("deduction")}
               to="/deduction"
               icon={<MoneyOffIcon />}
               selected={selected}
               setSelected={setSelected}
             />
             <Item
-              title="Contact"
+              title={t("contact")}
               to="/contact"
               icon={<ContactsOutlinedIcon />}
               selected={selected}
               setSelected={setSelected}
             />
             <Item
-              title="Messages"
+              title={t("messages")}
               to="/messages"
               icon={<ContactsOutlinedIcon />}
               selected={selected}
@@ -252,24 +254,24 @@ const SidebarM = () => {
               color={colors.grey[300]}
               sx={{ m: "15px 0 5px 20px" }}
             >
-              Notifications
+              {t("notifications")}
             </Typography>
             <Item
-              title="Notifications"
+              title={t("notifications")}
               to="/notifications"
               icon={<NotificationsActiveOutlinedIcon />}
               selected={selected}
               setSelected={setSelected}
             />
             <Item
-              title="Invoices Archive"
+              title={t("invoicesArchive")}
               to="/archive"
               icon={<NotificationsActiveOutlinedIcon />}
               selected={selected}
               setSelected={setSelected}
             />
             <Item
-              title="Company Files"
+              title={t("companyFiles")}
               to="/company-files"
               icon={<ContactsOutlinedIcon />}
               selected={selected}

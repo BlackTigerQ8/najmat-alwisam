@@ -22,12 +22,14 @@ import { ErrorMessage, Formik } from "formik";
 import { updateUser } from "../redux/usersSlice";
 import { useParams } from "react-router-dom";
 import * as Yup from "yup";
+import { useTranslation } from "react-i18next";
 
 const UserProfile = () => {
   const isNonMobile = useMediaQuery("(min-width: 600px)");
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const dispatch = useDispatch();
+  const { t } = useTranslation();
   const users = useSelector((state) => state.users.users ?? []);
   const params = useParams();
   const userInfo = users.find((d) => d._id === params.id);
@@ -135,7 +137,10 @@ const UserProfile = () => {
 
   return (
     <Box m="20px">
-      <Header title="USER PROFILE" subtitle="View/Update User Information" />
+      <Header
+        title={t("userProfileTitle")}
+        subtitle={t("userProfileSubtitle")}
+      />
       <Formik
         onSubmit={handleFormSubmit}
         initialValues={initialValues}
@@ -177,7 +182,7 @@ const UserProfile = () => {
                 fullWidth
                 variant="filled"
                 type="text"
-                label="First Name"
+                label={t("firstName")}
                 onBlur={handleBlur}
                 onChange={handleChange}
                 value={values.firstName}
@@ -190,7 +195,7 @@ const UserProfile = () => {
                 fullWidth
                 variant="filled"
                 type="text"
-                label="Last Name"
+                label={t("lastName")}
                 onBlur={handleBlur}
                 onChange={handleChange}
                 value={values.lastName}
@@ -203,7 +208,7 @@ const UserProfile = () => {
                 fullWidth
                 variant="filled"
                 type="text"
-                label="Email"
+                label={t("email")}
                 onBlur={handleBlur}
                 onChange={handleChange}
                 value={values.email}
@@ -216,7 +221,7 @@ const UserProfile = () => {
                 fullWidth
                 variant="filled"
                 type="text"
-                label="Phone Number"
+                label={t("phone")}
                 onBlur={handleBlur}
                 onChange={handleChange}
                 value={values.phone}
@@ -229,7 +234,7 @@ const UserProfile = () => {
                 fullWidth
                 variant="filled"
                 type="text"
-                label="ID Number"
+                label={t("idNumber")}
                 onBlur={handleBlur}
                 onChange={handleChange}
                 value={values.identification}
@@ -242,7 +247,7 @@ const UserProfile = () => {
                 fullWidth
                 variant="filled"
                 type="date"
-                label="Contract Expiry Date"
+                label={t("contractExpiryDate")}
                 onBlur={handleBlur}
                 onChange={handleChange}
                 // Convert the date string to a valid date string (YYYY-MM-DD)
@@ -267,7 +272,7 @@ const UserProfile = () => {
                 fullWidth
                 variant="filled"
                 type="text"
-                label="Passport Number"
+                label={t("passport")}
                 onBlur={handleBlur}
                 onChange={handleChange}
                 value={values.passport}
@@ -280,7 +285,7 @@ const UserProfile = () => {
                 fullWidth
                 variant="filled"
                 type="number"
-                label="Main Salary"
+                label={t("mainSalary")}
                 onBlur={handleBlur}
                 onChange={handleChange}
                 value={values.mainSalary}
@@ -293,7 +298,7 @@ const UserProfile = () => {
                 fullWidth
                 variant="filled"
                 type="text"
-                label="Password"
+                label={t("password")}
                 onBlur={handleBlur}
                 onChange={handleChange}
                 // value={values.password}
@@ -326,7 +331,7 @@ const UserProfile = () => {
                 variant="filled"
                 sx={{ gridColumn: "span 2" }}
               >
-                <InputLabel htmlFor="role">Role</InputLabel>
+                <InputLabel htmlFor="role">{t("role")}</InputLabel>
                 <Select
                   label="role"
                   value={values.role}
@@ -337,15 +342,15 @@ const UserProfile = () => {
                   helperText={touched.role && errors.role}
                 >
                   {/* <MenuItem value={"Admin"}>Admin</MenuItem> */}
-                  <MenuItem value={"Manager"}>Manager</MenuItem>
-                  <MenuItem value={"Accountant"}>Accountant</MenuItem>
-                  <MenuItem value={"Employee"}>Employee</MenuItem>
+                  <MenuItem value={"Manager"}>{t("Manager")}</MenuItem>
+                  <MenuItem value={"Accountant"}>{t("Accountant")}</MenuItem>
+                  <MenuItem value={"Employee"}>{t("Employee")}</MenuItem>
                 </Select>
               </FormControl>
 
               <FormControl fullWidth sx={{ gridColumn: "span 2" }}>
                 <InputLabel shrink htmlFor="uploadedFile">
-                  Upload File
+                  {t("uploadFile")}
                 </InputLabel>
                 <Input
                   id="uploadedFile"
@@ -374,13 +379,13 @@ const UserProfile = () => {
                   sx={{ gridColumn: "span 2", marginTop: "15px" }}
                   disabled={!values.uploadedFile && !userInfo.file}
                 >
-                  View Uploaded File
+                  {t("viewUploadedFile")}
                 </Button>
               </FormControl>
             </Box>
             <Box display="flex" justifyContent="end" mt="20px">
               <Button type="submit" color="secondary" variant="contained">
-                Update User
+                {t("update")}
               </Button>
             </Box>
           </form>

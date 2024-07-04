@@ -9,6 +9,7 @@ import { tokens } from "../theme";
 import { useSelector, useDispatch } from "react-redux";
 import { fetchSentMessages, fetchUsers } from "../redux/usersSlice";
 import { pulsar } from "ldrs";
+import { useTranslation } from "react-i18next";
 
 const Messages = () => {
   const theme = useTheme();
@@ -20,6 +21,7 @@ const Messages = () => {
   const status = useSelector((state) => state.users.status);
   const error = useSelector((state) => state.users.error);
   const userInfo = useSelector((state) => state.user.userInfo);
+  const { t } = useTranslation();
 
   const getUserInfo = useCallback(
     (userId) => users.find((user) => user._id === userId),
@@ -69,7 +71,7 @@ const Messages = () => {
 
   return (
     <Box m="20px">
-      <Header title="MESSAGES" subtitle="Received Messages Page" />
+      <Header title={t("MESSAGES")} subtitle={t("messagesSubtitle")} />
       {sentMessages && sentMessages.length > 0 ? (
         [...sentMessages].reverse().map((message, index) => (
           <Accordion defaultExpanded key={index}>
