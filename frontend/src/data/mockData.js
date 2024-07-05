@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { tokens } from "../theme";
 
 export const mockDataTeam = [
@@ -432,7 +433,7 @@ export const mockPieData = [
 
 export const mockLineData = [
   {
-    id: "Others",
+    id: "Bikes",
     color: tokens("dark").blueAccent[300],
     data: [
       {
@@ -486,7 +487,7 @@ export const mockLineData = [
     ],
   },
   {
-    id: "Talabat",
+    id: "Cars",
     color: tokens("dark").redAccent[200],
     data: [
       {

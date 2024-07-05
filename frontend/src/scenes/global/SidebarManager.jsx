@@ -277,6 +277,13 @@ const SidebarM = () => {
               selected={selected}
               setSelected={setSelected}
             />
+            <Item
+              title={t("deactivatedDrivers")}
+              to="/deactivated-drivers"
+              icon={<ContactsOutlinedIcon />}
+              selected={selected}
+              setSelected={setSelected}
+            />
           </Box>
         </Menu>
       </ProSidebar>

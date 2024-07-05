@@ -172,10 +172,22 @@ const userInvoicesUpload = multer({
   },
 });
 
+const companyFilesStorage = multer.diskStorage({
+  destination: "./uploads/company/files",
+  filename: (req, file, cb) => {
+    cb(null, getUploadFileName(file));
+  },
+});
+
+const companyFilesUpload = multer({
+  storage: companyFilesStorage,
+});
+
 module.exports = {
   contractUpload,
   driverContractUpload,
   router,
   driverInvoicesUpload,
   userInvoicesUpload,
+  companyFilesUpload,
 };

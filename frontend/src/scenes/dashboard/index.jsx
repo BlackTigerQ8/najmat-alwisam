@@ -15,10 +15,12 @@ import StatBox from "../../components/StatBox";
 import ProgressCircle from "../../components/ProgressCircle";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
+import { useTranslation } from "react-i18next";
 
 const Dashboard = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
+  const { t } = useTranslation();
 
   const downloadPDF = async () => {
     const input = document.getElementById("dashboard");
@@ -44,9 +46,9 @@ const Dashboard = () => {
     <Box m="20px" id="dashboard">
       {/* HEADER */}
       <Box display="flex" justifyContent="space-between" alignItems="center">
-        <Header title="DASHBOARD" subtitle="Welcome to your dashboard" />
+        <Header title={t("DASHBOARD")} subtitle={t("dashboardSubtitle")} />
 
-        <Box>
+        {/* <Box>
           <Button
             onClick={downloadPDF}
             sx={{
@@ -60,7 +62,7 @@ const Dashboard = () => {
             <DownloadOutlinedIcon sx={{ mr: "10px" }} />
             Download Reports
           </Button>
-        </Box>
+        </Box> */}
       </Box>
 
       {/* GRID & CHARTS */}
@@ -80,7 +82,7 @@ const Dashboard = () => {
         >
           <StatBox
             title="12,361"
-            subtitle="Total Orders"
+            subtitle={t("totalOrders")}
             progress="0.75"
             increase="+14%"
             icon={
@@ -99,7 +101,7 @@ const Dashboard = () => {
         >
           <StatBox
             title="431,225"
-            subtitle="Total Cash"
+            subtitle={t("totalCash")}
             progress="0.50"
             increase="+21%"
             icon={
@@ -118,7 +120,7 @@ const Dashboard = () => {
         >
           <StatBox
             title="32,441"
-            subtitle="Total Hours"
+            subtitle={t("totalHours")}
             progress="0.30"
             increase="+5%"
             icon={
@@ -137,7 +139,7 @@ const Dashboard = () => {
         >
           <StatBox
             title="1,325,134"
-            subtitle="Revenue"
+            subtitle={t("revenue")}
             progress="0.80"
             increase="+43%"
             icon={
@@ -150,7 +152,7 @@ const Dashboard = () => {
 
         {/* ROW 2 */}
         <Box
-          gridColumn="span 8"
+          gridColumn="span 12"
           gridRow="span 2"
           backgroundColor={colors.primary[400]}
         >
@@ -167,7 +169,7 @@ const Dashboard = () => {
                 fontWeight="600"
                 color={colors.grey[100]}
               >
-                Revenue Generated
+                {t("revenueGenerated")}
               </Typography>
               <Typography
                 variant="h3"
@@ -189,7 +191,7 @@ const Dashboard = () => {
             <LineChart isDashboard={true} />
           </Box>
         </Box>
-        <Box
+        {/* <Box
           gridColumn="span 4"
           gridRow="span 2"
           backgroundColor={colors.primary[400]}
@@ -238,10 +240,10 @@ const Dashboard = () => {
               </Box>
             </Box>
           ))}
-        </Box>
+        </Box> */}
 
         {/* ROW 3 */}
-        <Box
+        {/* <Box
           gridColumn="span 6"
           gridRow="span 2"
           backgroundColor={colors.primary[400]}
@@ -266,9 +268,9 @@ const Dashboard = () => {
             </Typography>
             <Typography>Includes extra misc expenditures and costs</Typography>
           </Box>
-        </Box>
+        </Box> */}
         <Box
-          gridColumn="span 6"
+          gridColumn="span 12"
           gridRow="span 2"
           backgroundColor={colors.primary[400]}
         >
@@ -277,7 +279,7 @@ const Dashboard = () => {
             fontWeight="600"
             sx={{ padding: "30px 30px 0 30px" }}
           >
-            Sales Quantity
+            {t("salesQuantity")}
           </Typography>
           <Box height="250px" mt="-20px">
             <BarChart isDashboard={true} />

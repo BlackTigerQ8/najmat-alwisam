@@ -6,6 +6,7 @@ import { tokens } from "../theme";
 // import AdminPanelSettingsOutlinedIcon from "@mui/icons-material/AdminPanelSettingsOutlined";
 // import LockOpenOutlinedIcon from "@mui/icons-material/LockOpenOutlined";
 // import SecurityOutlinedIcon from "@mui/icons-material/SecurityOutlined";
+import BlockOutlinedIcon from "@mui/icons-material/BlockOutlined";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { pulsar } from "ldrs";
@@ -93,6 +94,29 @@ const Drivers = () => {
               size="small"
               onClick={() => handleDelete(params.row._id)}
               startIcon={<DeleteIcon />}
+            ></Button>
+          </Box>
+        );
+      },
+    },
+    {
+      field: "deactivate",
+      headerName: t("deactivate"),
+      width: 150,
+      headerAlign: "center",
+      align: "center",
+      sortable: false,
+      filterable: false,
+      renderCell: (params) => {
+        return (
+          <Box display="flex" justifyContent="center">
+            <Button
+              variant="contained"
+              color="primary"
+              size="small"
+              style={{ marginRight: 8 }}
+              onClick={() => handleDeactivation(params.row)}
+              startIcon={<BlockOutlinedIcon />}
             ></Button>
           </Box>
         );
@@ -188,6 +212,10 @@ const Drivers = () => {
     } catch (error) {
       console.error("Error deleting driver:", error);
     }
+  };
+
+  const handleDeactivation = () => {
+    console.log("Driver is Deactivated!");
   };
 
   return (

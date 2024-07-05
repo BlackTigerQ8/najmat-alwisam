@@ -11,9 +11,10 @@ import MoneyOffIcon from "@mui/icons-material/MoneyOff";
 import ReceiptOutlinedIcon from "@mui/icons-material/ReceiptOutlined";
 import PersonOutlinedIcon from "@mui/icons-material/PersonOutlined";
 import NotificationsOutlinedIcon from "@mui/icons-material/NotificationsOutlined";
-import BarChartOutlinedIcon from "@mui/icons-material/BarChartOutlined";
-import PieChartOutlineOutlinedIcon from "@mui/icons-material/PieChartOutlineOutlined";
-import TimelineOutlinedIcon from "@mui/icons-material/TimelineOutlined";
+// import BarChartOutlinedIcon from "@mui/icons-material/BarChartOutlined";
+// import PieChartOutlineOutlinedIcon from "@mui/icons-material/PieChartOutlineOutlined";
+// import TimelineOutlinedIcon from "@mui/icons-material/TimelineOutlined";
+import BlockOutlinedIcon from "@mui/icons-material/BlockOutlined";
 import MenuOutlinedIcon from "@mui/icons-material/MenuOutlined";
 import { useDispatch, useSelector } from "react-redux";
 import { profileImage } from "../../redux/userSlice";
@@ -176,6 +177,20 @@ const Sidebar = () => {
               color={colors.grey[300]}
               sx={{ m: "15px 0 5px 20px" }}
             >
+              {t("dashboard")}
+            </Typography>
+            <Item
+              title={t("dashboard")}
+              to="/"
+              icon={<HomeOutlinedIcon />}
+              selected={selected}
+              setSelected={setSelected}
+            />
+            <Typography
+              variant="h6"
+              color={colors.grey[300]}
+              sx={{ m: "15px 0 5px 20px" }}
+            >
               {t("data")}
             </Typography>
             <Item
@@ -253,6 +268,13 @@ const Sidebar = () => {
               title={t("companyFiles")}
               to="/company-files"
               icon={<ContactsOutlinedIcon />}
+              selected={selected}
+              setSelected={setSelected}
+            />
+            <Item
+              title={t("deactivatedDrivers")}
+              to="/deactivated-drivers"
+              icon={<BlockOutlinedIcon />}
               selected={selected}
               setSelected={setSelected}
             />

@@ -26,15 +26,17 @@ const getAllCompanyFiles = async (req, res) => {
 // @access  Private/All
 const createCompanyFiles = async (req, res) => {
   try {
-    const { name } = req.body;
+    const file = req.file;
 
-    if (!name)
+    if (!file) {
       return res.status(400).json({
-        message: "Name is a required filed",
+        message: "File is a required field",
       });
+    }
 
     const companyFile = new CompanyFiles({
-      name,
+      name: file.originalname,
+      filePath: file.path,
     });
 
     await companyFile.save();

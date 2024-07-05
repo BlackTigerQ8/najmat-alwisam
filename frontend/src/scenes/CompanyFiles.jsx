@@ -1,7 +1,15 @@
 import React, { useEffect } from "react";
 import * as yup from "yup";
-import { Box, useTheme, Button, TextField } from "@mui/material";
-import { Formik } from "formik";
+import {
+  Box,
+  useTheme,
+  Button,
+  FormControl,
+  InputLabel,
+  Input,
+  Typography,
+} from "@mui/material";
+import { ErrorMessage, Formik } from "formik";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import { DataGrid } from "@mui/x-data-grid";
 import Header from "../components/Header";
@@ -19,11 +27,11 @@ import {
 import { useTranslation } from "react-i18next";
 
 const initialValues = {
-  name: "",
+  uploadedFile: null,
 };
 
 const companyFilesSchema = yup.object().shape({
-  name: yup.string().required(),
+  uploadedFile: yup.mixed().required("File is required"),
 });
 
 const CompanyFiles = () => {
@@ -39,11 +47,14 @@ const CompanyFiles = () => {
 
   const token = localStorage.getItem("token");
 
-  async function handleFormSubmit(values) {
+  async function handleFormSubmit(values, { resetForm }) {
     try {
-      dispatch(addCompanyFiles(values));
+      const formData = new FormData();
+      formData.append("uploadedFile", values.uploadedFile);
+      dispatch(addCompanyFiles(formData));
+      resetForm();
     } catch (error) {
-      console.error("Row does not have a valid _id field:");
+      console.error("Error uploading file:", error);
     }
   }
 
@@ -54,7 +65,7 @@ const CompanyFiles = () => {
   const columns = [
     {
       field: "name",
-      headerName: t("name"),
+      headerName: t("fileName"),
       flex: 1,
     },
     {
@@ -71,7 +82,6 @@ const CompanyFiles = () => {
             variant="contained"
             color="secondary"
             onClick={() => handleViewFile(params.row)}
-            // disabled={!params.row.uploadedFile && !driverInfo?.file}
           >
             <RemoveRedEyeOutlinedIcon />
           </Button>
@@ -179,6 +189,7 @@ const CompanyFiles = () => {
           handleChange,
           handleSubmit,
           setFieldValue,
+          resetForm,
         }) => (
           <form onSubmit={handleSubmit}>
             <Box
@@ -189,20 +200,31 @@ const CompanyFiles = () => {
                 "& > div": { gridColumn: isNonMobile ? undefined : "span 5" },
               }}
             >
-              <TextField
-                fullWidth
-                variant="filled"
-                type="text"
-                label={t("name")}
-                onBlur={handleBlur}
-                onChange={handleChange}
-                value={values.name}
-                name="name"
-                error={!!touched.name && !!errors.name}
-                helperText={touched.name && errors.name}
-                sx={{ gridColumn: "span 1" }}
-              />
-
+              <FormControl fullWidth sx={{ gridColumn: "span 2" }}>
+                <InputLabel shrink htmlFor="uploadedFile">
+                  {t("uploadFile")}
+                </InputLabel>
+                <Input
+                  id="uploadedFile"
+                  type="file"
+                  name="uploadedFile"
+                  onBlur={handleBlur}
+                  onChange={(event) => {
+                    // Setting file to Formik state
+                    setFieldValue("uploadedFile", event.currentTarget.files[0]);
+                  }}
+                  error={!!touched.uploadedFile && !!errors.uploadedFile}
+                  helperText={touched.uploadedFile && errors.uploadedFile}
+                />
+                <ErrorMessage
+                  name="uploadedFile"
+                  render={(msg) => (
+                    <Typography variant="caption" color="error">
+                      {msg}
+                    </Typography>
+                  )}
+                />
+              </FormControl>
               <Button type="submit" color="secondary" variant="contained">
                 {t("uploadNewFile")}
               </Button>
@@ -243,23 +265,7 @@ const CompanyFiles = () => {
           columns={columns}
           getRowId={(row) => row._id}
         />
-        <Box
-          display="grid"
-          gap="70px"
-          gridTemplateColumns="repeat(3, minmax(0, 1fr))"
-          sx={{
-            "& > div": { gridColumn: isNonMobile ? undefined : "span 4" },
-          }}
-        ></Box>
       </Box>
-      <Box
-        display="grid"
-        gap="30px"
-        gridTemplateColumns="repeat(4, minmax(0, 1fr))"
-        sx={{
-          "& > div": { gridColumn: isNonMobile ? undefined : "span 4" },
-        }}
-      ></Box>
     </Box>
   );
 };

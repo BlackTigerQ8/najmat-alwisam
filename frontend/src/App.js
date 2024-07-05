@@ -49,8 +49,8 @@ import Profits from "./scenes/Profits";
 import Income from "./scenes/Income";
 import InvoicesArchive from "./scenes/InvoiceArchive";
 import CompanyFiles from "./scenes/CompanyFiles";
+import DeactivatedDrivers from "./scenes/DeactivatedDrivers";
 import { I18nextProvider, Trans, useTranslation } from "react-i18next";
-import i18n from "./i18n";
 
 const lngs = {
   en: { nativeName: "English" },
@@ -139,7 +139,7 @@ function App() {
                   <>
                     {userRole === "Admin" && (
                       <>
-                        <Route exact path="/" element={<Team />} />
+                        <Route exact path="/" element={<Dashboard />} />
                         <Route
                           exact
                           path="/admin-invoices"
@@ -149,6 +149,11 @@ function App() {
                           exact
                           path="/archive"
                           element={<InvoicesArchive />}
+                        />
+                        <Route
+                          exact
+                          path="/deactivated-drivers"
+                          element={<DeactivatedDrivers />}
                         />
                       </>
                     )}
@@ -164,6 +169,11 @@ function App() {
                           exact
                           path="/archive"
                           element={<InvoicesArchive />}
+                        />
+                        <Route
+                          exact
+                          path="/deactivated-drivers"
+                          element={<DeactivatedDrivers />}
                         />
                       </>
                     )}
