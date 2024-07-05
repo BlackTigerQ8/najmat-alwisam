@@ -1,16 +1,30 @@
 import React, { useState } from "react";
-import { Box, Button, TextField, Typography, useTheme } from "@mui/material";
+import {
+  Box,
+  Button,
+  IconButton,
+  Menu,
+  MenuItem,
+  TextField,
+  Typography,
+  useTheme,
+} from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
 import { loginUser } from "../redux/userSlice";
 import { tokens } from "../theme";
 import { pulsar } from "ldrs";
 import Logo from "../assets/nj-logo.png";
 import useMediaQuery from "@mui/material/useMediaQuery";
+import { useTranslation } from "react-i18next";
+import TranslateOutlinedIcon from "@mui/icons-material/TranslateOutlined";
 
 const Login = () => {
   const isNonMobile = useMediaQuery("(min-width: 600px)");
   const theme = useTheme();
   const dispatch = useDispatch();
+  const { t, i18n } = useTranslation();
+  const [languageAnchorEl, setLanguageAnchorEl] = useState(null);
+
   const { status, error } = useSelector((state) => state.user);
   const colors = tokens(theme.palette.mode);
   const [credentials, setCredentials] = useState({
@@ -30,6 +44,19 @@ const Login = () => {
       email: credentials.email.toLowerCase(),
     };
     dispatch(loginUser(lowercaseCredentials));
+  };
+
+  const handleLanguageMenu = (event) => {
+    setLanguageAnchorEl(event.currentTarget);
+  };
+
+  const handleCloseLanguageMenu = () => {
+    setLanguageAnchorEl(null);
+  };
+
+  const toggleLanguage = (language) => {
+    i18n.changeLanguage(language);
+    handleCloseLanguageMenu();
   };
 
   pulsar.register();
@@ -63,7 +90,7 @@ const Login = () => {
     >
       <img src={Logo} width={isNonMobile ? 600 : 300} alt="" />
       <Typography variant="h4" gutterBottom>
-        LOGIN
+        {t("login")}
       </Typography>
       {status === "failed" && (
         <Typography
@@ -80,7 +107,7 @@ const Login = () => {
         style={{ width: "100%", maxWidth: 400 }}
       >
         <TextField
-          label="Email"
+          label={t("email")}
           name="email"
           value={credentials.email}
           onChange={handleChange}
@@ -106,7 +133,7 @@ const Login = () => {
           }}
         />
         <TextField
-          label="Password"
+          label={t("password")}
           name="password"
           type="password"
           value={credentials.password}
@@ -149,8 +176,25 @@ const Login = () => {
               },
             }}
           >
-            {status === "loading" ? "Logging in..." : "Login"}
+            {status === "loading" ? t("loggingIn") : t("login")}
           </Button>
+        </Box>
+        <Box display="flex" alignItems="center" justifyContent="center">
+          {/* Language Menu */}
+          <Typography variant="h4" mt={2} gutterBottom>
+            Change Language
+          </Typography>
+          <IconButton onClick={handleLanguageMenu}>
+            <TranslateOutlinedIcon />
+          </IconButton>
+          <Menu
+            anchorEl={languageAnchorEl}
+            open={Boolean(languageAnchorEl)}
+            onClose={handleCloseLanguageMenu}
+          >
+            <MenuItem onClick={() => toggleLanguage("en")}>English</MenuItem>
+            <MenuItem onClick={() => toggleLanguage("ar")}>العربية</MenuItem>
+          </Menu>
         </Box>
       </Box>
     </Box>

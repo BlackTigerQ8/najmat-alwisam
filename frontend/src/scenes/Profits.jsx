@@ -26,6 +26,7 @@ import ClearIcon from "@mui/icons-material/Clear";
 import { fetchCurrentYearPettyCash } from "../redux/pettyCashSlice";
 import { fetchAllSpendTypes } from "../redux/spendTypeSlice";
 import { groupBy } from "lodash";
+import { useTranslation } from "react-i18next";
 
 const initialValues = {
   type: "Income",
@@ -91,6 +92,7 @@ const Income = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const dispatch = useDispatch();
+  const { t } = useTranslation();
 
   const isNonMobile = useMediaQuery("(min-width: 600px)");
 
@@ -388,7 +390,10 @@ const Income = () => {
 
   return (
     <Box m="20px">
-      <Header title="PROFITS AND LOSSES" subtitle="Profits and Losses Page" />
+      <Header
+        title={t("profitsAndLossesTitle")}
+        subtitle={t("profitsAndLossesSubtitle")}
+      />
       <Formik
         initialValues={initialValues}
         validationSchema={requestSchema}
@@ -404,7 +409,7 @@ const Income = () => {
           setFieldValue,
         }) => (
           <form onSubmit={handleSubmit}>
-            <Header title="Add new company income" />
+            <Header title={t("addNewCompanyIncome")} />
             <Box
               display="grid"
               gap="30px"
@@ -415,7 +420,7 @@ const Income = () => {
             >
               <FormControl fullWidth sx={{ gridColumn: "span 2" }}>
                 <InputLabel id="select-income-type-label">
-                  Select Income type
+                  {t("selectIncomeType")}
                 </InputLabel>
                 <Select
                   labelId="select-income-type-label"
@@ -449,7 +454,9 @@ const Income = () => {
                 )}
               </FormControl>
               <FormControl fullWidth sx={{ gridColumn: "span 2" }}>
-                <InputLabel id="select-month-label">Select month</InputLabel>
+                <InputLabel id="select-month-label">
+                  {t("selectMonth")}
+                </InputLabel>
                 <Select
                   labelId="select-month-label"
                   id="select-month"
@@ -485,7 +492,7 @@ const Income = () => {
                 fullWidth
                 variant="filled"
                 type="number"
-                label="Year"
+                label={t("year")}
                 onBlur={handleBlur}
                 onChange={handleChange}
                 value={values.year}
@@ -499,7 +506,7 @@ const Income = () => {
                 fullWidth
                 variant="filled"
                 type="number"
-                label="Bike Income"
+                label={t("bikeIncome")}
                 onBlur={handleBlur}
                 onChange={handleChange}
                 value={values.bikeIncome}
@@ -514,7 +521,7 @@ const Income = () => {
                 fullWidth
                 variant="filled"
                 type="number"
-                label="Car Income"
+                label={t("carIncome")}
                 onBlur={handleBlur}
                 onChange={handleChange}
                 value={values.carIncome}
@@ -529,7 +536,7 @@ const Income = () => {
                 fullWidth
                 variant="filled"
                 type="number"
-                label="Other Income"
+                label={t("otherIncome")}
                 onBlur={handleBlur}
                 onChange={handleChange}
                 value={values.otherIncome}
@@ -544,7 +551,7 @@ const Income = () => {
                 fullWidth
                 variant="filled"
                 type="number"
-                label="Last month income"
+                label={t("lastMonthIncome")}
                 onBlur={handleBlur}
                 onChange={handleChange}
                 value={values.lastMonthIncome}
@@ -559,7 +566,7 @@ const Income = () => {
                 fullWidth
                 variant="filled"
                 type="number"
-                label="Lends Income"
+                label={t("lendsIncome")}
                 onBlur={handleBlur}
                 onChange={handleChange}
                 value={values.lendsIncome}
@@ -574,7 +581,7 @@ const Income = () => {
                 fullWidth
                 variant="filled"
                 type="number"
-                label="Money safe balance"
+                label={t("moneySafeBalance")}
                 onBlur={handleBlur}
                 onChange={handleChange}
                 value={values.moneySafeBalance}
@@ -589,7 +596,7 @@ const Income = () => {
                 fullWidth
                 variant="filled"
                 type="text"
-                label="Refund company"
+                label={t("refundCompany")}
                 onBlur={handleBlur}
                 onChange={handleChange}
                 value={values.refundCompany}
@@ -604,7 +611,7 @@ const Income = () => {
                 fullWidth
                 variant="filled"
                 type="number"
-                label="Refund amount"
+                label={t("refundAmount")}
                 onBlur={handleBlur}
                 onChange={handleChange}
                 value={values.refundAmount}
@@ -616,7 +623,7 @@ const Income = () => {
               />
 
               <Button type="submit" color="secondary" variant="contained">
-                Save Data
+                {t("saveData")}
               </Button>
             </Box>
           </form>

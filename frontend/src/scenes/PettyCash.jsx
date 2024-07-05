@@ -28,6 +28,7 @@ import { pulsar } from "ldrs";
 import { fetchDrivers } from "../redux/driversSlice";
 import { fetchUsers } from "../redux/usersSlice";
 import { fetchAllSpendTypes } from "../redux/spendTypeSlice";
+import { useTranslation } from "react-i18next";
 
 const initialValues = {
   serialNumber: "",
@@ -73,6 +74,7 @@ const PettyCash = () => {
   const colors = tokens(theme.palette.mode);
   const isNonMobile = useMediaQuery("(min-width: 600px)");
   const dispatch = useDispatch();
+  const { t } = useTranslation();
   const pettyCash = useSelector((state) => state.pettyCash.pettyCash);
   const pageStatus = useSelector((state) => state.pettyCash.status);
   const error = useSelector((state) => state.pettyCash.error);
@@ -94,8 +96,6 @@ const PettyCash = () => {
 
   async function handleFormSubmit(values) {
     try {
-      
-
       dispatch(
         searchPettyCash({
           values,
@@ -153,22 +153,22 @@ const PettyCash = () => {
         }/${date.getFullYear()}`;
         return formattedDate;
       },
-      headerName: "Spends Date",
+      headerName: t("spendsDate"),
       flex: 1,
     },
     {
       field: "spendsReason",
-      headerName: "Spends Reason",
+      headerName: t("spendsReason"),
       flex: 1,
     },
     {
       field: "cashAmount",
-      headerName: "Cash Amount",
+      headerName: t("cashAmount"),
       flex: 1,
     },
     {
       field: "spendType",
-      headerName: "spendType",
+      headerName: t("spendTypes"),
       flex: 1,
       renderCell: ({ row: { spendType } }) => {
         const { name = undefined } = spendTypes.find(
@@ -184,12 +184,12 @@ const PettyCash = () => {
     },
     {
       field: "spendsRemarks",
-      headerName: "Remarks",
+      headerName: t("remarks"),
       flex: 1,
     },
     {
       field: "deductedFrom",
-      headerName: "Deducted From",
+      headerName: t("deductedFrom"),
       renderCell: ({ row: { deductedFromDriver, deductedFromUser } }) => {
         if (!deductedFromDriver && !deductedFromUser) return null;
 
@@ -255,7 +255,7 @@ const PettyCash = () => {
 
   return (
     <Box m="20px">
-      <Header title="PETTY CASH" subtitle="Petty Cash Page" />
+      <Header title={t("pettyCashTitle")} subtitle={t("pettyCashSubtitle")} />
       <Formik
         initialValues={initialValues}
         validationSchema={pettyCashRequestSchema}
@@ -283,7 +283,7 @@ const PettyCash = () => {
                 fullWidth
                 variant="filled"
                 type="number"
-                label="Serial Number"
+                label={t("serialNumber")}
                 onBlur={handleBlur}
                 onChange={handleChange}
                 value={values.serialNumber}
@@ -296,7 +296,7 @@ const PettyCash = () => {
                 fullWidth
                 variant="filled"
                 type="text"
-                label="Request Applicant"
+                label={t("requestApplicant")}
                 onBlur={handleBlur}
                 onChange={handleChange}
                 value={values.requestApplicant}
@@ -309,7 +309,7 @@ const PettyCash = () => {
                 fullWidth
                 variant="filled"
                 type="date"
-                label="Request Date"
+                label={t("requestDate")}
                 onBlur={handleBlur}
                 onChange={handleChange}
                 value={values.requestDate}
@@ -319,7 +319,7 @@ const PettyCash = () => {
                 sx={{ gridColumn: "span 1" }}
               />
               <Button type="submit" color="secondary" variant="contained">
-                Search
+                {t("search")}
               </Button>
             </Box>
           </form>
@@ -372,21 +372,21 @@ const PettyCash = () => {
           }}
         >
           <Typography variant="h4" color="secondary" mt={4}>
-            Total spends:
+            {t("totalSpends")} :
             <strong>
-              <span> {totalSpends} </span> KD
+              <span> {totalSpends} </span> {t("kd")}
             </strong>
           </Typography>
           <Typography variant="h4" color="secondary" mt={4}>
-            Total amount on workers:
+            {t("totalAmountOnWorkers")} :
             <strong>
-              <span> {totalAmountOnWorker} </span> KD
+              <span> {totalAmountOnWorker} </span> {t("kd")}
             </strong>
           </Typography>
           <Typography variant="h4" color="secondary" mt={4}>
-            Net amount on company:
+            {t("totalAmountOnCompany")} :
             <strong>
-              <span> {totalAmountOnCompany} </span> KD
+              <span> {totalAmountOnCompany} </span> {t("kd")}
             </strong>
           </Typography>
         </Box>
@@ -410,10 +410,10 @@ function PettyCashForm({ isNonMobile }) {
   const pettyCash = useSelector((state) => state.pettyCash.pettyCash);
   const filteredUsers = users.filter((user) => user.role !== "Admin");
   const dispatch = useDispatch();
+  const { t } = useTranslation();
 
   async function handleFormSubmit(values, options) {
     try {
-      
       dispatch(
         createPettyCash({
           values: {
@@ -455,7 +455,7 @@ function PettyCashForm({ isNonMobile }) {
         setFieldValue,
       }) => (
         <form onSubmit={handleSubmit}>
-          <Header title="Add new petty cash" />
+          <Header title={t("addNewPettyCash")} />
           <Box
             display="grid"
             gap="30px"
@@ -465,7 +465,7 @@ function PettyCashForm({ isNonMobile }) {
             }}
           >
             <FormControl fullWidth sx={{ gridColumn: "span 2" }}>
-              <InputLabel id="select-user-label">Select User</InputLabel>
+              <InputLabel id="select-user-label">{t("selectUser")}</InputLabel>
               <Select
                 labelId="select-user-label"
                 id="select-user"
@@ -499,7 +499,9 @@ function PettyCashForm({ isNonMobile }) {
             </FormControl>
 
             <FormControl fullWidth sx={{ gridColumn: "span 2" }}>
-              <InputLabel id="select-driver-label">Select Driver</InputLabel>
+              <InputLabel id="select-driver-label">
+                {t("selectDriver")}
+              </InputLabel>
               <Select
                 labelId="select-driver-label"
                 id="select-driver"
@@ -543,7 +545,9 @@ function PettyCashForm({ isNonMobile }) {
             </FormControl>
 
             <FormControl fullWidth sx={{ gridColumn: "span 2" }}>
-              <InputLabel id="select-user-label">Select spend type</InputLabel>
+              <InputLabel id="select-user-label">
+                {t("selectSpendType")}
+              </InputLabel>
               <Select
                 labelId="select-spendType-label"
                 id="select-spendType"
@@ -579,7 +583,7 @@ function PettyCashForm({ isNonMobile }) {
               fullWidth
               variant="filled"
               type="number"
-              label="Serial No."
+              label={t("serialNumber")}
               onBlur={handleBlur}
               onChange={handleChange}
               value={values.serialNumber}
@@ -592,7 +596,7 @@ function PettyCashForm({ isNonMobile }) {
               fullWidth
               variant="filled"
               type="text"
-              label="Spends reason"
+              label={t("spendsReason")}
               onBlur={handleBlur}
               onChange={handleChange}
               value={values.spendsReason}
@@ -605,7 +609,7 @@ function PettyCashForm({ isNonMobile }) {
               fullWidth
               variant="filled"
               type="number"
-              label="Cash amount"
+              label={t("cashAmount")}
               onBlur={handleBlur}
               onChange={handleChange}
               value={values.cashAmount}
@@ -618,7 +622,7 @@ function PettyCashForm({ isNonMobile }) {
               fullWidth
               variant="filled"
               type="text"
-              label="Spends remarks"
+              label={t("spendsRemarks")}
               onBlur={handleBlur}
               onChange={handleChange}
               value={values.spendsRemarks}
@@ -631,7 +635,7 @@ function PettyCashForm({ isNonMobile }) {
               fullWidth
               variant="filled"
               type="text"
-              label="Request Applicant"
+              label={t("requestApplicant")}
               onBlur={handleBlur}
               onChange={handleChange}
               value={values.requestApplicant}
@@ -644,7 +648,7 @@ function PettyCashForm({ isNonMobile }) {
               fullWidth
               variant="filled"
               type="date"
-              label="Resquest Date"
+              label={t("requestDate")}
               onBlur={handleBlur}
               onChange={handleChange}
               value={values.requestDate}
@@ -657,7 +661,7 @@ function PettyCashForm({ isNonMobile }) {
               fullWidth
               variant="filled"
               type="date"
-              label="Spends Date"
+              label={t("spendsDate")}
               onBlur={handleBlur}
               onChange={handleChange}
               value={values.spendsDate}
@@ -671,7 +675,7 @@ function PettyCashForm({ isNonMobile }) {
                 fullWidth
                 variant="filled"
                 type="number"
-                label="Starting balance"
+                label={t("startingBalance")}
                 onBlur={handleBlur}
                 onChange={handleChange}
                 value={values.currentBalance}
@@ -683,7 +687,7 @@ function PettyCashForm({ isNonMobile }) {
             )}
 
             <Button type="submit" color="secondary" variant="contained">
-              Save Data
+              {t("saveData")}
             </Button>
           </Box>
         </form>

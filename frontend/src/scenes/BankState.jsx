@@ -32,6 +32,7 @@ import useMediaQuery from "@mui/material/useMediaQuery";
 import PrintableTable from "./PrintableTable";
 import { useReactToPrint } from "react-to-print";
 import styles from "./Print.module.css";
+import { useTranslation } from "react-i18next";
 
 const initialValues = {
   statementDate: "",
@@ -41,11 +42,11 @@ const initialValues = {
   statementRemarks: "",
   checkNumber: "",
   statementDetails: "",
-  bankAccountNumber: 8657,
+  bankAccountNumber: 7568,
 };
 
 const searchInitialValues = {
-  bankAccountNumber: 8657,
+  bankAccountNumber: 7568,
   startDate: "",
   endDate: "",
 };
@@ -69,6 +70,7 @@ const BankState = () => {
   const isNonMobile = useMediaQuery("(min-width: 600px)");
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
+  const { t } = useTranslation();
 
   const dispatch = useDispatch();
   const bankStatement = useSelector(
@@ -128,7 +130,7 @@ const BankState = () => {
   const columns = [
     {
       field: "statementDate",
-      headerName: "Date",
+      headerName: t("date"),
       flex: 1,
       headerAlign: "center",
       align: "center",
@@ -142,7 +144,7 @@ const BankState = () => {
     },
     {
       field: "deposits",
-      headerName: "Deposits",
+      headerName: t("deposits"),
       flex: 1,
       headerAlign: "center",
       align: "center",
@@ -150,7 +152,7 @@ const BankState = () => {
     },
     {
       field: "spends",
-      headerName: "Spends",
+      headerName: t("spends"),
       flex: 1,
       headerAlign: "center",
       align: "center",
@@ -158,28 +160,28 @@ const BankState = () => {
     },
     {
       field: "balance",
-      headerName: "Balance",
+      headerName: t("balance"),
       flex: 1,
       headerAlign: "center",
       align: "center",
     },
     {
       field: "statementRemarks",
-      headerName: "Remarks",
+      headerName: t("remarks"),
       flex: 1,
       headerAlign: "center",
       align: "center",
     },
     {
       field: "checkNumber",
-      headerName: "Check Number",
+      headerName: t("checkNumber"),
       flex: 1,
       headerAlign: "center",
       align: "center",
     },
     {
       field: "statementDetails",
-      headerName: "Details",
+      headerName: t("details"),
       flex: 1,
       headerAlign: "center",
       align: "center",
@@ -242,7 +244,10 @@ const BankState = () => {
 
   return (
     <Box m="20px">
-      <Header title="BANK STATEMENT" subtitle="Bank Statement Page" />
+      <Header
+        title={t("bankStatementTitle")}
+        subtitle={t("bankStatementSubtitle")}
+      />
       <Box
         mt="40px"
         height="75vh"
@@ -270,7 +275,7 @@ const BankState = () => {
         }}
       >
         <Box mb="20px">
-          <Header subtitle="ADD NEW ROW" />
+          <Header subtitle={t("addNewRow")} />
           <Formik
             onSubmit={handleSubmit}
             initialValues={initialValues}
@@ -301,7 +306,7 @@ const BankState = () => {
                     sx={{ gridColumn: "span 1" }}
                   >
                     <InputLabel htmlFor="bankAccountNumber">
-                      Bank Account Number
+                      {t("bankAccountNumber")}
                     </InputLabel>
                     <Select
                       label="bankAccountNumber"
@@ -317,15 +322,15 @@ const BankState = () => {
                         touched.bankAccountNumber && errors.bankAccountNumber
                       }
                     >
-                      <MenuItem value={"8657"}>8657</MenuItem>
-                      <MenuItem value={"8656"}>8656</MenuItem>
+                      <MenuItem value={"7568"}>7568</MenuItem>
+                      <MenuItem value={"1638"}>1638</MenuItem>
                     </Select>
                   </FormControl>
                   <TextField
                     fullWidth
                     variant="filled"
                     type="date"
-                    label="Date"
+                    label={t("date")}
                     onBlur={handleBlur}
                     onChange={handleChange}
                     value={values.statementDate}
@@ -338,7 +343,7 @@ const BankState = () => {
                     fullWidth
                     variant="filled"
                     type="number"
-                    label="Deposits"
+                    label={t("deposits")}
                     onBlur={handleBlur}
                     onChange={handleChange}
                     value={values.deposits}
@@ -355,7 +360,7 @@ const BankState = () => {
                     fullWidth
                     variant="filled"
                     type="number"
-                    label="Spends"
+                    label={t("spends")}
                     onBlur={handleBlur}
                     onChange={handleChange}
                     value={values.spends}
@@ -374,7 +379,7 @@ const BankState = () => {
                       fullWidth
                       variant="filled"
                       type="number"
-                      label="Balance"
+                      label={t("balance")}
                       onBlur={handleBlur}
                       onChange={handleChange}
                       value={values.balance}
@@ -388,7 +393,7 @@ const BankState = () => {
                     fullWidth
                     variant="filled"
                     type="text"
-                    label="Remarks"
+                    label={t("remarks")}
                     onBlur={handleBlur}
                     onChange={handleChange}
                     value={values.statementRemarks}
@@ -405,7 +410,7 @@ const BankState = () => {
                     fullWidth
                     variant="filled"
                     type="text"
-                    label="Check Number"
+                    label={t("checkNumber")}
                     onBlur={handleBlur}
                     onChange={handleChange}
                     value={values.checkNumber}
@@ -418,7 +423,7 @@ const BankState = () => {
                     fullWidth
                     variant="filled"
                     type="text"
-                    label="Details"
+                    label={t("details")}
                     onBlur={handleBlur}
                     onChange={handleChange}
                     value={values.statementDetails}
@@ -434,7 +439,7 @@ const BankState = () => {
                 </Box>
                 <Box display="flex" justifyContent="end" mt="20px">
                   <Button type="submit" color="secondary" variant="contained">
-                    Add New Row
+                    {t("addNewRow")}
                   </Button>
                 </Box>
               </form>
@@ -463,21 +468,21 @@ const BankState = () => {
             ref={componentRef}
           />
           <Typography variant="h4" color="secondary" mt={4}>
-            Total withdrawals :
+            {t("totalWithdrawals")} :
             <strong>
-              <span> {totalSpends} </span> KD
+              <span> {totalSpends} </span> {t("kd")}
             </strong>
           </Typography>
           <Typography variant="h4" color="secondary" mt={4}>
-            Total deposits:
+            {t("totalDeposits")} :
             <strong>
-              <span> {totalDeposits} </span> KD
+              <span> {totalDeposits} </span> {t("kd")}
             </strong>
           </Typography>
           <Typography variant="h4" color="secondary" mt={4}>
-            Current Balance:
+            {t("currentBalance")} :
             <strong>
-              <span> {totalBalance} </span> KD
+              <span> {totalBalance} </span> {t("kd")}
             </strong>
           </Typography>
         </Box>
@@ -488,6 +493,7 @@ const BankState = () => {
 
 export function BankStatementSearchForm({ isNonMobile, handlePrint }) {
   const dispatch = useDispatch();
+  const { t } = useTranslation();
 
   const onSearchSubmit = async (values) => [
     dispatch(searchBankStatement({ values })),
@@ -539,15 +545,15 @@ export function BankStatementSearchForm({ isNonMobile, handlePrint }) {
                   touched.bankAccountNumber && errors.bankAccountNumber
                 }
               >
-                <MenuItem value={"8657"}>8657</MenuItem>
-                <MenuItem value={"8656"}>8656</MenuItem>
+                <MenuItem value={"7568"}>7568</MenuItem>
+                <MenuItem value={"1638"}>1638</MenuItem>
               </Select>
             </FormControl>
             <TextField
               fullWidth
               variant="filled"
               type="date"
-              label="Starting Date"
+              label={t("startingDate")}
               onBlur={handleBlur}
               onChange={handleChange}
               value={values.startDate}
@@ -560,7 +566,7 @@ export function BankStatementSearchForm({ isNonMobile, handlePrint }) {
               fullWidth
               variant="filled"
               type="date"
-              label="Ending Date"
+              label={t("endingDate")}
               onBlur={handleBlur}
               onChange={handleChange}
               value={values.endDate}
@@ -571,13 +577,13 @@ export function BankStatementSearchForm({ isNonMobile, handlePrint }) {
             />
             <Box display="flex" sx={{ gridColumn: "span 1" }}>
               <Button type="submit" color="secondary" variant="contained">
-                Search
+                {t("search")}
               </Button>
             </Box>
 
             <Box display="flex" sx={{ gridColumn: "span 1" }}>
               <Button onClick={handlePrint} color="primary" variant="contained">
-                Print
+                {t("print")}
               </Button>
             </Box>
           </Box>
