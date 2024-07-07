@@ -8,14 +8,14 @@ const getMonthDateRange = () => {
     1
   );
 
-  // Get the first day of the next month
-  const firstDayOfNextMonth = new Date(
+  // Get the last day of the current month
+  const lastDayOfCurrentMonth = new Date(
     currentDate.getFullYear(),
-    currentDate.getMonth() + 1,
-    1
+    currentDate.getMonth(),
+    31
   );
 
-  return { startDate: firstDayOfMonth, endDate: firstDayOfNextMonth };
+  return { startDate: firstDayOfMonth, endDate: lastDayOfCurrentMonth };
 };
 
 module.exports = { getMonthDateRange };
