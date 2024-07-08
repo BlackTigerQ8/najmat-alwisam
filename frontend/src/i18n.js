@@ -281,6 +281,7 @@ i18n
           deactivate: "Deactivate",
           reactivate: "Reactivate",
           deactivationReason: "Deactivation Reason",
+          updatedDriver: "Driver's information is successfully updated!",
         },
       },
       ar: {
@@ -547,6 +548,7 @@ i18n
           deactivate: "إيقاف التفعيل",
           reactivate: "إعادة تفعيل",
           deactivationReason: "سبب التعطيل",
+          updatedDriver: "تم تحديث معلومات السائق بنجاح!",
         },
       },
     },
