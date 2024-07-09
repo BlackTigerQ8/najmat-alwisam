@@ -310,7 +310,7 @@ const getDriverInvoices = async (
     status: { $in: status },
     invoiceDate: {
       $gte: optionalStartDate || startDate,
-      $lt: optionalEndDate || endDate,
+      $lte: optionalEndDate || endDate,
     },
   }).populate("driver");
 

@@ -282,6 +282,7 @@ i18n
           deactivate: "Deactivate",
           reactivate: "Reactivate",
           deactivationReason: "Deactivation Reason",
+          updatedDriver: "Driver's information is successfully updated!",
           /////////////
           changeLanguage: "Change Language",
           darkMode: "Dark Mode",
@@ -554,6 +555,7 @@ i18n
           deactivate: "إيقاف التفعيل",
           reactivate: "إعادة تفعيل",
           deactivationReason: "سبب التعطيل",
+          updatedDriver: "تم تحديث معلومات السائق بنجاح!",
           /////////////
           changeLanguage: "تغيير اللغة",
           darkMode: "وضع الظلام",

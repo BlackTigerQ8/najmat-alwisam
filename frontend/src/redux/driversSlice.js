@@ -2,6 +2,7 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { formatDate } from "../utils/dateUtil";
+import i18next from "i18next";
 
 const API_URL = process.env.REACT_APP_API_URL;
 
@@ -253,10 +254,7 @@ const driversSlice = createSlice({
         state.drivers = state.drivers.map((driver) =>
           driver._id === updatedDriver._id ? updatedDriver : driver
         );
-        dispatchToast(
-          "Driver's information is successfully updated!",
-          "success"
-        );
+        dispatchToast(i18next.t("updatedDriver"), "success");
       })
       .addCase(updateDriver.rejected, (state, action) => {
         state.status = "failed";

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import {
   Box,
   Typography,
@@ -13,7 +13,6 @@ import {
 } from "@mui/material";
 import Header from "../components/Header";
 import { tokens } from "../theme";
-import { NewtonsCradle } from "@uiball/loaders";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import { useSelector, useDispatch } from "react-redux";
 import { pulsar } from "ldrs";
@@ -23,7 +22,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import * as Yup from "yup";
 import { useTranslation } from "react-i18next";
 
-const DriverProfile = ({ driverId }) => {
+const DriverProfile = () => {
   const isNonMobile = useMediaQuery("(min-width: 600px)");
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
