@@ -6,6 +6,7 @@ import {
   Menu,
   MenuItem,
   TextField,
+  Tooltip,
   Typography,
   useTheme,
 } from "@mui/material";
@@ -184,9 +185,11 @@ const Login = () => {
           <Typography variant="h4" mt={2} gutterBottom>
             Change Language
           </Typography>
-          <IconButton onClick={handleLanguageMenu}>
-            <TranslateOutlinedIcon />
-          </IconButton>
+          <Tooltip title={t("changeLanguage")}>
+            <IconButton onClick={handleLanguageMenu}>
+              <TranslateOutlinedIcon />
+            </IconButton>
+          </Tooltip>
           <Menu
             anchorEl={languageAnchorEl}
             open={Boolean(languageAnchorEl)}

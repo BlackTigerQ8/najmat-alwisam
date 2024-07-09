@@ -96,7 +96,7 @@ const Messages = () => {
             fontSize: "18px",
           }}
         >
-          No messages available
+          {t("noMessages")}
         </Typography>
       )}
     </Box>

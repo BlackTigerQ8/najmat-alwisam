@@ -1,16 +1,22 @@
-import React, { useState, useEffect, useRef } from "react";
-import { Box, IconButton, useTheme, Menu, MenuItem } from "@mui/material";
-import { useContext } from "react";
+import React, { useState, useEffect, useRef, useContext } from "react";
+import {
+  Box,
+  IconButton,
+  useTheme,
+  Menu,
+  MenuItem,
+  Tooltip,
+  Badge,
+} from "@mui/material";
 import InputBase from "@mui/material/InputBase";
 import LightModeOutlinedIcon from "@mui/icons-material/LightModeOutlined";
 import DarkModeOutlinedIcon from "@mui/icons-material/DarkModeOutlined";
 import NotificationsOutlinedIcon from "@mui/icons-material/NotificationsOutlined";
 import SettingsOutlinedIcon from "@mui/icons-material/SettingsOutlined";
 import TranslateOutlinedIcon from "@mui/icons-material/TranslateOutlined";
-import PersonOutlinedIcon from "@mui/icons-material/PersonOutlined";
+import LogoutOutlinedIcon from "@mui/icons-material/LogoutOutlined";
 import SearchIcon from "@mui/icons-material/Search";
 import { ColorModeContext, tokens } from "../../theme";
-import Badge from "@mui/material/Badge";
 import { Link, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { getUserRoleFromToken } from "./getUserRoleFromToken";
@@ -101,9 +107,11 @@ const Topbar = () => {
       {/* ICONS */}
       <Box display="flex">
         {/* Language Menu */}
-        <IconButton onClick={handleLanguageMenu}>
-          <TranslateOutlinedIcon />
-        </IconButton>
+        <Tooltip title={t("changeLanguage")}>
+          <IconButton onClick={handleLanguageMenu}>
+            <TranslateOutlinedIcon />
+          </IconButton>
+        </Tooltip>
         <Menu
           anchorEl={languageAnchorEl}
           open={Boolean(languageAnchorEl)}
@@ -114,32 +122,44 @@ const Topbar = () => {
         </Menu>
 
         {/* Dark/Light Mode Toggle */}
-        <IconButton onClick={colorMode.toggleColorMode}>
-          {theme.palette.mode === "dark" ? (
-            <DarkModeOutlinedIcon />
-          ) : (
-            <LightModeOutlinedIcon />
-          )}
-        </IconButton>
-        <Link to="/notifications">
-          <IconButton>
-            <Badge
-              badgeContent={notificationsCount ? notificationsCount : undefined}
-              color="secondary"
-              max={50}
-            >
-              <NotificationsOutlinedIcon />
-            </Badge>
+        <Tooltip
+          title={theme.palette.mode === "dark" ? t("lightMode") : t("darkMode")}
+        >
+          <IconButton onClick={colorMode.toggleColorMode}>
+            {theme.palette.mode === "dark" ? (
+              <DarkModeOutlinedIcon />
+            ) : (
+              <LightModeOutlinedIcon />
+            )}
           </IconButton>
+        </Tooltip>
+        <Link to="/notifications">
+          <Tooltip title={t("notifications")}>
+            <IconButton>
+              <Badge
+                badgeContent={
+                  notificationsCount ? notificationsCount : undefined
+                }
+                color="secondary"
+                max={50}
+              >
+                <NotificationsOutlinedIcon />
+              </Badge>
+            </IconButton>
+          </Tooltip>
         </Link>
         {(userRole === "Admin" || userRole === "Manager") && (
-          <IconButton onClick={() => navigate(`/user-profile/${userId}`)}>
-            <SettingsOutlinedIcon />
-          </IconButton>
+          <Tooltip title={t("settings")}>
+            <IconButton onClick={() => navigate(`/user-profile/${userId}`)}>
+              <SettingsOutlinedIcon />
+            </IconButton>
+          </Tooltip>
         )}
-        <IconButton onClick={handleMenu}>
-          <PersonOutlinedIcon />
-        </IconButton>
+        <Tooltip title={t("logout")}>
+          <IconButton onClick={handleMenu}>
+            <LogoutOutlinedIcon />
+          </IconButton>
+        </Tooltip>
         <Menu
           anchorEl={anchorEl}
           anchorOrigin={{

@@ -1,4 +1,4 @@
-import i18n from "i18next";
+import i18n, { changeLanguage } from "i18next";
 import { initReactI18next } from "react-i18next";
 import LanguageDetector from "i18next-browser-languagedetector";
 
@@ -36,6 +36,7 @@ i18n
           deductionInvoices: "Deduction Invoices",
           driversInvoices: "Drivers Invoices",
           notifications: "Notifications",
+          settings: "Settings",
           forms: "Forms",
           profileForm: "Team Form",
           driversForm: "Drivers Form",
@@ -281,6 +282,11 @@ i18n
           deactivate: "Deactivate",
           reactivate: "Reactivate",
           deactivationReason: "Deactivation Reason",
+          /////////////
+          changeLanguage: "Change Language",
+          darkMode: "Dark Mode",
+          lightMode: "Light Mode",
+          noMessages: "No messages available",
         },
       },
       ar: {
@@ -307,12 +313,13 @@ i18n
           deductionInvoices: "فواتير الخصم",
           driversInvoices: "فواتير السائقين",
           notifications: "الإشعارات",
+          settings: "الإعدادات",
           forms: "نماذج",
           profileForm: "نموذج الفريق",
           driversForm: "نموذج السائقين",
           deduction: "خصم",
-          contact: "اتصال",
-          messages: "رسائل",
+          contact: "التواصل",
+          messages: "الرسائل",
           invoicesArchive: "أرشيف الفواتير",
           invoicesArchiveSubtitle: "قائمة الفواتير المؤرشفة",
           message: "رسالة",
@@ -547,6 +554,11 @@ i18n
           deactivate: "إيقاف التفعيل",
           reactivate: "إعادة تفعيل",
           deactivationReason: "سبب التعطيل",
+          /////////////
+          changeLanguage: "تغيير اللغة",
+          darkMode: "وضع الظلام",
+          lightMode: "وضع الضوء",
+          noMessages: "لا توجد رسائل متاحة",
         },
       },
     },

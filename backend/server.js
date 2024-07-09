@@ -16,6 +16,7 @@ connectDB();
 
 const staticDirectories = [
   "uploads/images",
+  "uploads/company-files",
   "uploads/users/contracts",
   "uploads/drivers/contracts/Others",
   "uploads/drivers/contracts/Talabat",
