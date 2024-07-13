@@ -226,14 +226,14 @@ const driversSlice = createSlice({
     // Fetch drivers
     builder
       .addCase(fetchDrivers.pending, (state) => {
-        state.salariesStatus = "loading";
+        state.status = "loading";
       })
       .addCase(fetchDrivers.fulfilled, (state, action) => {
-        state.salariesStatus = "succeeded";
+        state.status = "succeeded";
         state.drivers = action.payload.data.drivers;
       })
       .addCase(fetchDrivers.rejected, (state, action) => {
-        state.salariesStatus = "failed";
+        state.status = "failed";
         state.error = action.error.message;
       });
     // Fetch drivers summary
