@@ -1,11 +1,7 @@
 import React, { useEffect } from "react";
-import { Typography, Box, Button, useTheme } from "@mui/material";
-import { DataGrid, GridToolbar } from "@mui/x-data-grid";
+import { Box, Button, useTheme } from "@mui/material";
+import { DataGrid } from "@mui/x-data-grid";
 import { tokens } from "../theme";
-// import { mockDataTeam } from "../data/mockData";
-// import AdminPanelSettingsOutlinedIcon from "@mui/icons-material/AdminPanelSettingsOutlined";
-// import LockOpenOutlinedIcon from "@mui/icons-material/LockOpenOutlined";
-// import SecurityOutlinedIcon from "@mui/icons-material/SecurityOutlined";
 import BlockOutlinedIcon from "@mui/icons-material/BlockOutlined";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -13,7 +9,11 @@ import { pulsar } from "ldrs";
 import { useNavigate } from "react-router-dom";
 import Header from "../components/Header";
 import { useSelector, useDispatch } from "react-redux";
-import { fetchDrivers, deleteDriver } from "../redux/driversSlice";
+import {
+  fetchDrivers,
+  deleteDriver,
+  deactivateDriver,
+} from "../redux/driversSlice";
 import { useTranslation } from "react-i18next";
 
 const Drivers = () => {
@@ -24,11 +24,9 @@ const Drivers = () => {
   const status = useSelector((state) => state.drivers.status);
   const error = useSelector((state) => state.drivers.error);
   const { t } = useTranslation();
-
   const token =
     useSelector((state) => state.drivers.token) ||
     localStorage.getItem("token");
-
   const navigate = useNavigate();
 
   const columns = [
@@ -60,7 +58,6 @@ const Drivers = () => {
       headerAlign: "left",
       align: "left",
     },
-
     {
       field: "carPlateNumber",
       headerName: t("carPlateNumber"),
@@ -77,27 +74,25 @@ const Drivers = () => {
       align: "center",
       sortable: false,
       filterable: false,
-      renderCell: (params) => {
-        return (
-          <Box display="flex" justifyContent="center">
-            <Button
-              variant="contained"
-              color="primary"
-              size="small"
-              style={{ marginRight: 8 }}
-              onClick={() => handleEdit(params.row)}
-              startIcon={<EditIcon />}
-            ></Button>
-            <Button
-              variant="contained"
-              color="secondary"
-              size="small"
-              onClick={() => handleDelete(params.row._id)}
-              startIcon={<DeleteIcon />}
-            ></Button>
-          </Box>
-        );
-      },
+      renderCell: (params) => (
+        <Box display="flex" justifyContent="center">
+          <Button
+            variant="contained"
+            color="primary"
+            size="small"
+            style={{ marginRight: 8 }}
+            onClick={() => handleEdit(params.row)}
+            startIcon={<EditIcon />}
+          ></Button>
+          <Button
+            variant="contained"
+            color="secondary"
+            size="small"
+            onClick={() => handleDelete(params.row._id)}
+            startIcon={<DeleteIcon />}
+          ></Button>
+        </Box>
+      ),
     },
     {
       field: "deactivate",
@@ -107,30 +102,27 @@ const Drivers = () => {
       align: "center",
       sortable: false,
       filterable: false,
-      renderCell: (params) => {
-        return (
-          <Box display="flex" justifyContent="center">
-            <Button
-              variant="contained"
-              color="primary"
-              size="small"
-              style={{ marginRight: 8 }}
-              onClick={() => handleDeactivation(params.row)}
-              startIcon={<BlockOutlinedIcon />}
-            ></Button>
-          </Box>
-        );
-      },
+      renderCell: (params) => (
+        <Box display="flex" justifyContent="center">
+          <Button
+            variant="contained"
+            color="primary"
+            size="small"
+            style={{ marginRight: 8 }}
+            onClick={() => handleDeactivation(params.row._id)}
+            startIcon={<BlockOutlinedIcon />}
+          ></Button>
+        </Box>
+      ),
     },
   ];
 
   useEffect(() => {
-    //if (status === "succeeded") {
     dispatch(fetchDrivers(token));
-    //}
-  }, [token]);
+  }, [token, dispatch]);
 
   pulsar.register();
+
   if (status === "loading") {
     return (
       <div
@@ -173,7 +165,7 @@ const Drivers = () => {
             type="submit"
             color="secondary"
             variant="contained"
-            onClick={() => navigate("/drivers")}
+            onClick={() => navigate("/")}
           >
             Back to Drivers page
           </Button>
@@ -182,27 +174,7 @@ const Drivers = () => {
     );
   }
 
-  if (status === "failed") {
-    return (
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          height: "100vh",
-          fontSize: "18px",
-        }}
-      >
-        Error: {error}
-        <Button type="submit" color="secondary" variant="contained">
-          Back to Drivers page
-        </Button>
-      </div>
-    );
-  }
-
   const handleEdit = (rowData) => {
-    // Here you can navigate to an edit page with rowData or open an edit modal/dialog
     navigate(`/driver-profile/${rowData._id}`);
   };
 
@@ -214,26 +186,42 @@ const Drivers = () => {
     }
   };
 
-  const handleDeactivation = () => {
-    console.log("Driver is Deactivated!");
+  const handleDeactivation = async (driverId) => {
+    try {
+      dispatch(deactivateDriver(driverId));
+    } catch (error) {
+      console.error("Error deactivating driver:", error);
+    }
+  };
+
+  const handleViewInactiveDrivers = () => {
+    navigate("/deactivated-drivers");
   };
 
   return (
     <Box m="20px">
       <Header title={t("DRIVERS")} subtitle={t("manageDriverMembers")} />
       <Box
+        display="flex"
+        justifyContent="space-between"
+        alignItems="center"
+        mt="20px"
+      >
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={handleViewInactiveDrivers}
+        >
+          View Inactive Drivers
+        </Button>
+      </Box>
+      <Box
         mt="40px"
         height="75vh"
         sx={{
-          "& .MuiDataGrid-root": {
-            border: "none",
-          },
-          "& .MuiDataGrid-cell": {
-            borderBottom: "none",
-          },
-          "& .name-column--cell": {
-            color: colors.greenAccent[300],
-          },
+          "& .MuiDataGrid-root": { border: "none" },
+          "& .MuiDataGrid-cell": { borderBottom: "none" },
+          "& .name-column--cell": { color: colors.greenAccent[300] },
           "& .MuiDataGrid-columnHeaders": {
             backgroundColor: colors.blueAccent[700],
             borderBottom: "none",

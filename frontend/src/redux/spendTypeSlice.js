@@ -2,6 +2,7 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 import { toast } from "react-toastify";
+import i18next from "i18next";
 
 const API_URL = process.env.REACT_APP_API_URL;
 
@@ -9,6 +10,16 @@ const initialState = {
   spendTypes: [], // Initialize with stored data if available
   status: "",
   error: null,
+};
+
+const dispatchToast = (message, type) => {
+  toast[type](message, {
+    position: "top-right",
+    autoClose: 3000,
+    hideProgressBar: false,
+    closeOnClick: true,
+    pauseOnHover: true,
+  });
 };
 
 export const fetchAllSpendTypes = createAsyncThunk(
@@ -92,24 +103,12 @@ const spendTypeSlice = createSlice({
       .addCase(addSpendType.fulfilled, (state, action) => {
         state.status = "succeeded";
         state.spendTypes = [...state.spendTypes, action.payload.data.spendType];
-        toast.success("Spend type is successfully added!", {
-          position: "top-right",
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-        });
+        dispatchToast(i18next.t("addSpendTypeFulfilled"), "success");
       })
       .addCase(addSpendType.rejected, (state, action) => {
         state.status = "failed";
         state.error = action.error.message;
-        toast.error("Can't add a spend type, you can try later!", {
-          position: "top-right",
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-        });
+        dispatchToast(i18next.t("addSpendTypeRejected"), "error");
       });
     // Delete Spend Type
     builder
@@ -122,24 +121,12 @@ const spendTypeSlice = createSlice({
         state.spendTypes = state.spendTypes.filter(
           (spendType) => spendType._id !== spendTypeId
         );
-        toast.success("Spend type is successfully deleted!", {
-          position: "top-right",
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-        });
+        dispatchToast(i18next.t("deleteSpendTypeFulfilled"), "success");
       })
       .addCase(deleteSpendType.rejected, (state, action) => {
         state.status = "failed";
         state.error = action.error.message;
-        toast.error("Can't delete spend type, please try again later!", {
-          position: "top-right",
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-        });
+        dispatchToast(i18next.t("deleteSpendTypeRejected"), "error");
       });
   },
 });

@@ -2,6 +2,7 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 import { toast } from "react-toastify";
+import i18next from "i18next";
 
 const API_URL = process.env.REACT_APP_API_URL;
 
@@ -15,6 +16,16 @@ const initialState = {
   userProfileImage: "",
   deductionInvoice: "",
   invoice: null,
+};
+
+const dispatchToast = (message, type) => {
+  toast[type](message, {
+    position: "top-right",
+    autoClose: 3000,
+    hideProgressBar: false,
+    closeOnClick: true,
+    pauseOnHover: true,
+  });
 };
 
 // Thunk action for user registration
@@ -136,66 +147,30 @@ const userSlice = createSlice({
       })
       .addCase(registerUser.fulfilled, (state, action) => {
         state.status = "succeeded";
-        toast.success("User is added successfully!", {
-          position: "top-right",
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-        });
+        dispatchToast(i18next.t("registerUserFulfilled"), "success");
       })
       .addCase(registerUser.rejected, (state, action) => {
         state.status = "failed";
         state.error = action.error.message;
-        toast.error("Something went wrong! Please try later.", {
-          position: "top-right",
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-        });
+        dispatchToast(i18next.t("registerUserRejected"), "error");
       })
       .addCase(profileImage.fulfilled, (state, action) => {
         state.status = "succeeded";
         state.userProfileImage = action.payload.file;
-        toast.success("User profile image is uploaded successfully!", {
-          position: "top-right",
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-        });
+        dispatchToast(i18next.t("profileImageFulfilled"), "success");
       })
       .addCase(profileImage.rejected, (state) => {
         state.status = "failed";
-        toast.error("Something went wrong! Please try later.", {
-          position: "top-right",
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-        });
+        dispatchToast(i18next.t("profileImageRejected"), "error");
       })
       .addCase(createUserInvoice.fulfilled, (state, action) => {
         state.status = "succeeded";
         state.invoice = action.payload.data.invoice;
-        toast.success("Employee invoice is added successfully!", {
-          position: "top-right",
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-        });
+        dispatchToast(i18next.t("createUserInvoiceFulfilled"), "success");
       })
       .addCase(createUserInvoice.rejected, (state) => {
         state.status = "failed";
-        toast.error("Something went wrong! Please try later.", {
-          position: "top-right",
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-        });
+        dispatchToast(i18next.t("createUserInvoiceRejected"), "error");
       });
   },
 });

@@ -282,12 +282,89 @@ i18n
           deactivate: "Deactivate",
           reactivate: "Reactivate",
           deactivationReason: "Deactivation Reason",
-          updatedDriver: "Driver's information is successfully updated!",
+          /////////////
+          deactivatedDriverFulfilled:
+            "Driver has been deactivate successfully!",
+          deactivatedDriverrejected:
+            "Can't deactivate a driver, you can try later!",
+          overrideDriverSalaryFulfilled:
+            "Driver's information is successfully updated!",
+          overrideDriverSalaryRejected:
+            "Can't update a driver's information, you can try later!",
+          /////////////
+          updatedDriverFulfilled:
+            "Driver's information is successfully updated!",
+          updatedDriverRejected:
+            "Can't update a driver's information, you can try later!",
+          registerDriverFulfilled: "New driver is added successfully!",
+          registerDriverRejected: "Can't add a driver, you can try later!",
+          deleteDriverFulfilled: "Driver is successfully deleted!",
+          deleteDriverRejected: "Can't delete a driver, you can try later!",
           /////////////
           changeLanguage: "Change Language",
           darkMode: "Dark Mode",
           lightMode: "Light Mode",
           noMessages: "No messages available",
+          /////////////
+          sendMessageFulfilled: "Message is successfully sent!",
+          sendMessageRejected: "Can't send a message, you can try later!",
+          updateAdditionalSalaryFulfilled: "User data is updated successfully.",
+          updateAdditionalSalaryRejected:
+            "Something went wrong! Please try later.",
+          updateUserRejected: "Something went wrong! Please try later.",
+          updateUserFulfilled: "User Information is updated successfully.",
+          deleteUserRejected: "Can't delete a user, you can try later!",
+          deleteUserFulfilled: "User is successfully deleted!",
+          /////////////
+          registerUserFulfilled: "User is added successfully!",
+          registerUserRejected: "Something went wrong! Please try later!",
+          profileImageFulfilled: "User profile image is uploaded successfully!",
+          profileImageRejected: "Something went wrong! Please try later!",
+          createUserInvoiceFulfilled: "Employee invoice is added successfully!",
+          createUserInvoiceRejected: "Something went wrong! Please try later.",
+          /////////////
+          addSpendTypeFulfilled: "Spend type is successfully added!",
+          addSpendTypeRejected: "Can't add a spend type, you can try later!",
+          deleteSpendTypeFulfilled: "Spend type is successfully deleted!",
+          deleteSpendTypeRejected:
+            "Can't delete a spend type, you can try later!",
+          /////////////
+          createPettyCashFulfilled: "Petty cash is successfully added!",
+          createPettyCashRejected: "Can't add a petty cash, you can try later!",
+          /////////////
+          createCompanyIncomeFulfilled: "Income is successfully added!",
+          createCompanyIncomeRejected:
+            "Can't add an income, you can try later!",
+          /////////////
+          addCompanyFilesFulfilled: "Company file is successfully added!",
+          addCompanyFilesRejected:
+            "Can't add a company file, you can try later!",
+          deleteCompanyFileFulfilled: "Company file is successfully deleted!",
+          deleteCompanyFileRejected:
+            "Can't delete a company file, you can try later!",
+          /////////////
+          createBankStatementFulfilled: "Bank statement is successfully added!",
+          createBankStatementRejected:
+            "Can't add a bank statement, you can try later!",
+          /////////////
+          createDriverInvoiceFulfilled: "Driver invoice is added successfully!",
+          createDriverInvoiceRejected:
+            "Can't add a driver invoice, you can try later!",
+          updateDriverInvoiceFulfilled:
+            "Driver invoice is updated successfully!",
+          updateDriverInvoiceRejected:
+            "Can't update a driver invoice, you can try later!",
+          updateEmployeeInvoiceFulfilled:
+            "User invoice is updated successfully!",
+          updateEmployeeInvoiceRejected:
+            "Can't update a user invoice, you can try later!",
+          resetDriverInvoicesFulfilled: "Invoices are reset successfully!",
+          resetDriverInvoicesRejected:
+            "Can't reset invoices, you can try later!",
+          resetSingleDriverInvoiceFulfilled:
+            "Driver's Invoices are reset successfully!",
+          resetSingleDriverInvoiceRejected:
+            "Can't reset driver's invoices, you can try later!",
         },
       },
       ar: {
@@ -555,12 +632,85 @@ i18n
           deactivate: "إيقاف التفعيل",
           reactivate: "إعادة تفعيل",
           deactivationReason: "سبب التعطيل",
-          updatedDriver: "تم تحديث معلومات السائق بنجاح!",
+          deactivatedDriverFulfilled: "تم إيقاف تفعيل السائق بنجاح",
+          deactivatedDriverrejected:
+            "لا يمكن تعطيل السائق، يمكنك المحاولة لاحقًا",
+          overrideDriverSalaryFulfilled: "تم تحديث معلومات السائق بنجاح",
+          overrideDriverSalaryRejected:
+            "لا يمكن تحديث معلومات السائق، يمكنك المحاولة لاحقًا",
+
+          /////////////
+          updatedDriverFulfilled: "تم تحديث معلومات السائق بنجاح",
+          updatedDriverRejected:
+            "لا يمكن تحديث معلومات السائق، يمكنك المحاولة لاحقًا",
+          registerDriverFulfilled: "تمت إضافة السائق الجديد بنجاح",
+          registerDriverRejected:
+            "لا يمكن إضافة سائق جديد، يمكنك المحاولة لاحقًا",
+          deleteDriverFulfilled: "تم حذف السائق بنجاح",
+          deleteDriverRejected: "لا يمكن حذف السائق، يمكنك المحاولة لاحقًا",
+
           /////////////
           changeLanguage: "تغيير اللغة",
           darkMode: "وضع الظلام",
           lightMode: "وضع الضوء",
           noMessages: "لا توجد رسائل متاحة",
+          sendMessageFulfilled: "تم إرسال الرسالة بنجاح!",
+          sendMessageRejected: "لا يمكن إرسال الرسالة، يمكنك المحاولة لاحقًا!",
+          updateAdditionalSalaryFulfilled: "تم تحديث بيانات المستخدم بنجاح.",
+          updateAdditionalSalaryRejected: "حدث خطأ ما! يرجى المحاولة لاحقًا.",
+          updateUserRejected: "حدث خطأ ما! يرجى المحاولة لاحقًا.",
+          updateUserFulfilled: "تم تحديث معلومات المستخدم بنجاح.",
+          deleteUserRejected: "لا يمكن حذف المستخدم، يمكنك المحاولة لاحقًا",
+          deleteUserFulfilled: "تم حذف المستخدم بنجاح",
+          registerUserFulfilled: "تمت إضافة المستخدم بنجاح",
+          registerUserRejected: "حدث خطأ ما! يرجى المحاولة لاحقًا",
+          profileImageFulfilled: "تم تحميل صورة ملف تعريف المستخدم بنجاح!",
+          profileImageRejected: "حدث خطأ ما! يرجى المحاولة لاحقًا",
+          createUserInvoiceFulfilled: "تم إضافة فاتورة الموظف بنجاح",
+          createUserInvoiceRejected: "حدث خطأ ما! يرجى المحاولة لاحقًا.",
+          /////////////
+          addSpendTypeFulfilled: "تمت إضافة نوع الإنفاق بنجاح",
+          addSpendTypeRejected:
+            "لا يمكن إضافة نوع الإنفاق، يمكنك المحاولة لاحقًا",
+          deleteSpendTypeFulfilled: "تم حذف نوع الإنفاق بنجاح",
+          deleteSpendTypeRejected:
+            "لا يمكن حذف نوع الإنفاق، يمكنك المحاولة لاحقًا",
+          /////////////
+          createPettyCashFulfilled: "تمت إضافة النقد الصغير بنجاح",
+          createPettyCashRejected:
+            "لا يمكن إضافة النقد الصغير، يمكنك المحاولة لاحقًا",
+          /////////////
+          createCompanyIncomeFulfilled: "تمت إضافة الدخل بنجاح",
+          createCompanyIncomeRejected:
+            "لا يمكن إضافة الدخل، يمكنك المحاولة لاحقًا",
+          /////////////
+          addCompanyFilesFulfilled: "تمت إضافة ملف الشركة بنجاح",
+          addCompanyFilesRejected:
+            "لا يمكن إضافة ملف الشركة، يمكنك المحاولة لاحقًا",
+          deleteCompanyFileFulfilled: "تم حذف ملف الشركة بنجاح",
+          deleteCompanyFileRejected:
+            "لا يمكن حذف ملف الشركة، يمكنك المحاولة لاحقًا",
+          /////////////
+          createBankStatementFulfilled: "تمت إضافة كشف حساب البنك بنجاح",
+          createBankStatementRejected:
+            "لا يمكن إضافة كشف حساب البنك، يمكنك المحاولة لاحقًا",
+          /////////////
+          createDriverInvoiceFulfilled: "تمت إضافة فاتورة السائق بنجاح",
+          createDriverInvoiceRejected:
+            "لا يمكن إضافة فاتورة السائق، يمكنك المحاولة لاحقًا",
+          updateDriverInvoiceFulfilled: "تم تحديث فاتورة السائق بنجاح",
+          updateDriverInvoiceRejected:
+            "لا يمكن تحديث فاتورة السائق، يمكنك المحاولة لاحقًا",
+          updateEmployeeInvoiceFulfilled: "تم تحديث فاتورة المستخدم بنجاح",
+          updateEmployeeInvoiceRejected:
+            "لا يمكن تحديث فاتورة المستخدم، يمكنك المحاولة لاحقًا",
+          resetDriverInvoicesFulfilled: "تمت إعادة تعيين الفواتير بنجاح",
+          resetDriverInvoicesRejected:
+            "لا يمكن إعادة تعيين الفواتير، يمكنك المحاولة لاحقًا",
+          resetSingleDriverInvoiceFulfilled:
+            "تمت إعادة تعيين فواتير السائق بنجاح",
+          resetSingleDriverInvoiceRejected:
+            "لا يمكن إعادة تعيين فواتير السائق، يمكنك المحاولة لاحقًا",
         },
       },
     },

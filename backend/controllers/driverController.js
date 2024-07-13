@@ -803,6 +803,34 @@ const activateDriver = async (req, res) => {
   }
 };
 
+// @desc    Get total orders, cash, and hours
+// @route   GET /api/drivers/summary
+// @access  Private/Admin_and_Employee
+const getDriverSummary = async (req, res) => {
+  try {
+    const summary = await DriverInvoice.aggregate([
+      {
+        $group: {
+          _id: "$driver", // Group all documents
+          totalOrders: { $sum: { $add: ["$mainOrder", "$additionalOrder"] } },
+          totalCash: { $sum: "$cash" },
+          totalHours: { $sum: "$hour" },
+        },
+      },
+    ]);
+
+    res.status(200).json({
+      status: "Success",
+      data: summary[0] || { totalOrders: 0, totalCash: 0, totalHours: 0 },
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: "Error",
+      message: error.message,
+    });
+  }
+};
+
 module.exports = {
   getAllDrivers,
   getDriver,
@@ -821,4 +849,5 @@ module.exports = {
   getInactiveDrivers,
   deactivateDriver,
   activateDriver,
+  getDriverSummary,
 };

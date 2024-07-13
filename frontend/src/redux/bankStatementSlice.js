@@ -1,5 +1,7 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
+import { toast } from "react-toastify";
+import i18next from "i18next";
 
 const API_URL = process.env.REACT_APP_API_URL;
 
@@ -13,6 +15,16 @@ const initialState = {
   searchError: null,
 
   currentYearBankStatement: [],
+};
+
+const dispatchToast = (message, type) => {
+  toast[type](message, {
+    position: "top-right",
+    autoClose: 3000,
+    hideProgressBar: false,
+    closeOnClick: true,
+    pauseOnHover: true,
+  });
 };
 
 export const fetchBankStatement = createAsyncThunk(
@@ -130,10 +142,12 @@ const bankStatementSlice = createSlice({
           ...state.bankStatement,
           action.payload.data.bankStatement,
         ];
+        dispatchToast(i18next.t("createBankStatementFulfilled"), "success");
       })
       .addCase(createBankStatement.rejected, (state, action) => {
         state.status = "failed";
         state.error = action.error.message;
+        dispatchToast(i18next.t("createBankStatementRejected"), "error");
       })
       .addCase(searchBankStatement.pending, (state) => {
         state.searchStatus = "loading";

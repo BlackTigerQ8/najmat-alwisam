@@ -1,7 +1,7 @@
 import React, { useRef, useState } from "react";
 import { ProSidebar, Menu, MenuItem } from "react-pro-sidebar";
 import "react-pro-sidebar/dist/css/styles.css";
-import { Box, IconButton, Typography, useTheme } from "@mui/material";
+import { Box, IconButton, Tooltip, Typography, useTheme } from "@mui/material";
 import { Link } from "react-router-dom";
 import { tokens } from "../../theme";
 import AnonImage from "../../assets/profileImage.png";
@@ -19,22 +19,24 @@ import { toast } from "react-toastify";
 import PaymentsOutlinedIcon from "@mui/icons-material/PaymentsOutlined";
 import { useTranslation } from "react-i18next";
 
-const Item = ({ title, to, icon, selected, setSelected }) => {
+const Item = ({ title, to, icon, selected, setSelected, isCollapsed }) => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
 
   return (
-    <MenuItem
-      active={selected === title}
-      style={{
-        color: colors.grey[100],
-      }}
-      onClick={() => setSelected(title)}
-      icon={icon}
-    >
-      <Typography>{title}</Typography>
-      <Link to={to} />
-    </MenuItem>
+    <Tooltip title={isCollapsed ? title : ""} placement="right">
+      <MenuItem
+        active={selected === title}
+        style={{
+          color: colors.grey[100],
+        }}
+        onClick={() => setSelected(title)}
+        icon={icon}
+      >
+        {!isCollapsed && <Typography>{title}</Typography>}
+        <Link to={to} />
+      </MenuItem>
+    </Tooltip>
   );
 };
 
@@ -185,6 +187,7 @@ const SidebarA = () => {
               icon={<PointOfSaleOutlinedIcon />}
               selected={selected}
               setSelected={setSelected}
+              isCollapsed={isCollapsed}
             />
             <Item
               title={t("driversSalary")}
@@ -192,6 +195,7 @@ const SidebarA = () => {
               icon={<PointOfSaleOutlinedIcon />}
               selected={selected}
               setSelected={setSelected}
+              isCollapsed={isCollapsed}
             />
             <Item
               title={t("deduction")}
@@ -199,6 +203,7 @@ const SidebarA = () => {
               icon={<MoneyOffIcon />}
               selected={selected}
               setSelected={setSelected}
+              isCollapsed={isCollapsed}
             />
             <Item
               title={t("bankStatement")}
@@ -206,6 +211,7 @@ const SidebarA = () => {
               icon={<MonetizationOnOutlinedIcon />}
               selected={selected}
               setSelected={setSelected}
+              isCollapsed={isCollapsed}
             />
             <Item
               title={t("pettyCash")}
@@ -213,6 +219,7 @@ const SidebarA = () => {
               icon={<AttachMoneyOutlinedIcon />}
               selected={selected}
               setSelected={setSelected}
+              isCollapsed={isCollapsed}
             />
             <Item
               title={t("notifications")}
@@ -220,6 +227,7 @@ const SidebarA = () => {
               icon={<NotificationsActiveOutlinedIcon />}
               selected={selected}
               setSelected={setSelected}
+              isCollapsed={isCollapsed}
             />
             <Item
               title={t("contact")}
@@ -227,6 +235,7 @@ const SidebarA = () => {
               icon={<ContactsOutlinedIcon />}
               selected={selected}
               setSelected={setSelected}
+              isCollapsed={isCollapsed}
             />
             <Item
               title={t("messages")}
@@ -234,6 +243,7 @@ const SidebarA = () => {
               icon={<ContactsOutlinedIcon />}
               selected={selected}
               setSelected={setSelected}
+              isCollapsed={isCollapsed}
             />
             <Item
               title={t("spendTypes")}
@@ -241,6 +251,7 @@ const SidebarA = () => {
               icon={<PointOfSaleOutlinedIcon />}
               selected={selected}
               setSelected={setSelected}
+              isCollapsed={isCollapsed}
             />
             <Item
               title={t("companySpends")}
@@ -248,6 +259,7 @@ const SidebarA = () => {
               icon={<PaymentsOutlinedIcon />}
               selected={selected}
               setSelected={setSelected}
+              isCollapsed={isCollapsed}
             />
             <Item
               title={t("profitsAndLosses")}
@@ -255,6 +267,7 @@ const SidebarA = () => {
               icon={<PointOfSaleOutlinedIcon />}
               selected={selected}
               setSelected={setSelected}
+              isCollapsed={isCollapsed}
             />
             <Item
               title={t("companyIncome")}
@@ -269,6 +282,7 @@ const SidebarA = () => {
               icon={<ContactsOutlinedIcon />}
               selected={selected}
               setSelected={setSelected}
+              isCollapsed={isCollapsed}
             />
           </Box>
         </Menu>

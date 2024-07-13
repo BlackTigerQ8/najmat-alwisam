@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 import { toast } from "react-toastify";
+import i18next from "i18next";
 
 const API_URL = process.env.REACT_APP_API_URL;
 
@@ -12,6 +13,16 @@ const initialState = {
   searchStatus: "",
   searchError: null,
   currentYearPettyCash: [],
+};
+
+const dispatchToast = (message, type) => {
+  toast[type](message, {
+    position: "top-right",
+    autoClose: 3000,
+    hideProgressBar: false,
+    closeOnClick: true,
+    pauseOnHover: true,
+  });
 };
 
 export const fetchPettyCash = createAsyncThunk(
@@ -134,26 +145,12 @@ const pettyCashSlice = createSlice({
       .addCase(createPettyCash.fulfilled, (state, action) => {
         state.status = "succeeded";
         state.pettyCash = [...state.pettyCash, action.payload.data.pettyCash];
-
-        toast.success("Petty cash is successfully added!", {
-          position: "top-right",
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-        });
+        dispatchToast(i18next.t("createPettyCashFulfilled"), "success");
       })
       .addCase(createPettyCash.rejected, (state, action) => {
         state.status = "failed";
         state.error = action.error.message;
-
-        toast.error("Can't add a petty cash, you can try later!", {
-          position: "top-right",
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-        });
+        dispatchToast(i18next.t("createPettyCashRejected"), "error");
       });
   },
 });

@@ -1,7 +1,7 @@
 import React, { useRef, useState } from "react";
 import { ProSidebar, Menu, MenuItem } from "react-pro-sidebar";
 import "react-pro-sidebar/dist/css/styles.css";
-import { Box, IconButton, Typography, useTheme } from "@mui/material";
+import { Box, IconButton, Tooltip, Typography, useTheme } from "@mui/material";
 import { Link } from "react-router-dom";
 import { tokens } from "../../theme";
 import NotificationsActiveOutlinedIcon from "@mui/icons-material/NotificationsActiveOutlined";
@@ -15,22 +15,24 @@ import { profileImage } from "../../redux/userSlice";
 import { toast } from "react-toastify";
 import { useTranslation } from "react-i18next";
 
-const Item = ({ title, to, icon, selected, setSelected }) => {
+const Item = ({ title, to, icon, selected, setSelected, isCollapsed }) => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
 
   return (
-    <MenuItem
-      active={selected === title}
-      style={{
-        color: colors.grey[100],
-      }}
-      onClick={() => setSelected(title)}
-      icon={icon}
-    >
-      <Typography>{title}</Typography>
-      <Link to={to} />
-    </MenuItem>
+    <Tooltip title={isCollapsed ? title : ""} placement="right">
+      <MenuItem
+        active={selected === title}
+        style={{
+          color: colors.grey[100],
+        }}
+        onClick={() => setSelected(title)}
+        icon={icon}
+      >
+        {!isCollapsed && <Typography>{title}</Typography>}
+        <Link to={to} />
+      </MenuItem>
+    </Tooltip>
   );
 };
 
@@ -174,6 +176,7 @@ const SideBarEmployee = () => {
               icon={<ContactsOutlinedIcon />}
               selected={selected}
               setSelected={setSelected}
+              isCollapsed={isCollapsed}
             />
             <Item
               title={t("invoices")}
@@ -181,6 +184,7 @@ const SideBarEmployee = () => {
               icon={<ReceiptOutlinedIcon />}
               selected={selected}
               setSelected={setSelected}
+              isCollapsed={isCollapsed}
             />
             <Item
               title={t("deduction")}
@@ -188,6 +192,7 @@ const SideBarEmployee = () => {
               icon={<MoneyOffIcon />}
               selected={selected}
               setSelected={setSelected}
+              isCollapsed={isCollapsed}
             />
             <Item
               title={t("notifications")}
@@ -195,6 +200,7 @@ const SideBarEmployee = () => {
               icon={<NotificationsActiveOutlinedIcon />}
               selected={selected}
               setSelected={setSelected}
+              isCollapsed={isCollapsed}
             />
             <Item
               title={t("contact")}
@@ -202,6 +208,7 @@ const SideBarEmployee = () => {
               icon={<ContactsOutlinedIcon />}
               selected={selected}
               setSelected={setSelected}
+              isCollapsed={isCollapsed}
             />
             <Item
               title={t("messages")}
@@ -209,6 +216,7 @@ const SideBarEmployee = () => {
               icon={<ContactsOutlinedIcon />}
               selected={selected}
               setSelected={setSelected}
+              isCollapsed={isCollapsed}
             />
             <Item
               title={t("companyFiles")}
@@ -216,6 +224,7 @@ const SideBarEmployee = () => {
               icon={<ContactsOutlinedIcon />}
               selected={selected}
               setSelected={setSelected}
+              isCollapsed={isCollapsed}
             />
           </Box>
         </Menu>

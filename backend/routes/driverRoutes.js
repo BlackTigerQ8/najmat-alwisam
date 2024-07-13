@@ -9,6 +9,7 @@ const {
   activateDriver,
   deactivateDriver,
   getInactiveDrivers,
+  getDriverSummary,
 } = require("../controllers/driverController");
 const { protect, restrictTo } = require("../middleware/authMiddleware");
 const { driverContractUpload } = require("./uploadRoutes");
@@ -39,5 +40,7 @@ router
   .get(protect, getDriver)
   .patch(protect, driverContractUpload.single("uploadedFile"), updateDriver)
   .delete(protect, restrictTo("Admin", "Manager"), deleteDriver);
+
+router.route("/summary").get(getDriverSummary);
 
 module.exports = router;

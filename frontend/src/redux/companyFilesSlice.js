@@ -2,6 +2,7 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 import { toast } from "react-toastify";
+import i18next from "i18next";
 
 const API_URL = process.env.REACT_APP_API_URL;
 
@@ -9,6 +10,16 @@ const initialState = {
   companyFiles: [], // Initialize with stored data if available
   status: "",
   error: null,
+};
+
+const dispatchToast = (message, type) => {
+  toast[type](message, {
+    position: "top-right",
+    autoClose: 3000,
+    hideProgressBar: false,
+    closeOnClick: true,
+    pauseOnHover: true,
+  });
 };
 
 export const fetchAllCompanyFiles = createAsyncThunk(
@@ -95,24 +106,12 @@ const companyFilesSlice = createSlice({
           ...state.companyFiles,
           action.payload.data.companyFile,
         ];
-        toast.success("Company file is successfully added!", {
-          position: "top-right",
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-        });
+        dispatchToast(i18next.t("addCompanyFilesFulfilled"), "success");
       })
       .addCase(addCompanyFiles.rejected, (state, action) => {
         state.status = "failed";
         state.error = action.error.message;
-        toast.error("Can't add a company file, you can try later!", {
-          position: "top-right",
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-        });
+        dispatchToast(i18next.t("addCompanyFilesRejected"), "error");
       });
     // Delete Company File
     builder
@@ -125,24 +124,12 @@ const companyFilesSlice = createSlice({
         state.companyFiles = state.companyFiles.filter(
           (companyFile) => companyFile._id !== companyFileId
         );
-        toast.success("Company file is successfully deleted!", {
-          position: "top-right",
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-        });
+        dispatchToast(i18next.t("deleteCompanyFileFulfilled"), "success");
       })
       .addCase(deleteCompanyFile.rejected, (state, action) => {
         state.status = "failed";
         state.error = action.error.message;
-        toast.error("Can't delete company file, please try again later!", {
-          position: "top-right",
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-        });
+        dispatchToast(i18next.t("deleteCompanyFileRejected"), "error");
       });
   },
 });

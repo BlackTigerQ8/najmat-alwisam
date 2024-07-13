@@ -1,46 +1,75 @@
-import { Box, Button, IconButton, Typography, useTheme } from "@mui/material";
+import {
+  Box,
+  IconButton,
+  Typography,
+  useTheme,
+  CircularProgress,
+} from "@mui/material";
 import { tokens } from "../../theme";
-import { mockTransactions } from "../../data/mockData";
 import DownloadOutlinedIcon from "@mui/icons-material/DownloadOutlined";
 import EmailIcon from "@mui/icons-material/Email";
 import AccessTimeFilledIcon from "@mui/icons-material/AccessTimeFilled";
 import PointOfSaleIcon from "@mui/icons-material/PointOfSale";
-import PersonAddIcon from "@mui/icons-material/PersonAdd";
 import PriceCheckIcon from "@mui/icons-material/PriceCheck";
 import Header from "../../components/Header";
 import LineChart from "../../components/LineChart";
-import GeographyChart from "../../components/GeographyChart";
 import BarChart from "../../components/BarChart";
 import StatBox from "../../components/StatBox";
-import ProgressCircle from "../../components/ProgressCircle";
-import html2canvas from "html2canvas";
-import jsPDF from "jspdf";
+// import html2canvas from "html2canvas";
+// import jsPDF from "jspdf";
 import { useTranslation } from "react-i18next";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchDrivers, fetchDriverSummary } from "../../redux/driversSlice";
+import { useEffect } from "react";
 
 const Dashboard = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const { t } = useTranslation();
+  const dispatch = useDispatch();
+  const { drivers, status, summary, summaryStatus } = useSelector(
+    (state) => state.drivers
+  );
 
-  const downloadPDF = async () => {
-    const input = document.getElementById("dashboard");
-    const pdf = new jsPDF({
-      orientation: "landscape",
-    });
+  console.log(summary);
 
-    const canvas = await html2canvas(input, {
-      scale: 2,
-      scrollY: -window.scrollY,
-    });
-    const imgData = canvas.toDataURL("image/png");
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    dispatch(fetchDrivers(token));
+    dispatch(fetchDriverSummary(token));
+  }, [dispatch]);
 
-    const imgProps = pdf.getImageProperties(imgData);
-    const pdfWidth = pdf.internal.pageSize.getWidth();
-    const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+  // const downloadPDF = async () => {
+  //   const input = document.getElementById("dashboard");
+  //   const pdf = new jsPDF({
+  //     orientation: "landscape",
+  //   });
 
-    pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
-    pdf.save("dashboard.pdf");
-  };
+  //   const canvas = await html2canvas(input, {
+  //     scale: 2,
+  //     scrollY: -window.scrollY,
+  //   });
+  //   const imgData = canvas.toDataURL("image/png");
+
+  //   const imgProps = pdf.getImageProperties(imgData);
+  //   const pdfWidth = pdf.internal.pageSize.getWidth();
+  //   const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+
+  //   pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+  //   pdf.save("dashboard.pdf");
+  // };
+
+  if (status === "loading" || summaryStatus === "loading") {
+    return <CircularProgress />;
+  }
+
+  if (status === "failed" || summaryStatus === "failed") {
+    return (
+      <Typography variant="h6" color="error">
+        Failed to load drivers or summary data.
+      </Typography>
+    );
+  }
 
   return (
     <Box m="20px" id="dashboard">
@@ -81,7 +110,7 @@ const Dashboard = () => {
           justifyContent="center"
         >
           <StatBox
-            title="12,361"
+            title={summary.totalOrders}
             subtitle={t("totalOrders")}
             progress="0.75"
             increase="+14%"
@@ -100,7 +129,7 @@ const Dashboard = () => {
           justifyContent="center"
         >
           <StatBox
-            title="431,225"
+            title={summary.totalCash}
             subtitle={t("totalCash")}
             progress="0.50"
             increase="+21%"
@@ -119,7 +148,7 @@ const Dashboard = () => {
           justifyContent="center"
         >
           <StatBox
-            title="32,441"
+            title={summary.totalHours}
             subtitle={t("totalHours")}
             progress="0.30"
             increase="+5%"

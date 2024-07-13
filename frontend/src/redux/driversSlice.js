@@ -14,6 +14,13 @@ const initialState = {
   salaries: [],
   salariesStatus: "",
   salariesError: null,
+  summary: {
+    totalOrders: 0,
+    totalCash: 0,
+    totalHours: 0,
+  },
+  summaryStatus: "",
+  summaryError: null,
 };
 
 const dispatchToast = (message, type) => {
@@ -62,6 +69,23 @@ export const fetchDrivers = createAsyncThunk(
   }
 );
 
+// Fetch driver summary
+export const fetchDriverSummary = createAsyncThunk(
+  "driver/fetchDriverSummary",
+  async (token) => {
+    try {
+      const response = await axios.get(`${API_URL}/drivers/summary`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      return response.data.data;
+    } catch (error) {
+      throw new Error(error.response.data.message || error.message);
+    }
+  }
+);
+
 // Delete driver
 export const deleteDriver = createAsyncThunk(
   "driver/deleteDriver",
@@ -83,6 +107,29 @@ export const deleteDriver = createAsyncThunk(
 // Update driver
 export const updateDriver = createAsyncThunk(
   "driver/updateDriver",
+  async ({ formData, driverId }) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.patch(
+        `${API_URL}/drivers/${driverId}`,
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response.data.message || error.message);
+    }
+  }
+);
+
+// Deactivate driver
+export const deactivateDriver = createAsyncThunk(
+  "driver/deactivateDriver",
   async ({ formData, driverId }) => {
     try {
       const token = localStorage.getItem("token");
@@ -169,24 +216,12 @@ const driversSlice = createSlice({
       })
       .addCase(registerDriver.fulfilled, (state, action) => {
         state.status = "succeeded";
-        toast.success("New driver is added successfully!", {
-          position: "top-right",
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-        });
+        dispatchToast(i18next.t("registerDriverFulfilled"), "success");
       })
       .addCase(registerDriver.rejected, (state, action) => {
         state.status = "failed";
         state.error = action.error.message;
-        toast.error("Can't add a driver, you can try later!", {
-          position: "top-right",
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-        });
+        dispatchToast(i18next.t("registerDriverRejected"), "error");
       });
     // Fetch drivers
     builder
@@ -201,6 +236,20 @@ const driversSlice = createSlice({
         state.salariesStatus = "failed";
         state.error = action.error.message;
       });
+    // Fetch drivers summary
+    builder
+      .addCase(fetchDriverSummary.pending, (state) => {
+        state.summaryStatus = "loading";
+      })
+      .addCase(fetchDriverSummary.fulfilled, (state, action) => {
+        state.summaryStatus = "succeeded";
+        state.summary = action.payload;
+      })
+      .addCase(fetchDriverSummary.rejected, (state, action) => {
+        state.summaryStatus = "failed";
+        state.summaryError = action.error.message;
+      });
+
     // delete driver
     builder
       .addCase(deleteDriver.pending, (state) => {
@@ -212,24 +261,12 @@ const driversSlice = createSlice({
         state.drivers = state.drivers.filter(
           (driver) => driver._id !== deletedDriverId
         );
-        toast.success("Driver is successfully deleted!", {
-          position: "top-right",
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-        });
+        dispatchToast(i18next.t("deleteDriverFulfilled"), "success");
       })
       .addCase(deleteDriver.rejected, (state, action) => {
         state.status = "failed";
         state.error = action.error.message;
-        toast.error("Can't delete a driver, you can try later!", {
-          position: "top-right",
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-        });
+        dispatchToast(i18next.t("deleteDriverRejected"), "error");
       });
     // update driver
     builder
@@ -254,18 +291,28 @@ const driversSlice = createSlice({
         state.drivers = state.drivers.map((driver) =>
           driver._id === updatedDriver._id ? updatedDriver : driver
         );
-        dispatchToast(i18next.t("updatedDriver"), "success");
+        dispatchToast(i18next.t("updatedDriverFulfilled"), "success");
       })
       .addCase(updateDriver.rejected, (state, action) => {
         state.status = "failed";
         state.error = action.error.message;
-        toast.error("Can't update a driver's information, you can try later!", {
-          position: "top-right",
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-        });
+        dispatchToast(i18next.t("updatedDriverRejected"), "error");
+      })
+      .addCase(deactivateDriver.pending, (state) => {
+        state.status = "loading";
+      })
+      .addCase(deactivateDriver.fulfilled, (state, action) => {
+        state.status = "succeeded";
+        const updatedDriver = action.payload.data.driver;
+        state.drivers = state.drivers.map((driver) =>
+          driver._id === updatedDriver._id ? updatedDriver : driver
+        );
+        dispatchToast(i18next.t("deactivatedDriverFulfilled"), "success");
+      })
+      .addCase(deactivateDriver.rejected, (state, action) => {
+        state.status = "failed";
+        state.error = action.error.message;
+        dispatchToast(i18next.t("deactivatedDriverrejected"), "error");
       })
       .addCase(overrideDriverSalary.pending, (state) => {
         state.salariesStatus = "loading";
@@ -279,21 +326,12 @@ const driversSlice = createSlice({
             ? { ...driver, ...updatedInvoice, _id: updatedInvoice.driver }
             : driver
         );
-        dispatchToast(
-          "Driver's information is successfully updated!",
-          "success"
-        );
+        dispatchToast(i18next.t("overrideDriverSalaryFulfilled"), "success");
       })
       .addCase(overrideDriverSalary.rejected, (state, action) => {
         state.salariesStatus = "failed";
         state.salariesError = action.error.message;
-        toast.error("Can't update a driver's information, you can try later!", {
-          position: "top-right",
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-        });
+        dispatchToast(i18next.t("overrideDriverSalaryRejected"), "error");
       });
   },
 });

@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 import { toast } from "react-toastify";
+import i18next from "i18next";
 
 const API_URL = process.env.REACT_APP_API_URL;
 
@@ -13,6 +14,16 @@ const initialState = {
   employeeInvoicesError: null,
 
   archivedDriverInvoices: [],
+};
+
+const dispatchToast = (message, type) => {
+  toast[type](message, {
+    position: "top-right",
+    autoClose: 3000,
+    hideProgressBar: false,
+    closeOnClick: true,
+    pauseOnHover: true,
+  });
 };
 
 export const fetchInvoices = createAsyncThunk(
@@ -259,24 +270,12 @@ const driverInvoiceSlice = createSlice({
         if (userRole !== "Admin")
           state.driverInvoices.push(action.payload.data.invoice);
         state.error = null;
-        toast.success("Driver invoice is added successfully!", {
-          position: "top-right",
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-        });
+        dispatchToast(i18next.t("createDriverInvoiceFulfilled"), "success");
       })
       .addCase(createDriverInvoice.rejected, (state, action) => {
         state.status = "failed";
         state.error = action.error.message;
-        toast.error("Can't add a driver invoice, you can try later!", {
-          position: "top-right",
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-        });
+        dispatchToast(i18next.t("createDriverInvoiceRejected"), "error");
       });
 
     builder
@@ -290,24 +289,12 @@ const driverInvoiceSlice = createSlice({
           (d) => d._id !== updatedInvoice._id
         );
         state.error = null;
-        toast.success("Driver invoice is updated successfully!", {
-          position: "top-right",
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-        });
+        dispatchToast(i18next.t("updateDriverInvoiceFulfilled"), "success");
       })
       .addCase(updateDriverInvoice.rejected, (state, action) => {
         state.status = "failed";
         state.error = action.error.message;
-        toast.error("Can't update a driver invoice, you can try later!", {
-          position: "top-right",
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-        });
+        dispatchToast(i18next.t("updateDriverInvoiceRejected"), "error");
       })
       .addCase(updateEmployeeInvoice.pending, (state) => {
         state.employeeInvoicesStatus = "loading";
@@ -319,24 +306,12 @@ const driverInvoiceSlice = createSlice({
           (d) => d._id !== updatedInvoice._id
         );
         state.employeeInvoicesError = null;
-        toast.success("User invoice is updated successfully!", {
-          position: "top-right",
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-        });
+        dispatchToast(i18next.t("updateEmployeeInvoiceFulfilled"), "success");
       })
       .addCase(updateEmployeeInvoice.rejected, (state, action) => {
         state.employeeInvoicesStatus = "failed";
         state.employeeInvoicesError = action.error.message;
-        toast.error("Can't update a user invoice, you can try later!", {
-          position: "top-right",
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-        });
+        dispatchToast(i18next.t("updateEmployeeInvoiceRejected"), "error");
       })
       .addCase(resetDriverInvoices.pending, (state) => {
         state.status = "loading";
@@ -345,24 +320,12 @@ const driverInvoiceSlice = createSlice({
         state.status = "succeeded";
         state.driverInvoices = [];
         state.error = null;
-        toast.success("Invoices are reset successfully!", {
-          position: "top-right",
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-        });
+        dispatchToast(i18next.t("resetDriverInvoicesFulfilled"), "success");
       })
       .addCase(resetDriverInvoices.rejected, (state, action) => {
         state.status = "failed";
         state.error = action.error.message;
-        toast.error("Can't reset a driver invoice, you can try later!", {
-          position: "top-right",
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-        });
+        dispatchToast(i18next.t("resetDriverInvoicesRejected"), "error");
       })
       .addCase(resetSingleDriverInvoice.pending, (state) => {
         state.status = "loading";
@@ -373,24 +336,15 @@ const driverInvoiceSlice = createSlice({
           (d) => d.driver._id !== action.payload.data.driverId
         );
         state.error = null;
-        toast.success("Invoices are reset successfully!", {
-          position: "top-right",
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-        });
+        dispatchToast(
+          i18next.t("resetSingleDriverInvoiceFulfilled"),
+          "success"
+        );
       })
       .addCase(resetSingleDriverInvoice.rejected, (state, action) => {
         state.status = "failed";
         state.error = action.error.message;
-        toast.error("Can't reset a driver invoice, you can try later!", {
-          position: "top-right",
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-        });
+        dispatchToast(i18next.t("resetSingleDriverInvoiceRejected"), "error");
       });
   },
 });

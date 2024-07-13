@@ -3,6 +3,7 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { formatDate } from "../utils/dateUtil";
+import i18next from "i18next";
 
 const API_URL = process.env.REACT_APP_API_URL;
 
@@ -14,6 +15,16 @@ const initialState = {
   salariesStatus: "",
   salariesError: null,
   message: "",
+};
+
+const dispatchToast = (message, type) => {
+  toast[type](message, {
+    position: "top-right",
+    autoClose: 3000,
+    hideProgressBar: false,
+    closeOnClick: true,
+    pauseOnHover: true,
+  });
 };
 
 function buildDateQueryStringParams(params) {
@@ -186,24 +197,12 @@ const usersSlice = createSlice({
       .addCase(deleteUser.fulfilled, (state, action) => {
         const deletedUserId = action.meta.arg;
         state.users = state.users.filter((user) => user._id !== deletedUserId);
-        toast.success("User is successfully deleted!", {
-          position: "top-right",
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-        });
+        dispatchToast(i18next.t("deleteUserFulfilled"), "success");
       })
       .addCase(deleteUser.rejected, (state, action) => {
         state.status = "failed";
         state.error = action.error.message;
-        toast.error("Can't delete a user, you can try later!", {
-          position: "top-right",
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-        });
+        dispatchToast(i18next.t("deleteUserRejected"), "error");
       });
     // update user
     builder
@@ -216,24 +215,12 @@ const usersSlice = createSlice({
         state.users = state.users.map((user) =>
           user._id === updatedUser._id ? updatedUser : user
         );
-        toast.success("User Information is updated successfully.", {
-          position: "top-right",
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-        });
+        dispatchToast(i18next.t("updateUserFulfilled"), "success");
       })
       .addCase(updateUser.rejected, (state, action) => {
         state.status = "failed";
         state.error = action.error.message;
-        toast.error("Something went wrong! Please try later.", {
-          position: "top-right",
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-        });
+        dispatchToast(i18next.t("updateUserRejected"), "error");
       })
       .addCase(fetchSalaries.fulfilled, (state, action) => {
         state.salariesStatus = "succeeded";
@@ -257,23 +244,11 @@ const usersSlice = createSlice({
             : user
         );
         state.salariesError = null;
-        toast.success("User data is updated successfully.", {
-          position: "top-right",
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-        });
+        dispatchToast(i18next.t("updateAdditionalSalaryFulfilled"), "success");
       })
       .addCase(updateAdditionalSalary.rejected, (state, action) => {
         state.salariesStatus = "failed";
-        toast.error("Something went wrong! Please try later.", {
-          position: "top-right",
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-        });
+        dispatchToast(i18next.t("updateAdditionalSalaryRejected"), "error");
       });
     // Send Message
     builder
@@ -283,24 +258,12 @@ const usersSlice = createSlice({
       .addCase(sendMessage.fulfilled, (state, action) => {
         // Update state accordingly, but do not filter users
         state.status = "succeeded";
-        toast.success("Message is successfully sent!", {
-          position: "top-right",
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-        });
+        dispatchToast(i18next.t("sendMessageFulfilled"), "success");
       })
       .addCase(sendMessage.rejected, (state, action) => {
         state.status = "failed";
         state.error = action.error.message;
-        toast.error("Can't send a message, you can try later!", {
-          position: "top-right",
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-        });
+        dispatchToast(i18next.t("sendMessageRejected"), "error");
       });
     // Fetch Messages
     builder
