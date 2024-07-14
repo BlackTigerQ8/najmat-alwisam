@@ -9,13 +9,8 @@
                 "<node_internals>/**"
             ],
             "program": "${workspaceFolder}/backend/server.js",
-            "envFile": "${workspaceFolder}/.env",
-            "env": {
-                "PORT": "8000",
-                "DATABASE": "mongodb+srv://najmatalwesam:Mm10091009@cluster0.dskvqu8.mongodb.net/",
-                "JWT_SECRET": "blacktigerq8",
-                "JWT_EXPIRE": "30d"
-            }
+            "envFile": "${workspaceFolder}/.env"
+            
         }
     ]
 }
