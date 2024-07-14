@@ -240,12 +240,19 @@ const createDriverInvoice = async (req, res) => {
     if (isDeductionRequest && req.user.role !== "Admin") {
       const notification = new Notification({
         driverId,
-        heading: `${driver.firstName} ${driver.lastName} Deduction Alert`,
+        //heading: `${driver.firstName} ${driver.lastName} Deduction Alert`,
         role: [notification_recipient_role],
         notification_type: "Driver_Deduction",
-        message: `${req.user.firstName} ${req.user.lastName} (${
-          req.user.role
-        }) has made a deduction request on ${new Date().toDateString()}`,
+        // message: `${req.user.firstName} ${req.user.lastName} (${
+        //   req.user.role
+        // }) has made a deduction request on ${new Date().toDateString()}`,
+        additionalDetails: {
+          senderName: `${req.user.firstName} ${req.user.lastName}`,
+          senderRole: req.user.role,
+          targetName: `${driver.firstName} ${driver.lastName}`,
+          date: `${new Date().toDateString()}`,
+          subType: "Add",
+        },
       });
 
       await notification.save();
@@ -600,14 +607,21 @@ const updateInvoiceStatus = async (req, res) => {
     for (const role of notification_recipient_role) {
       const notification = new Notification({
         forUserId: role === invoice.user.role ? invoice.user._id : undefined,
-        heading: `${invoice.driver.firstName} ${invoice.driver.lastName} Deduction Alert`,
+        //heading: `${invoice.driver.firstName} ${invoice.driver.lastName} Deduction Alert`,
         role: [role],
         notification_type: "Driver_Deduction",
-        message: `${req.user.firstName} ${req.user.lastName} (${
-          req.user.role
-        }) has ${
-          isRejected ? "rejected " : "approved"
-        } deduction request on ${new Date().toDateString()}`,
+        // message: `${req.user.firstName} ${req.user.lastName} (${
+        //   req.user.role
+        // }) has ${
+        //   isRejected ? "rejected " : "approved"
+        // } deduction request on ${new Date().toDateString()}`,
+        additionalDetails: {
+          senderName: `${req.user.firstName} ${req.user.lastName}`,
+          senderRole: req.user.role,
+          targetName: `${invoice.driver.firstName} ${invoice.driver.lastName}`,
+          date: `${new Date().toDateString()}`,
+          subType: isRejected ? "Reject " : "Approve",
+        },
       });
 
       await notification.save();
@@ -743,12 +757,19 @@ const deactivateDriver = async (req, res) => {
     if (driver) {
       const notification = new Notification({
         driverId,
-        heading: `${driver.firstName} ${driver.lastName} Deactivation Alert`,
+        //heading: `${driver.firstName} ${driver.lastName} Deactivation Alert`,
         role: [USER_ROLES],
         notification_type: "Driver_Status_Change",
-        message: `${req.user.firstName} ${req.user.lastName} (${
-          req.user.role
-        }) has deactivated driver on ${new Date().toDateString()}`,
+        // message: `${req.user.firstName} ${req.user.lastName} (${
+        //   req.user.role
+        // }) has deactivated driver on ${new Date().toDateString()}`,
+        additionalDetails: {
+          senderName: `${req.user.firstName} ${req.user.lastName}`,
+          targetName: `${driver.firstName} ${driver.lastName}`,
+          senderRole: req.user.role,
+          date: `${new Date().toDateString()}`,
+          subType: "Deactivate",
+        },
       });
 
       await notification.save();
@@ -780,12 +801,20 @@ const activateDriver = async (req, res) => {
     if (driver) {
       const notification = new Notification({
         driverId,
-        heading: `${driver.firstName} ${driver.lastName} Activation Alert`,
+        //heading: `${driver.firstName} ${driver.lastName} Activation Alert`,
         role: [USER_ROLES],
         notification_type: "Driver_Status_Change",
-        message: `${req.user.firstName} ${req.user.lastName} (${
-          req.user.role
-        }) has activated driver on ${new Date().toDateString()}`,
+        // message: `${req.user.firstName} ${req.user.lastName} (${
+        //   req.user.role
+        // }) has activated driver on ${new Date().toDateString()}`,
+        additionalDetails: {
+          senderName: `${req.user.firstName} ${req.user.lastName}`,
+          targetName: `${driver.firstName} ${driver.lastName}`,
+          senderRole: req.user.role,
+          senderRole: req.user.role,
+          date: `${new Date().toDateString()}`,
+          subType: "Activate",
+        },
       });
 
       await notification.save();

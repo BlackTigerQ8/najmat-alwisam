@@ -478,12 +478,19 @@ const createEmployeeDeductionInvoice = async (req, res) => {
 
     if (req.user.role !== "Admin") {
       const notification = new Notification({
-        heading: `${user.firstName} ${user.lastName} Deduction Alert`,
+        //heading: `${user.firstName} ${user.lastName} Deduction Alert`,
         role: [notification_recipient_role],
         notification_type: "Employee_Deduction",
-        message: `${req.user.firstName} ${req.user.lastName} (${
-          req.user.role
-        }) has made a deduction request on ${new Date().toDateString()}`,
+        // message: `${req.user.firstName} ${req.user.lastName} (${
+        //   req.user.role
+        // }) has made a deduction request on ${new Date().toDateString()}`,
+        additionalDetails: {
+          senderName: `${req.user.firstName} ${req.user.lastName}`,
+          senderRole: req.user.role,
+          targetName: `${user.firstName} ${user.lastName}`,
+          date: `${new Date().toDateString()}`,
+          subType: "Add",
+        },
       });
 
       await notification.save();
@@ -529,12 +536,17 @@ const sendMessage = async (req, res) => {
     for (const selectedUser of selectedUsers) {
       const notification = new Notification({
         forUserId: selectedUser,
-        heading: `New Message Alert`,
+        //heading: `New Message Alert`,
         role: [req.user.role],
         notification_type: "New_Message",
-        message: `${req.user.firstName} ${req.user.lastName} (${
-          req.user.role
-        }) has sent you a message on ${new Date().toDateString()}`,
+        // message: `${req.user.firstName} ${req.user.lastName} (${
+        //   req.user.role
+        // }) has sent you a message on ${new Date().toDateString()}`,
+        additionalDetails: {
+          senderName: `${req.user.firstName} ${req.user.lastName}`,
+          senderRole: req.user.role,
+          date: `${new Date().toDateString()}`,
+        },
       });
 
       await notification.save();
@@ -612,14 +624,21 @@ const updateInvoiceStatus = async (req, res) => {
           role === invoice.invoiceAddedBy.role
             ? invoice.invoiceAddedBy._id
             : undefined,
-        heading: `${invoice.user.firstName} ${invoice.user.lastName} Deduction Alert`,
+        //heading: `${invoice.user.firstName} ${invoice.user.lastName} Deduction Alert`,
         role: [role],
         notification_type: "Employee_Deduction",
-        message: `${req.user.firstName} ${req.user.lastName} (${
-          req.user.role
-        }) has ${
-          isRejected ? "rejected " : "approved"
-        } deduction request on ${new Date().toDateString()}`,
+        // message: `${req.user.firstName} ${req.user.lastName} (${
+        //   req.user.role
+        // }) has ${
+        //   isRejected ? "rejected " : "approved"
+        // } deduction request on ${new Date().toDateString()}`,
+        additionalDetails: {
+          senderName: `${req.user.firstName} ${req.user.lastName}`,
+          senderRole: req.user.role,
+          targetName: `${invoice.user.firstName} ${invoice.user.firstName}`,
+          date: `${new Date().toDateString()}`,
+          subType: isRejected ? "Reject " : "Approve",
+        },
       });
 
       await notification.save();

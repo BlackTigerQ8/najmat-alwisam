@@ -26,6 +26,51 @@ const Notifications = () => {
     }
   }, [dispatch, notifications.length]);
 
+  const getNotificationType = (notification) => {
+
+    const {notification_type: type, additionalDetails} = notification;
+    const {subType} = additionalDetails;
+    if (type === 'Driver_Deduction' || type === 'Employee_Deduction'){
+      return `deduction${subType}`
+    }
+
+    if(type === 'New_Message'){
+      return 'newMessage'
+    }
+
+    if(type === "Driver_Status_Change"){
+      return subType === "Deactivate"?"deactivation":"activation"
+    }
+
+    if(type === 'Driver_Documents_Expiry'){
+      return `${subType}Expiry`
+    }
+
+    return ''
+
+  }
+
+  const getNotificationHeading = (notification) => {
+    debugger;
+    const type = getNotificationType(notification);
+    const { additionalDetails} = notification;
+    
+
+    if(!type) return notification.heading
+
+    return t(`${type}Heading`, {...additionalDetails}) 
+  }
+
+  const getNotificationMessage = (notification) => {
+    debugger;
+    const type = getNotificationType(notification);
+    const { additionalDetails} = notification;
+    
+
+    if(!type) return notification.heading
+    
+    return t(`${type}Message`,{...additionalDetails})
+  }
   return (
     <Box m="20px">
       <Header title={t("NOTIFICATIONS")} subtitle={t("notificationTitle")} />
@@ -33,10 +78,10 @@ const Notifications = () => {
         <Accordion defaultExpanded key={index}>
           <AccordionSummary expandIcon={<ExpandMoreIcon />}>
             <Typography color={colors.greenAccent[500]} variant="h5">
-              {notification.heading}!
+              {getNotificationHeading(notification)}!
             </Typography>
           </AccordionSummary>
-          <AccordionDetails>{notification.message}</AccordionDetails>
+          <AccordionDetails>{getNotificationMessage(notification)}</AccordionDetails>
         </Accordion>
       ))}
     </Box>

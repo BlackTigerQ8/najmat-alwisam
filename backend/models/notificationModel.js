@@ -22,9 +22,6 @@ const notificationSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
   },
-  heading: { type: String },
-  message: { type: String },
-  additionalDetails: { type: Object },
   createdAt: {
     type: Date,
     default: Date.now,
@@ -46,6 +43,18 @@ const notificationSchema = new mongoose.Schema({
     type: String,
     enum: NOTIFICATION_TYPE,
     required: true,
+  },
+  additionalDetails: {
+    type: new mongoose.Schema(
+      {
+        subType: { type: String },
+        senderName: { type: String },
+        targetName: { type: String },
+        senderRole: { type: String },
+        date: { type: String },
+      },
+      { _id: false }
+    ), // Set _id to false to avoid creating an _id for metadata
   },
 });
 

@@ -365,6 +365,43 @@ i18n
             "Driver's Invoices are reset successfully!",
           resetSingleDriverInvoiceRejected:
             "Can't reset driver's invoices, you can try later!",
+
+          deductionAddHeading: "{{targetName}} Deduction Alert",
+          deductionAddMessage:
+            "{{senderName}} has made a deduction request on {{date}}",
+
+          deductionApproveHeading: "{{targetName}} Deduction Alert",
+          deductionApproveMessage:
+            "{{senderName}} has approved deduction request on {{date}}",
+
+          deductionRejectHeading: "{{targetName}} Deduction Alert",
+          deductionRejectMessage:
+            "{{senderName}} has rejected deduction request on {{date}}",
+
+          deactivationHeading: "{{targetName}} Deactivation Alert",
+          deactivationMessage:
+            "{{senderName}} has deactivated driver on {{date}}",
+
+          activationHeading: "{{targetName}} Activation Alert",
+          activationMessage: "{{senderName}} has activated driver on {{date}}",
+
+          newMessageHeading: "New Message Alert",
+          newMessageMessage:
+            "{{senderName}} has sent you a message on {{date}}",
+
+          civilIdExpiryHeading: "{{targetName}} Civil Id Expiration Alert",
+          civilIdExpiryMessage: "Civil id will expire on {{date}}",
+
+          passportExpiryHeading: "{{targetName}} Passport Expiration Alert",
+          passportExpiryMessage: "Passport will expire on {{date}}",
+
+          healthInsuranceExpiryHeading:
+            "{{targetName}} Health Insurance Expiration Alert",
+          healthInsuranceExpiryMessage:
+            "Health Insurance will expire on {{date}}",
+
+          contractExpiryHeading: "{{targetName}} Contract Expiration Alert",
+          contractExpiryMessage: "Contract will expire on {{date}}",
         },
       },
       ar: {
@@ -711,6 +748,43 @@ i18n
             "تمت إعادة تعيين فواتير السائق بنجاح",
           resetSingleDriverInvoiceRejected:
             "لا يمكن إعادة تعيين فواتير السائق، يمكنك المحاولة لاحقًا",
+
+          deductionAddHeading: "{{targetName}} تنبيه الخصم",
+          deductionAddMessage: "{{senderName}} قدم طلب خصم بتاريخ {{date}}",
+
+          deductionApproveHeading: "{{targetName}} Deduction Alert",
+          deductionApproveMessage:
+            "{{date}} وافق على طلب الاستقطاع بتاريخ {{senderName}}",
+
+          deductionRejectHeading: "{{targetName}} Deduction Alert",
+          deductionRejectMessage:
+            "{{date}} رفض طلب الاستقطاع بتاريخ {{senderName}}",
+
+          deactivationHeading: "{{targetName}} تنبيه التعطيل",
+          deactivationMessage:
+            "قام {{senderName}} بتعطيل السائق بتاريخ {{date}}",
+
+          activationHeading: "{{targetName}} تنبيه التنشيط",
+          activationMessage: "{{senderName}} بتفعيل السائق بتاريخ {{date}}",
+
+          newMessageHeading: "تنبيه رسالة جديدة",
+          newMessageMessage: "{{senderName}} أرسل لك رسالة بتاريخ {{date}}",
+
+          civilIdExpiryHeading:
+            "{{targetName}} تنبيه انتهاء صلاحية البطاقة المدنية",
+          civilIdExpiryMessage: "ستنتهي صلاحية البطاقة المدنية في {{date}}",
+
+          passportExpiryHeading:
+            "{{targetName}} تنبيه انتهاء صلاحية جواز السفر",
+          passportExpiryMessage: "سوف تنتهي صلاحية جواز السفر في {{date}}",
+
+          healthInsuranceExpiryHeading:
+            "{{targetName}} تنبيه انتهاء التأمين الصحي",
+          healthInsuranceExpiryMessage:
+            "سوف تنتهي صلاحية التأمين الصحي في {{date}}",
+
+          contractExpiryHeading: "تنبيه انتهاء العقد{{targetName}}",
+          contractExpiryMessage: "سينتهي العقد في {{date}}",
         },
       },
     },
