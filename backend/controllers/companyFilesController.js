@@ -1,4 +1,6 @@
+const path = require("path");
 const CompanyFiles = require("../models/companyFilesModel");
+const fs = require("fs");
 
 // @desc    Get a Company File
 // @route   GET /api/company-files
@@ -35,7 +37,7 @@ const createCompanyFiles = async (req, res) => {
     }
 
     const companyFile = new CompanyFiles({
-      name: file.originalname,
+      name: path.parse(file.originalname).name,
       filePath: file.path,
     });
 
@@ -60,10 +62,64 @@ const createCompanyFiles = async (req, res) => {
 // @access  Private/All
 const deleteCompanyFile = async (req, res) => {
   try {
-    await CompanyFile.findByIdAndDelete(req.params.id);
+    await CompanyFiles.findByIdAndDelete(req.params.id);
     res.status(204).json({
       status: "Success",
       data: null,
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: "Error",
+      message: error.message,
+    });
+  }
+};
+
+const editCompanyFile = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { newName } = req.body;
+
+    if (!newName) {
+      return res.status(400).json({
+        status: "Error",
+        message: "New name is a required field",
+      });
+    }
+
+    const companyFile = await CompanyFiles.findById(id);
+    if (!companyFile) {
+      return res.status(404).json({
+        status: "Error",
+        message: "File not found",
+      });
+    }
+
+    const oldFilePath = companyFile.filePath;
+    const fileDir = path.dirname(oldFilePath);
+    const newFilePath = path.join(fileDir, newName + path.extname(oldFilePath));
+
+    // Rename the physical file
+    fs.rename(oldFilePath, newFilePath, async (err) => {
+      if (err) {
+        return res.status(500).json({
+          status: "Error",
+          message: err.message,
+        });
+      }
+
+      // Update the file details in the database
+      companyFile.name = newName;
+      companyFile.filePath = newFilePath;
+
+      await companyFile.save();
+
+      res.status(200).json({
+        status: "Success",
+        data: {
+          companyFile,
+        },
+      });
     });
   } catch (error) {
     res.status(500).json({
@@ -77,4 +133,5 @@ module.exports = {
   getAllCompanyFiles,
   createCompanyFiles,
   deleteCompanyFile,
+  editCompanyFile,
 };

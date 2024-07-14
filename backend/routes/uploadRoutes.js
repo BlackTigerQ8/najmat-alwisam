@@ -173,7 +173,7 @@ const userInvoicesUpload = multer({
 });
 
 const companyFilesStorage = multer.diskStorage({
-  destination: "./uploads/company/files",
+  destination: "./uploads/company-files",
   filename: (req, file, cb) => {
     cb(null, getUploadFileName(file));
   },

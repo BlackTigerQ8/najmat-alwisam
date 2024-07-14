@@ -337,6 +337,7 @@ i18n
             "Can't add an income, you can try later!",
           /////////////
           addCompanyFilesFulfilled: "Company file is successfully added!",
+          saveCompanyFilesSuccess: "Company file is successfully saved!",
           addCompanyFilesRejected:
             "Can't add a company file, you can try later!",
           deleteCompanyFileFulfilled: "Company file is successfully deleted!",
@@ -722,6 +723,7 @@ i18n
             "لا يمكن إضافة الدخل، يمكنك المحاولة لاحقًا",
           /////////////
           addCompanyFilesFulfilled: "تمت إضافة ملف الشركة بنجاح",
+          saveCompanyFilesSuccess: "تم حفظ ملف الشركة بنجاح",
           addCompanyFilesRejected:
             "لا يمكن إضافة ملف الشركة، يمكنك المحاولة لاحقًا",
           deleteCompanyFileFulfilled: "تم حذف ملف الشركة بنجاح",

@@ -23,6 +23,7 @@ import {
   fetchAllCompanyFiles,
   addCompanyFiles,
   deleteCompanyFile,
+  editCompanyFiles
 } from "../redux/companyFilesSlice";
 import { useTranslation } from "react-i18next";
 
@@ -67,6 +68,7 @@ const CompanyFiles = () => {
       field: "name",
       headerName: t("fileName"),
       flex: 1,
+      editable: true
     },
     {
       field: "preview",
@@ -120,14 +122,27 @@ const CompanyFiles = () => {
     },
   ];
 
-  const handleUpdate = ({ id, status, type }) => {
+  const handleUpdate = ({ _id,name }) => {
     try {
+      dispatch(editCompanyFiles({
+        values: {newName: name},
+        id: _id
+      }))
     } catch (error) {
       console.error("Row does not have a valid _id field:");
     }
   };
 
-  const handleViewFile = (values) => {};
+  const handleViewFile = (values) => {
+    const fileUrl = values?.filePath
+    ? `${process.env.REACT_APP_API_URL}/${values?.filePath}`
+    : null;
+
+  if (fileUrl) {
+    window.open(fileUrl, "_blank");
+  }
+
+  };
 
   const handleDelete = async (companyFileId) => {
     try {

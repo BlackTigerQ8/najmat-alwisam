@@ -57,6 +57,28 @@ export const addCompanyFiles = createAsyncThunk(
   }
 );
 
+export const editCompanyFiles = createAsyncThunk(
+  "companyFiles/editCompanyFiles",
+  async ({ values, id }) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.put(
+        `${API_URL}/company-files/${id}`,
+        values,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response.data.message || error.message);
+    }
+  }
+);
+
 export const deleteCompanyFile = createAsyncThunk(
   "companyFiles/deleteCompanyFile",
   async (companyFileId, { getState }) => {
@@ -113,6 +135,27 @@ const companyFilesSlice = createSlice({
         state.error = action.error.message;
         dispatchToast(i18next.t("addCompanyFilesRejected"), "error");
       });
+
+    //Edit company files
+    builder
+      .addCase(editCompanyFiles.pending, (state) => {
+        state.status = "loading";
+      })
+      .addCase(editCompanyFiles.fulfilled, (state, action) => {
+        state.status = "succeeded";
+        state.companyFiles = state.companyFiles.map((c) =>
+          c._id === action.payload.data.companyFile._id
+            ? action.payload.data.companyFile
+            : c
+        );
+        dispatchToast(i18next.t("saveCompanyFilesSuccess"), "success");
+      })
+      .addCase(editCompanyFiles.rejected, (state, action) => {
+        state.status = "failed";
+        state.error = action.error.message;
+        dispatchToast(i18next.t("addCompanyFilesRejected"), "success");
+      });
+
     // Delete Company File
     builder
       .addCase(deleteCompanyFile.pending, (state) => {
