@@ -130,16 +130,15 @@ export const updateDriver = createAsyncThunk(
 // Deactivate driver
 export const deactivateDriver = createAsyncThunk(
   "driver/deactivateDriver",
-  async ({ formData, driverId }) => {
+  async ({ driverId }) => {
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.patch(
-        `${API_URL}/drivers/${driverId}`,
-        formData,
+      const response = await axios.put(
+        `${API_URL}/drivers/${driverId}/inactive`,
+        {},
         {
           headers: {
             Authorization: `Bearer ${token}`,
-            "Content-Type": "multipart/form-data",
           },
         }
       );

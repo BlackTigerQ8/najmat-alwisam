@@ -756,9 +756,9 @@ const deactivateDriver = async (req, res) => {
 
     if (driver) {
       const notification = new Notification({
-        driverId,
+        driverId: req.params.id,
         //heading: `${driver.firstName} ${driver.lastName} Deactivation Alert`,
-        role: [USER_ROLES],
+        role: USER_ROLES,
         notification_type: "Driver_Status_Change",
         // message: `${req.user.firstName} ${req.user.lastName} (${
         //   req.user.role
@@ -800,9 +800,9 @@ const activateDriver = async (req, res) => {
 
     if (driver) {
       const notification = new Notification({
-        driverId,
+        driverId: req.params.id,
         //heading: `${driver.firstName} ${driver.lastName} Activation Alert`,
-        role: [USER_ROLES],
+        role: USER_ROLES,
         notification_type: "Driver_Status_Change",
         // message: `${req.user.firstName} ${req.user.lastName} (${
         //   req.user.role

@@ -51,7 +51,6 @@ const Notifications = () => {
   }
 
   const getNotificationHeading = (notification) => {
-    debugger;
     const type = getNotificationType(notification);
     const { additionalDetails} = notification;
     
@@ -62,7 +61,6 @@ const Notifications = () => {
   }
 
   const getNotificationMessage = (notification) => {
-    debugger;
     const type = getNotificationType(notification);
     const { additionalDetails} = notification;
     

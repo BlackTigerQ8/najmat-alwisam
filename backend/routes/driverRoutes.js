@@ -32,8 +32,8 @@ router
 
 router.route("/inactive").get(protect, getInactiveDrivers);
 
-router.route("/:driverId/inactive").put(protect, deactivateDriver);
-router.route("/:driverId/active").put(protect, activateDriver);
+router.route("/:id/inactive").put(protect, deactivateDriver);
+router.route("/:id/active").put(protect, activateDriver);
 
 router
   .route("/:id")

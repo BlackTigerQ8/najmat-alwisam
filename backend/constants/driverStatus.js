@@ -1,3 +1,3 @@
-const driverStatus = { Active: "active", InActive: "inActive" };
+const driverStatus = { Active: "active", InActive: "inactive" };
 
 module.exports = driverStatus;
