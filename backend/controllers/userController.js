@@ -471,9 +471,6 @@ const createEmployeeDeductionInvoice = async (req, res) => {
       file: filePath,
     });
 
-    const invoices = await EmployeeInvoice.find({});
-    console.log("invoices", invoices);
-
     await newInvoice.save();
 
     if (req.user.role !== "Admin") {
@@ -601,8 +598,6 @@ const updateInvoiceStatus = async (req, res) => {
     )
       .populate("user")
       .populate("invoiceAddedBy");
-
-    console.log("Invoice", invoice);
 
     let notification_recipient_role = undefined;
     switch (req.user.role) {

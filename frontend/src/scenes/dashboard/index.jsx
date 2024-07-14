@@ -27,7 +27,7 @@ const Dashboard = () => {
   const colors = tokens(theme.palette.mode);
   const { t } = useTranslation();
   const dispatch = useDispatch();
-  const { drivers, status, summary, summaryStatus } = useSelector(
+  const {  status, summary, summaryStatus } = useSelector(
     (state) => state.drivers
   );
 

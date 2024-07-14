@@ -16,6 +16,8 @@ const { driverContractUpload } = require("./uploadRoutes");
 
 const router = express.Router();
 
+router.route("/summary").get(protect, getDriverSummary);
+
 router
   .route("/salaries")
   .get(protect, restrictTo("Admin", "Accountant"), getDriverSalaries);
@@ -40,7 +42,5 @@ router
   .get(protect, getDriver)
   .patch(protect, driverContractUpload.single("uploadedFile"), updateDriver)
   .delete(protect, restrictTo("Admin", "Manager"), deleteDriver);
-
-router.route("/summary").get(getDriverSummary);
 
 module.exports = router;

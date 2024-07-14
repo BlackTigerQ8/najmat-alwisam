@@ -74,6 +74,7 @@ export const fetchDriverSummary = createAsyncThunk(
   "driver/fetchDriverSummary",
   async (token) => {
     try {
+      debugger;
       const response = await axios.get(`${API_URL}/drivers/summary`, {
         headers: {
           Authorization: `Bearer ${token}`,

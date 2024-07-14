@@ -588,8 +588,6 @@ const updateInvoiceStatus = async (req, res) => {
       .populate("driver")
       .populate("user");
 
-    console.log("Invoice", invoice);
-
     let notification_recipient_role = undefined;
     switch (req.user.role) {
       case "Admin":
@@ -642,7 +640,6 @@ const updateInvoiceStatus = async (req, res) => {
 const resetInvoices = async (req, res) => {
   try {
     const driverInvoices = await getDriverInvoices(["visibleToAll"]);
-    console.log("visible driver invoices", driverInvoices);
 
     for (const invoice of driverInvoices) {
       invoice.status = "visibleToAllArchived";
@@ -837,20 +834,42 @@ const activateDriver = async (req, res) => {
 // @access  Private/Admin_and_Employee
 const getDriverSummary = async (req, res) => {
   try {
-    const summary = await DriverInvoice.aggregate([
-      {
-        $group: {
-          _id: "$driver", // Group all documents
-          totalOrders: { $sum: { $add: ["$mainOrder", "$additionalOrder"] } },
-          totalCash: { $sum: "$cash" },
-          totalHours: { $sum: "$hour" },
-        },
-      },
-    ]);
+    console.log("IN driver summary method");
+    const driverInvoices = []; // await getDriverInvoices(["approved"]);
+
+    console.log("invoices", driverInvoices);
+
+    const result = {
+      totalOrders: 0,
+      totalCash: 0,
+      totalHours: 0,
+      talabatDeductionAmount: 0,
+      mainOrder: 0,
+      additionalOrder: 0,
+      companyDeductionAmount: 0,
+    };
+
+    for (const invoice of driverInvoices) {
+      const {
+        mainOrder = 0,
+        additionalOrder = 0,
+        talabatDeductionAmount = 0,
+        companyDeductionAmount = 0,
+        hour = 0,
+        cash = 0,
+      } = invoice;
+
+      result.mainOrder += mainOrder;
+      result.additionalOrder += additionalOrder;
+      result.talabatDeductionAmount += talabatDeductionAmount;
+      result.companyDeductionAmount += companyDeductionAmount;
+      result.totalHours += hour;
+      result.totalCash += cash;
+    }
 
     res.status(200).json({
       status: "Success",
-      data: summary[0] || { totalOrders: 0, totalCash: 0, totalHours: 0 },
+      data: result,
     });
   } catch (error) {
     res.status(500).json({
