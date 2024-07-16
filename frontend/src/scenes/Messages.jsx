@@ -76,11 +76,18 @@ const Messages = () => {
         [...sentMessages].reverse().map((message, index) => (
           <Accordion defaultExpanded key={index}>
             <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              <Typography color={colors.greenAccent[500]} variant="h5">
-                {getUserInfo(message.sender).firstName}{" "}
-                {getUserInfo(message.sender).lastName}
-              </Typography>
+              {getUserInfo(message.sender) ? (
+                <Typography color={colors.greenAccent[500]} variant="h5">
+                  {getUserInfo(message.sender).firstName}{" "}
+                  {getUserInfo(message.sender).lastName}
+                </Typography>
+              ) : (
+                <Typography color="error" variant="h5">
+                  Unknown Sender
+                </Typography>
+              )}
             </AccordionSummary>
+
             <AccordionDetails>
               <Typography>{message.message}</Typography>
             </AccordionDetails>
