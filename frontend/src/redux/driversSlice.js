@@ -130,7 +130,7 @@ export const updateDriver = createAsyncThunk(
 // Deactivate driver
 export const deactivateDriver = createAsyncThunk(
   "driver/deactivateDriver",
-  async ({ driverId }) => {
+  async (driverId) => {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.put(

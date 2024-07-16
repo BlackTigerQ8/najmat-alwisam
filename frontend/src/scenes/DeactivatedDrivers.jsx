@@ -7,7 +7,7 @@ import { tokens } from "../theme";
 import SettingsBackupRestoreOutlinedIcon from "@mui/icons-material/SettingsBackupRestoreOutlined";
 import { pulsar } from "ldrs";
 import { useTranslation } from "react-i18next";
-import { fetchDrivers, deleteDriver } from "../redux/driversSlice";
+import { fetchDrivers } from "../redux/driversSlice";
 import { useSelector, useDispatch } from "react-redux";
 
 const DeactivatedDrivers = () => {
@@ -15,7 +15,9 @@ const DeactivatedDrivers = () => {
   const colors = tokens(theme.palette.mode);
   const { t } = useTranslation();
   const dispatch = useDispatch();
-  const deactivatedDrivers = useSelector((state) => state.drivers.drivers);
+  const deactivatedDrivers = useSelector((state) =>
+    state.drivers.drivers.filter((driver) => driver.status === "inactive")
+  );
   const status = useSelector((state) => state.drivers.status);
   const error = useSelector((state) => state.drivers.error);
 
@@ -23,11 +25,7 @@ const DeactivatedDrivers = () => {
     dispatch(fetchDrivers(token));
   }, []);
 
-  //   Example ...
-  //   const deactivatedDrivers = [
-  //     { _id: "1", name: "Abdullah" },
-  //     { _id: "2", name: "Mohammed" },
-  //   ];
+  console.log(deactivatedDrivers);
 
   const token = localStorage.getItem("token");
 
@@ -88,8 +86,8 @@ const DeactivatedDrivers = () => {
     },
   ];
 
-  const handleRetrieve = async () => {
-    console.log("Test");
+  const handleRetrieve = async (driverId) => {
+    console.log("Retrieve driver with ID:", driverId);
   };
 
   pulsar.register();
@@ -163,9 +161,7 @@ const DeactivatedDrivers = () => {
         }}
       >
         <DataGrid
-          rows={deactivatedDrivers.filter(
-            (driver) => driver.status === "inactive"
-          )}
+          rows={deactivatedDrivers}
           columns={columns}
           getRowId={(row) => row._id}
         />

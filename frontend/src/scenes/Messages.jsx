@@ -83,7 +83,7 @@ const Messages = () => {
                 </Typography>
               ) : (
                 <Typography color="error" variant="h5">
-                  Unknown Sender
+                  {t("unknownSender")}
                 </Typography>
               )}
             </AccordionSummary>

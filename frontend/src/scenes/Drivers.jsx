@@ -109,8 +109,8 @@ const Drivers = () => {
             color="primary"
             size="small"
             style={{ marginRight: 8 }}
-            onClick={() =>{
-              handleDeactivation(params.row._id)
+            onClick={() => {
+              handleDeactivation(params.row._id);
             }}
             startIcon={<BlockOutlinedIcon />}
           ></Button>
@@ -190,7 +190,7 @@ const Drivers = () => {
 
   const handleDeactivation = async (driverId) => {
     try {
-      dispatch(deactivateDriver({driverId}));
+      dispatch(deactivateDriver({ driverId }));
     } catch (error) {
       console.error("Error deactivating driver:", error);
     }
