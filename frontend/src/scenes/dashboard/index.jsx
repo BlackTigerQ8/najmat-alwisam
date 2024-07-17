@@ -110,7 +110,7 @@ const Dashboard = () => {
           justifyContent="center"
         >
           <StatBox
-            title={summary.totalOrders}
+            title={summary.mainOrder + summary.additionalOrder}
             subtitle={t("totalOrders")}
             progress="0.75"
             increase="+14%"

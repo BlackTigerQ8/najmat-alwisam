@@ -9,7 +9,7 @@
                 "<node_internals>/**"
             ],
             "program": "${workspaceFolder}/backend/server.js",
-            "envFile": "${workspaceFolder}/.env"
+            "envFile": "${workspaceFolder}/backend/.env"
             
         }
     ]

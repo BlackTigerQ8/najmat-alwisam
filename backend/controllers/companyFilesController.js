@@ -1,6 +1,7 @@
 const path = require("path");
 const CompanyFiles = require("../models/companyFilesModel");
 const fs = require("fs");
+const iconv = require("iconv-lite");
 
 // @desc    Get a Company File
 // @route   GET /api/company-files
@@ -36,8 +37,13 @@ const createCompanyFiles = async (req, res) => {
       });
     }
 
+    const originalName = iconv.decode(
+      Buffer.from(file.originalname, "binary"),
+      "utf8"
+    );
+
     const companyFile = new CompanyFiles({
-      name: path.parse(file.originalname).name,
+      name: path.parse(originalName).name,
       filePath: file.path,
     });
 

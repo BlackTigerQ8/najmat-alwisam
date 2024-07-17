@@ -834,10 +834,10 @@ const activateDriver = async (req, res) => {
 // @access  Private/Admin_and_Employee
 const getDriverSummary = async (req, res) => {
   try {
-    console.log("IN driver summary method");
-    const driverInvoices = []; // await getDriverInvoices(["approved"]);
-
-    console.log("invoices", driverInvoices);
+    const driverInvoices = await getDriverInvoices([
+      "approved",
+      "visibleToAll",
+    ]);
 
     const result = {
       totalOrders: 0,
