@@ -101,14 +101,14 @@ const CompanyFiles = () => {
       renderCell: (params) => {
         return (
           <Box display="flex" justifyContent="center">
-            <Button
+            {/* <Button
               variant="contained"
               color="primary"
               size="small"
               style={{ marginRight: 8 }}
               onClick={() => handleUpdate(params.row)}
               startIcon={<EditIcon />}
-            ></Button>
+            ></Button> */}
             <Button
               variant="contained"
               color="secondary"
