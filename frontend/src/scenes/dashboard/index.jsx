@@ -7,7 +7,7 @@ import {
 } from "@mui/material";
 import { tokens } from "../../theme";
 import DownloadOutlinedIcon from "@mui/icons-material/DownloadOutlined";
-import EmailIcon from "@mui/icons-material/Email";
+import DeliveryDiningOutlinedIcon from "@mui/icons-material/DeliveryDiningOutlined";
 import AccessTimeFilledIcon from "@mui/icons-material/AccessTimeFilled";
 import PointOfSaleIcon from "@mui/icons-material/PointOfSale";
 import PriceCheckIcon from "@mui/icons-material/PriceCheck";
@@ -27,7 +27,7 @@ const Dashboard = () => {
   const colors = tokens(theme.palette.mode);
   const { t } = useTranslation();
   const dispatch = useDispatch();
-  const {  status, summary, summaryStatus } = useSelector(
+  const { status, summary, summaryStatus } = useSelector(
     (state) => state.drivers
   );
 
@@ -115,7 +115,7 @@ const Dashboard = () => {
             progress="0.75"
             increase="+14%"
             icon={
-              <EmailIcon
+              <DeliveryDiningOutlinedIcon
                 sx={{ color: colors.greenAccent[600], fontSize: "26px" }}
               />
             }
@@ -209,11 +209,52 @@ const Dashboard = () => {
               </Typography>
             </Box>
             <Box>
-              <IconButton>
+              {/* <IconButton>
                 <DownloadOutlinedIcon
                   sx={{ fontSize: "26px", color: colors.greenAccent[500] }}
                 />
-              </IconButton>
+              </IconButton> */}
+            </Box>
+          </Box>
+          <Box height="250px" m="-20px 0 0 0">
+            <LineChart isDashboard={true} />
+          </Box>
+        </Box>
+        {/* ROW 2 */}
+        <Box
+          gridColumn="span 12"
+          gridRow="span 2"
+          backgroundColor={colors.primary[400]}
+        >
+          <Box
+            mt="25px"
+            p="0 30px"
+            display="flex "
+            justifyContent="space-between"
+            alignItems="center"
+          >
+            <Box>
+              <Typography
+                variant="h5"
+                fontWeight="600"
+                color={colors.grey[100]}
+              >
+                {t("revenueGenerated")}
+              </Typography>
+              <Typography
+                variant="h3"
+                fontWeight="bold"
+                color={colors.greenAccent[500]}
+              >
+                $59,342.32
+              </Typography>
+            </Box>
+            <Box>
+              {/* <IconButton>
+                <DownloadOutlinedIcon
+                  sx={{ fontSize: "26px", color: colors.greenAccent[500] }}
+                />
+              </IconButton> */}
             </Box>
           </Box>
           <Box height="250px" m="-20px 0 0 0">
@@ -298,7 +339,7 @@ const Dashboard = () => {
             <Typography>Includes extra misc expenditures and costs</Typography>
           </Box>
         </Box> */}
-        <Box
+        {/* <Box
           gridColumn="span 12"
           gridRow="span 2"
           backgroundColor={colors.primary[400]}
@@ -313,7 +354,7 @@ const Dashboard = () => {
           <Box height="250px" mt="-20px">
             <BarChart isDashboard={true} />
           </Box>
-        </Box>
+        </Box> */}
         {/* <Box
           gridColumn="span 4"
           gridRow="span 2"

@@ -678,9 +678,9 @@ i18n
           deactivatedDriverFulfilled: "تم إيقاف تفعيل السائق بنجاح",
           deactivatedDriverrejected:
             "لا يمكن تعطيل السائق، يمكنك المحاولة لاحقًا",
-          activatedDriverFulfilled: "تم تفعيل برنامج التشغيل بنجاح",
+          activatedDriverFulfilled: "تم تفعيل السائق بنجاح",
           activatedDriverRejected:
-            "لا يمكن تفعيل برنامج التشغيل، يمكنك المحاولة لاحقًا",
+            "لا يمكن تفعيل السائق، يمكنك المحاولة لاحقًا",
           overrideDriverSalaryFulfilled: "تم تحديث معلومات السائق بنجاح",
           overrideDriverSalaryRejected:
             "لا يمكن تحديث معلومات السائق، يمكنك المحاولة لاحقًا",

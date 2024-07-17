@@ -196,27 +196,9 @@ const Drivers = () => {
     }
   };
 
-  const handleViewInactiveDrivers = () => {
-    navigate("/deactivated-drivers");
-  };
-
   return (
     <Box m="20px">
       <Header title={t("DRIVERS")} subtitle={t("manageDriverMembers")} />
-      <Box
-        display="flex"
-        justifyContent="space-between"
-        alignItems="center"
-        mt="20px"
-      >
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={handleViewInactiveDrivers}
-        >
-          View Inactive Drivers
-        </Button>
-      </Box>
       <Box
         mt="40px"
         height="75vh"
