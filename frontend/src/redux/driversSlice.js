@@ -21,6 +21,10 @@ const initialState = {
   },
   summaryStatus: "",
   summaryError: null,
+
+  inactiveDriversStatus: "",
+  inactiveDrivers: [],
+  inactiveDriversError: null,
 };
 
 const dispatchToast = (message, type) => {
@@ -58,6 +62,22 @@ export const fetchDrivers = createAsyncThunk(
   async (token) => {
     try {
       const response = await axios.get(`${API_URL}/drivers`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response.data.message || error.message);
+    }
+  }
+);
+
+export const fetchInactiveDrivers = createAsyncThunk(
+  "driver/fetchInactiveDrivers",
+  async (token) => {
+    try {
+      const response = await axios.get(`${API_URL}/drivers/inactive`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -130,11 +150,32 @@ export const updateDriver = createAsyncThunk(
 // Deactivate driver
 export const deactivateDriver = createAsyncThunk(
   "driver/deactivateDriver",
-  async (driverId) => {
+  async ({ driverId }) => {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.put(
         `${API_URL}/drivers/${driverId}/inactive`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response.data.message || error.message);
+    }
+  }
+);
+
+export const activateDriver = createAsyncThunk(
+  "driver/activateDriver",
+  async ({ driverId }) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.put(
+        `${API_URL}/drivers/${driverId}/active`,
         {},
         {
           headers: {
@@ -235,6 +276,21 @@ const driversSlice = createSlice({
         state.status = "failed";
         state.error = action.error.message;
       });
+
+    // Fetch inactive drivers fetchInactiveDrivers
+    builder
+      .addCase(fetchInactiveDrivers.pending, (state) => {
+        state.inactiveDriversStatus = "loading";
+      })
+      .addCase(fetchInactiveDrivers.fulfilled, (state, action) => {
+        state.inactiveDriversStatus = "succeeded";
+        state.inactiveDrivers = action.payload.data.drivers;
+      })
+      .addCase(fetchInactiveDrivers.rejected, (state, action) => {
+        state.inactiveDriversStatus = "failed";
+        state.inactiveDriversError = action.error.message;
+      });
+
     // Fetch drivers summary
     builder
       .addCase(fetchDriverSummary.pending, (state) => {
@@ -303,8 +359,8 @@ const driversSlice = createSlice({
       .addCase(deactivateDriver.fulfilled, (state, action) => {
         state.status = "succeeded";
         const updatedDriver = action.payload.data.driver;
-        state.drivers = state.drivers.map((driver) =>
-          driver._id === updatedDriver._id ? updatedDriver : driver
+        state.drivers = state.drivers.filter(
+          (driver) => driver._id !== updatedDriver._id
         );
         dispatchToast(i18next.t("deactivatedDriverFulfilled"), "success");
       })
@@ -313,6 +369,24 @@ const driversSlice = createSlice({
         state.error = action.error.message;
         dispatchToast(i18next.t("deactivatedDriverrejected"), "error");
       })
+
+      .addCase(activateDriver.pending, (state) => {
+        state.inactiveDriversStatus = "loading";
+      })
+      .addCase(activateDriver.fulfilled, (state, action) => {
+        state.inactiveDriversStatus = "succeeded";
+        const updatedDriver = action.payload.data.driver;
+        state.inactiveDrivers = state.inactiveDrivers.filter(
+          (driver) => driver._id !== updatedDriver._id
+        );
+        dispatchToast(i18next.t("activatedDriverFulfilled"), "success");
+      })
+      .addCase(activateDriver.rejected, (state, action) => {
+        state.inactiveDriversStatus = "failed";
+        state.inactiveDriversError = action.error.message;
+        dispatchToast(i18next.t("activatedDriverRejected"), "error");
+      })
+
       .addCase(overrideDriverSalary.pending, (state) => {
         state.salariesStatus = "loading";
       })

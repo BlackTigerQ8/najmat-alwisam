@@ -7,7 +7,7 @@ import { tokens } from "../theme";
 import SettingsBackupRestoreOutlinedIcon from "@mui/icons-material/SettingsBackupRestoreOutlined";
 import { pulsar } from "ldrs";
 import { useTranslation } from "react-i18next";
-import { fetchDrivers } from "../redux/driversSlice";
+import { fetchInactiveDrivers,activateDriver } from "../redux/driversSlice";
 import { useSelector, useDispatch } from "react-redux";
 
 const DeactivatedDrivers = () => {
@@ -16,16 +16,16 @@ const DeactivatedDrivers = () => {
   const { t } = useTranslation();
   const dispatch = useDispatch();
   const deactivatedDrivers = useSelector((state) =>
-    state.drivers.drivers.filter((driver) => driver.status === "inactive")
+    state.drivers.inactiveDrivers
   );
-  const status = useSelector((state) => state.drivers.status);
-  const error = useSelector((state) => state.drivers.error);
+  const status = useSelector((state) => state.drivers.inactiveDriversStatus);
+  const error = useSelector((state) => state.drivers.inactiveDriversError);
 
   useEffect(() => {
-    dispatch(fetchDrivers(token));
+    dispatch(fetchInactiveDrivers(token));
   }, []);
 
-  console.log(deactivatedDrivers);
+  
 
   const token = localStorage.getItem("token");
 
@@ -87,7 +87,7 @@ const DeactivatedDrivers = () => {
   ];
 
   const handleRetrieve = async (driverId) => {
-    console.log("Retrieve driver with ID:", driverId);
+    dispatch(activateDriver({driverId}))
   };
 
   pulsar.register();

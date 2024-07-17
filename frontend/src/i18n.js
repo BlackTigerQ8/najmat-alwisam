@@ -288,6 +288,9 @@ i18n
             "Driver has been deactivate successfully!",
           deactivatedDriverrejected:
             "Can't deactivate a driver, you can try later!",
+          activatedDriverFulfilled: "Driver has been activated successfully!",
+          activatedDriverRejected:
+            "Can't activate a driver, you can try later!",
           overrideDriverSalaryFulfilled:
             "Driver's information is successfully updated!",
           overrideDriverSalaryRejected:
@@ -675,6 +678,9 @@ i18n
           deactivatedDriverFulfilled: "تم إيقاف تفعيل السائق بنجاح",
           deactivatedDriverrejected:
             "لا يمكن تعطيل السائق، يمكنك المحاولة لاحقًا",
+          activatedDriverFulfilled: "تم تفعيل برنامج التشغيل بنجاح",
+          activatedDriverRejected:
+            "لا يمكن تفعيل برنامج التشغيل، يمكنك المحاولة لاحقًا",
           overrideDriverSalaryFulfilled: "تم تحديث معلومات السائق بنجاح",
           overrideDriverSalaryRejected:
             "لا يمكن تحديث معلومات السائق، يمكنك المحاولة لاحقًا",
