@@ -41,4 +41,8 @@ app.use("/api/spend-types", spendTypeRoutes);
 app.use("/api/company-income", companyIncomeRoutes);
 app.use("/api/company-files", companyFilesRoutes);
 
+app.get("/api/health", (req, res) => {
+  res.status(200).json({ status: "ok", timestamp: new Date().toISOString() });
+});
+
 module.exports = app;
