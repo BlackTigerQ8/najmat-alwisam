@@ -71,6 +71,15 @@ const Dashboard = () => {
     );
   }
 
+  const formatCurrency = (value) => {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "KWD",
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(value);
+  };
+
   return (
     <Box m="20px" id="dashboard">
       {/* HEADER */}
@@ -103,7 +112,7 @@ const Dashboard = () => {
       >
         {/* ROW 1 */}
         <Box
-          gridColumn="span 3"
+          gridColumn="span 4"
           backgroundColor={colors.primary[400]}
           display="flex"
           alignItems="center"
@@ -122,14 +131,14 @@ const Dashboard = () => {
           />
         </Box>
         <Box
-          gridColumn="span 3"
+          gridColumn="span 4"
           backgroundColor={colors.primary[400]}
           display="flex"
           alignItems="center"
           justifyContent="center"
         >
           <StatBox
-            title={summary.totalCash}
+            title={`${summary.totalCash.toFixed(3)} KD`}
             subtitle={t("totalCash")}
             progress="0.50"
             increase="+21%"
@@ -141,7 +150,7 @@ const Dashboard = () => {
           />
         </Box>
         <Box
-          gridColumn="span 3"
+          gridColumn="span 4"
           backgroundColor={colors.primary[400]}
           display="flex"
           alignItems="center"
@@ -154,25 +163,6 @@ const Dashboard = () => {
             increase="+5%"
             icon={
               <AccessTimeFilledIcon
-                sx={{ color: colors.greenAccent[600], fontSize: "26px" }}
-              />
-            }
-          />
-        </Box>
-        <Box
-          gridColumn="span 3"
-          backgroundColor={colors.primary[400]}
-          display="flex"
-          alignItems="center"
-          justifyContent="center"
-        >
-          <StatBox
-            title="1,325,134"
-            subtitle={t("revenue")}
-            progress="0.80"
-            increase="+43%"
-            icon={
-              <PriceCheckIcon
                 sx={{ color: colors.greenAccent[600], fontSize: "26px" }}
               />
             }
@@ -198,14 +188,14 @@ const Dashboard = () => {
                 fontWeight="600"
                 color={colors.grey[100]}
               >
-                {t("revenueGenerated")}
+                {t("totalCash")}
               </Typography>
               <Typography
                 variant="h3"
                 fontWeight="bold"
                 color={colors.greenAccent[500]}
               >
-                $59,342.32
+                {summary.totalCash.toFixed(3)} KD
               </Typography>
             </Box>
             <Box>
@@ -239,14 +229,14 @@ const Dashboard = () => {
                 fontWeight="600"
                 color={colors.grey[100]}
               >
-                {t("revenueGenerated")}
+                {t("totalOrders")}
               </Typography>
               <Typography
                 variant="h3"
                 fontWeight="bold"
                 color={colors.greenAccent[500]}
               >
-                $59,342.32
+                {summary.mainOrder + summary.additionalOrder}
               </Typography>
             </Box>
             <Box>

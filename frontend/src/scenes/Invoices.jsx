@@ -69,7 +69,14 @@ const InvoicesArchive = () => {
       const { cash, hour, mainOrder, additionalOrder, invoiceDate } =
         getInvoiceData(driver._id);
 
-      return { ...driver, cash, hour, mainOrder, additionalOrder, invoiceDate };
+      return {
+        ...driver,
+        cash: cash ? cash.toFixed(3) : cash,
+        hour,
+        mainOrder,
+        additionalOrder,
+        invoiceDate,
+      };
     });
   }, [drivers, getInvoiceData]);
 
