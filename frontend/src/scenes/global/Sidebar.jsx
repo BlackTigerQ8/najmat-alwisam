@@ -282,6 +282,14 @@ const Sidebar = () => {
               isCollapsed={isCollapsed}
             />
             <Item
+              title={t("searchingArchive")}
+              to="/searching-archive"
+              icon={<ContactsOutlinedIcon />}
+              selected={selected}
+              setSelected={setSelected}
+              isCollapsed={isCollapsed}
+            />
+            <Item
               title={t("deactivatedDrivers")}
               to="/deactivated-drivers"
               icon={<BlockOutlinedIcon />}

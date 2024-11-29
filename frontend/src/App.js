@@ -51,6 +51,7 @@ import InvoicesArchive from "./scenes/InvoiceArchive";
 import CompanyFiles from "./scenes/CompanyFiles";
 import DeactivatedDrivers from "./scenes/DeactivatedDrivers";
 import { I18nextProvider, Trans, useTranslation } from "react-i18next";
+import SearchArchive from "./scenes/SearchArchive";
 
 const lngs = {
   en: { nativeName: "English" },
@@ -242,6 +243,11 @@ function App() {
                       exact
                       path="/company-files"
                       element={<CompanyFiles />}
+                    />
+                    <Route
+                      exact
+                      path="/searching-archive"
+                      element={<SearchArchive />}
                     />
                     <Route exact path="/contact" element={<Contact />} />
                     <Route exact path="/messages" element={<Messages />} />

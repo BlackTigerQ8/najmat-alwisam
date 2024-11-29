@@ -1,22 +1,12 @@
-import {
-  Box,
-  IconButton,
-  Typography,
-  useTheme,
-  CircularProgress,
-} from "@mui/material";
+import { Box, Typography, useTheme } from "@mui/material";
 import { tokens } from "../../theme";
-import DownloadOutlinedIcon from "@mui/icons-material/DownloadOutlined";
 import DeliveryDiningOutlinedIcon from "@mui/icons-material/DeliveryDiningOutlined";
 import AccessTimeFilledIcon from "@mui/icons-material/AccessTimeFilled";
 import PointOfSaleIcon from "@mui/icons-material/PointOfSale";
-import PriceCheckIcon from "@mui/icons-material/PriceCheck";
 import Header from "../../components/Header";
 import LineChart from "../../components/LineChart";
-import BarChart from "../../components/BarChart";
 import StatBox from "../../components/StatBox";
-// import html2canvas from "html2canvas";
-// import jsPDF from "jspdf";
+import { pulsar } from "ldrs";
 import { useTranslation } from "react-i18next";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchDrivers, fetchDriverSummary } from "../../redux/driversSlice";
@@ -31,36 +21,30 @@ const Dashboard = () => {
     (state) => state.drivers
   );
 
-  console.log(summary);
-
   useEffect(() => {
     const token = localStorage.getItem("token");
     dispatch(fetchDrivers(token));
     dispatch(fetchDriverSummary(token));
   }, [dispatch]);
 
-  // const downloadPDF = async () => {
-  //   const input = document.getElementById("dashboard");
-  //   const pdf = new jsPDF({
-  //     orientation: "landscape",
-  //   });
-
-  //   const canvas = await html2canvas(input, {
-  //     scale: 2,
-  //     scrollY: -window.scrollY,
-  //   });
-  //   const imgData = canvas.toDataURL("image/png");
-
-  //   const imgProps = pdf.getImageProperties(imgData);
-  //   const pdfWidth = pdf.internal.pageSize.getWidth();
-  //   const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-
-  //   pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
-  //   pdf.save("dashboard.pdf");
-  // };
-
+  pulsar.register();
   if (status === "loading" || summaryStatus === "loading") {
-    return <CircularProgress />;
+    return (
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100vh",
+        }}
+      >
+        <l-pulsar
+          size="70"
+          speed="1.75"
+          color={colors.greenAccent[500]}
+        ></l-pulsar>
+      </div>
+    );
   }
 
   if (status === "failed" || summaryStatus === "failed") {
@@ -71,36 +55,11 @@ const Dashboard = () => {
     );
   }
 
-  const formatCurrency = (value) => {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "KWD",
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(value);
-  };
-
   return (
     <Box m="20px" id="dashboard">
       {/* HEADER */}
       <Box display="flex" justifyContent="space-between" alignItems="center">
         <Header title={t("DASHBOARD")} subtitle={t("dashboardSubtitle")} />
-
-        {/* <Box>
-          <Button
-            onClick={downloadPDF}
-            sx={{
-              backgroundColor: colors.blueAccent[700],
-              color: colors.grey[100],
-              fontSize: "14px",
-              fontWeight: "bold",
-              padding: "10px 20px",
-            }}
-          >
-            <DownloadOutlinedIcon sx={{ mr: "10px" }} />
-            Download Reports
-          </Button>
-        </Box> */}
       </Box>
 
       {/* GRID & CHARTS */}
@@ -251,117 +210,6 @@ const Dashboard = () => {
             <LineChart isDashboard={true} />
           </Box>
         </Box>
-        {/* <Box
-          gridColumn="span 4"
-          gridRow="span 2"
-          backgroundColor={colors.primary[400]}
-          overflow="auto"
-        >
-          <Box
-            display="flex"
-            justifyContent="space-between"
-            alignItems="center"
-            borderBottom={`4px solid ${colors.primary[500]}`}
-            colors={colors.grey[100]}
-            p="15px"
-          >
-            <Typography color={colors.grey[100]} variant="h5" fontWeight="600">
-              Recent Transactions
-            </Typography>
-          </Box>
-          {mockTransactions.map((transaction, i) => (
-            <Box
-              key={`${transaction.txId}-${i}`}
-              display="flex"
-              justifyContent="space-between"
-              alignItems="center"
-              borderBottom={`4px solid ${colors.primary[500]}`}
-              p="15px"
-            >
-              <Box>
-                <Typography
-                  color={colors.greenAccent[500]}
-                  variant="h5"
-                  fontWeight="600"
-                >
-                  {transaction.txId}
-                </Typography>
-                <Typography color={colors.grey[100]}>
-                  {transaction.user}
-                </Typography>
-              </Box>
-              <Box color={colors.grey[100]}>{transaction.date}</Box>
-              <Box
-                backgroundColor={colors.greenAccent[500]}
-                p="5px 10px"
-                borderRadius="4px"
-              >
-                ${transaction.cost}
-              </Box>
-            </Box>
-          ))}
-        </Box> */}
-
-        {/* ROW 3 */}
-        {/* <Box
-          gridColumn="span 6"
-          gridRow="span 2"
-          backgroundColor={colors.primary[400]}
-          p="30px"
-        >
-          <Typography variant="h5" fontWeight="600">
-            Campaign
-          </Typography>
-          <Box
-            display="flex"
-            flexDirection="column"
-            alignItems="center"
-            mt="25px"
-          >
-            <ProgressCircle size="125" />
-            <Typography
-              variant="h5"
-              color={colors.greenAccent[500]}
-              sx={{ mt: "15px" }}
-            >
-              $48,352 revenue generated
-            </Typography>
-            <Typography>Includes extra misc expenditures and costs</Typography>
-          </Box>
-        </Box> */}
-        {/* <Box
-          gridColumn="span 12"
-          gridRow="span 2"
-          backgroundColor={colors.primary[400]}
-        >
-          <Typography
-            variant="h5"
-            fontWeight="600"
-            sx={{ padding: "30px 30px 0 30px" }}
-          >
-            {t("salesQuantity")}
-          </Typography>
-          <Box height="250px" mt="-20px">
-            <BarChart isDashboard={true} />
-          </Box>
-        </Box> */}
-        {/* <Box
-          gridColumn="span 4"
-          gridRow="span 2"
-          backgroundColor={colors.primary[400]}
-          padding="30px"
-        >
-          <Typography
-            variant="h5"
-            fontWeight="600"
-            sx={{ marginBottom: "15px" }}
-          >
-            Geography Based Traffic
-          </Typography>
-          <Box height="200px">
-            <GeographyChart isDashboard={true} />
-          </Box>
-        </Box> */}
       </Box>
     </Box>
   );
