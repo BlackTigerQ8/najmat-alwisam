@@ -310,14 +310,22 @@ const getDriverInvoices = async (
 ) => {
   const { startDate, endDate } = getMonthDateRange();
 
-  const { optionalStartDate = undefined, optionalEndDate = undefined } =
-    optionalDates || {};
+  let startDateForFilter = startDate;
+  let endDateForFilter = endDate;
+  if (optionalDates?.optionalStartDate) {
+    startDateForFilter = new Date(optionalDates?.optionalStartDate);
+    startDateForFilter.setHours(0, 0, 0, 0)
+  }
+  if (optionalDates?.optionalEndDate) {
+    endDateForFilter = new Date(optionalDates?.optionalEndDate);
+    endDateForFilter.setHours(23, 59, 59, 0);
+  }
 
   const driverInvoices = await DriverInvoice.find({
     status: { $in: status },
     invoiceDate: {
-      $gte: optionalStartDate || startDate,
-      $lte: optionalEndDate || endDate,
+      $gte: startDateForFilter,
+      $lte: endDateForFilter,
     },
   }).populate("driver");
 
