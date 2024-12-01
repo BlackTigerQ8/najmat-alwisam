@@ -51,6 +51,7 @@ import InvoicesArchive from "./scenes/InvoiceArchive";
 import CompanyFiles from "./scenes/CompanyFiles";
 import DeactivatedDrivers from "./scenes/DeactivatedDrivers";
 import { I18nextProvider, Trans, useTranslation } from "react-i18next";
+import ArchiveForm from "./scenes/ArchiveForm";
 import SearchArchive from "./scenes/SearchArchive";
 
 const lngs = {
@@ -153,6 +154,11 @@ function App() {
                         />
                         <Route
                           exact
+                          path="/archive-form"
+                          element={<ArchiveForm />}
+                        />
+                        <Route
+                          exact
                           path="/deactivated-drivers"
                           element={<DeactivatedDrivers />}
                         />
@@ -170,6 +176,11 @@ function App() {
                           exact
                           path="/archive"
                           element={<InvoicesArchive />}
+                        />
+                        <Route
+                          exact
+                          path="/archive-form"
+                          element={<ArchiveForm />}
                         />
                         <Route
                           exact

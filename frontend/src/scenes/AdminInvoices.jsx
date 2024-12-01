@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo } from "react";
-import { Box, Button, useTheme } from "@mui/material";
+import { Alert, Box, Button, useTheme } from "@mui/material";
 import Header from "../components/Header";
 import { DataGrid } from "@mui/x-data-grid";
 import { tokens } from "../theme";
@@ -246,7 +246,7 @@ const AdminInvoices = () => {
 
   if (status === "failed") {
     return (
-      <div
+      <Alert
         style={{
           display: "flex",
           justifyContent: "center",
@@ -256,7 +256,7 @@ const AdminInvoices = () => {
         }}
       >
         Error: {error}
-      </div>
+      </Alert>
     );
   }
 

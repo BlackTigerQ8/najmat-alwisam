@@ -59,6 +59,14 @@ const contracts = multer.diskStorage({
   },
 });
 
+// Storage configuration for archive files
+const archiveStorage = multer.diskStorage({
+  destination: "./uploads/archives",
+  filename: (req, file, cb) => {
+    cb(null, getUploadFileName(file));
+  },
+});
+
 // First upload instance
 const driverContractUpload = multer({
   storage: driverContracts,
@@ -183,6 +191,36 @@ const companyFilesUpload = multer({
   storage: companyFilesStorage,
 });
 
+// Upload instance for archive files
+const archiveUpload = multer({
+  storage: archiveStorage,
+  fileFilter: function (req, file, cb) {
+    checkPdfFileType(file, cb, "archives");
+  },
+});
+
+// Route for uploading archive files
+router.post(
+  "/archives",
+  protect,
+  archiveUpload.single("file"),
+  async (req, res) => {
+    try {
+      res.status(201).json({
+        status: "Success",
+        message: "Archive file uploaded successfully",
+        file: req.file.path,
+      });
+    } catch (error) {
+      console.error("Error while uploading archive file", error);
+      res.status(500).json({
+        status: "Error",
+        message: error.message,
+      });
+    }
+  }
+);
+
 module.exports = {
   contractUpload,
   driverContractUpload,
@@ -190,4 +228,5 @@ module.exports = {
   driverInvoicesUpload,
   userInvoicesUpload,
   companyFilesUpload,
+  archiveUpload,
 };
