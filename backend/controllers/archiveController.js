@@ -1,7 +1,7 @@
 const Archive = require("../models/archiveModel");
 
 // @desc    Get all archive
-// @route   GET /api/archive
+// @route   GET /api/archives
 // @access  Private/
 const getAllArchive = async (req, res) => {
   try {
@@ -21,7 +21,7 @@ const getAllArchive = async (req, res) => {
 };
 
 // @desc    Get an archive
-// @route   GET /api/archive/:id
+// @route   GET /api/archives/:id
 // @access  Private/
 const getArchive = async (req, res) => {
   try {
@@ -50,7 +50,7 @@ const getArchive = async (req, res) => {
 };
 
 // @desc    Add an archive
-// @route   POST /api/archive
+// @route   POST /api/archives
 // @access  Private/Admin_and_Manager
 const addArchive = async (req, res) => {
   try {
@@ -88,7 +88,7 @@ const addArchive = async (req, res) => {
 };
 
 // @desc    Update an archive
-// @route   PATCH /api/archive/:id
+// @route   PATCH /api/archives/:id
 // @access  Private
 const updateArchive = async (req, res) => {
   try {
@@ -124,7 +124,7 @@ const updateArchive = async (req, res) => {
 };
 
 // @desc    Delete an archive
-// @route   DELETE /api/archive/:id
+// @route   DELETE /api/archives/:id
 // @access  Private
 const deleteArchive = async (req, res) => {
   try {

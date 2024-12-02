@@ -12,6 +12,7 @@ const companyIncomeRoutes = require("./routes/companyIncomeRoutes");
 const bankStatement = require("./routes/bankStatementRoutes");
 const spendTypeRoutes = require("./routes/spendTypeRoutes");
 const companyFilesRoutes = require("./routes/companyFilesRoutes");
+const archiveRoutes = require("./routes/archiveRoutes");
 
 const app = express();
 app.use(cors());
@@ -40,6 +41,7 @@ app.use("/api/bank-statement", bankStatement);
 app.use("/api/spend-types", spendTypeRoutes);
 app.use("/api/company-income", companyIncomeRoutes);
 app.use("/api/company-files", companyFilesRoutes);
+app.use("/api/archives", archiveRoutes);
 
 app.get("/api/health", (req, res) => {
   res.status(200).json({ status: "ok", timestamp: new Date().toISOString() });

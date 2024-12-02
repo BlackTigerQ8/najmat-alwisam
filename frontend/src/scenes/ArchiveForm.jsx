@@ -23,6 +23,7 @@ import { useNavigate } from "react-router-dom";
 import { tokens } from "../theme";
 import { pulsar } from "ldrs";
 import { useTranslation } from "react-i18next";
+import { addArchive } from "../redux/archiveSlice";
 
 const initialValues = {
   fullName: "",
@@ -38,7 +39,7 @@ const ArchiveForm = () => {
   const isNonMobile = useMediaQuery("(min-width: 600px)");
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { status, error } = useSelector((state) => state.user);
+  const { status, message, error } = useSelector((state) => state.archive);
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const { t } = useTranslation();
@@ -70,24 +71,13 @@ const ArchiveForm = () => {
   const handleFormSubmit = async (values) => {
     try {
       const formData = new FormData();
-
       Object.keys(values).forEach((key) => {
-        if (key !== "uploadedFile") {
-          formData.append(
-            key,
-            key === "email"
-              ? values[key].toLowerCase()
-              : values[key] || undefined
-          );
-        }
+        formData.append(key, values[key]);
       });
-
-      formData.append("uploadedFile", values.uploadedFile);
-
-      await dispatch(registerUser(formData));
+      await dispatch(addArchive(formData));
       navigate("/team");
     } catch (error) {
-      console.error("Error registering user:", error.message);
+      console.error("Error adding archive:", error.message);
     }
   };
 

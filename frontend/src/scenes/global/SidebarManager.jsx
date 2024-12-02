@@ -278,7 +278,7 @@ const SidebarM = () => {
             />
             <Item
               title={t("invoicesArchive")}
-              to="/archive"
+              to="/invoices-archive"
               icon={<ArchiveOutlinedIcon />}
               selected={selected}
               setSelected={setSelected}

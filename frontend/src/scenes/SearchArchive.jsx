@@ -1,9 +1,7 @@
 import React, { useEffect } from "react";
 import { Alert, Box, Button, useTheme } from "@mui/material";
-
 import useMediaQuery from "@mui/material/useMediaQuery";
 import Header from "../components/Header";
-import { getUserRoleFromToken } from "./global/getUserRoleFromToken";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { tokens } from "../theme";
@@ -11,19 +9,20 @@ import { pulsar } from "ldrs";
 import { useTranslation } from "react-i18next";
 import RemoveRedEyeOutlinedIcon from "@mui/icons-material/RemoveRedEyeOutlined";
 import { DataGrid } from "@mui/x-data-grid";
+import { fetchArchives } from "../redux/archiveSlice";
 
 const SearchArchive = () => {
   const isNonMobile = useMediaQuery("(min-width: 600px)");
   const dispatch = useDispatch();
-  const navigate = useNavigate();
   const { status, error, archives } = useSelector((state) => state.archive);
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const { t } = useTranslation();
 
-  const token =
-    useSelector((state) => state.drivers.token) ||
-    localStorage.getItem("token");
+  useEffect(() => {
+    // Dispatch the action to fetch archives when the component mounts
+    dispatch(fetchArchives());
+  }, [dispatch]);
 
   const handleViewFile = (values) => {
     const fileUrl = values?.file
@@ -110,8 +109,8 @@ const SearchArchive = () => {
     );
   }
 
-  if (error === "failed") {
-    return <Alert>{error}</Alert>;
+  if (error) {
+    return <Alert severity="error">{error}</Alert>;
   }
 
   return (

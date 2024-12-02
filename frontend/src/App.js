@@ -278,7 +278,7 @@ function App() {
                       <>
                         <Route
                           exact
-                          path="/archive"
+                          path="/invoices-archive"
                           element={<InvoicesArchive />}
                         />
                       </>
