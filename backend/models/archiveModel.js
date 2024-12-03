@@ -33,7 +33,6 @@ const archiveSchema = new mongoose.Schema(
     archiveNumber: {
       type: String,
       required: [true, "Archive number is required"],
-      unique: true,
     },
     uploadedFile: {
       type: String,

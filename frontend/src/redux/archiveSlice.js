@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 import { toast } from "react-toastify";
+import i18next from "i18next";
 
 const API_URL = process.env.REACT_APP_API_URL;
 
@@ -51,9 +52,28 @@ export const fetchArchives = createAsyncThunk(
           Authorization: `Bearer ${token}`,
         },
       });
-      return response.data;
+      return response.data?.data?.archives || [];
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || error.message);
+    }
+  }
+);
+
+// Async thunk to delete an archive
+export const deleteArchive = createAsyncThunk(
+  "archive/deleteArchive",
+  async (archiveId, { getState }) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.delete(`${API_URL}/archives/${archiveId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      return archiveId;
+    } catch (error) {
+      throw new Error(error.response.data.message || error.message);
     }
   }
 );
@@ -73,12 +93,12 @@ const archiveSlice = createSlice({
       })
       .addCase(addArchive.fulfilled, (state, action) => {
         state.status = "succeeded";
-        state.archives.push(action.payload);
-        state.message = "Archive added successfully!";
+        dispatchToast(i18next.t("addArchiveFulfilled"), "success");
       })
       .addCase(addArchive.rejected, (state, action) => {
         state.status = "failed";
-        state.error = action.payload;
+        state.error = action.error.message;
+        dispatchToast(i18next.t("addArchiveRejected"), "error");
       })
       .addCase(fetchArchives.pending, (state) => {
         state.status = "loading";
@@ -89,7 +109,22 @@ const archiveSlice = createSlice({
       })
       .addCase(fetchArchives.rejected, (state, action) => {
         state.status = "failed";
-        state.error = action.payload;
+        state.error = action.error.message;
+      })
+      .addCase(deleteArchive.pending, (state) => {
+        state.status = "loading";
+      })
+      .addCase(deleteArchive.fulfilled, (state, action) => {
+        state.status = "succeeded";
+        state.archives = state.archives.filter(
+          (archive) => archive._id !== action.payload
+        );
+        dispatchToast(i18next.t("deleteArchiveFulfilled"), "success");
+      })
+      .addCase(deleteArchive.rejected, (state, action) => {
+        state.status = "failed";
+        state.error = action.error.message;
+        dispatchToast(i18next.t("deleteArchiveRejected"), "error");
       });
   },
 });

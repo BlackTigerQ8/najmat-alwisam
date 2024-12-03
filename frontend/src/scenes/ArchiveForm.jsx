@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React from "react";
 import {
   Box,
   Button,
@@ -16,8 +16,6 @@ import { ErrorMessage, Formik } from "formik";
 import * as yup from "yup";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import Header from "../components/Header";
-import { getUserRoleFromToken } from "./global/getUserRoleFromToken";
-import { registerUser } from "../redux/userSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { tokens } from "../theme";
@@ -43,18 +41,10 @@ const ArchiveForm = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const { t } = useTranslation();
-  const userRole =
-    useSelector((state) => state.user.userRole) || getUserRoleFromToken();
-  const savedToken = localStorage.getItem("token");
-
-  useEffect(() => {
-    const storedUserRole = localStorage.getItem("userRole", userRole);
-    // const savedUser = JSON.parse(localStorage.getItem("userInfo"));
-  }, []);
 
   const userSchema = yup.object().shape({
     fullName: yup.string().required(t("fullNameIsRequired")),
-    company: yup.number().required(t("companyIsRequired")),
+    company: yup.string().required(t("companyIsRequired")),
     idNumber: yup.string().required(t("idNumberIsRequired")),
     vehicle: yup.string().required(t("vehicleIsRequired")),
     workNumber: yup.string().required(t("workNumberIsRequired")),
@@ -75,7 +65,6 @@ const ArchiveForm = () => {
         formData.append(key, values[key]);
       });
       await dispatch(addArchive(formData));
-      navigate("/team");
     } catch (error) {
       console.error("Error adding archive:", error.message);
     }
