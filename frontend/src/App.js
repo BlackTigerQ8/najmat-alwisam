@@ -1,5 +1,11 @@
 import { useState, useEffect } from "react";
-import { Routes, Route, useNavigate, Navigate } from "react-router-dom";
+import {
+  Routes,
+  Route,
+  useNavigate,
+  Navigate,
+  useLocation,
+} from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { ColorModeContext, useMode } from "./theme";
 import { CssBaseline, ThemeProvider } from "@mui/material";
@@ -69,6 +75,7 @@ function App() {
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const location = useLocation();
   const { t, i18n } = useTranslation();
 
   const currentUser = useSelector((state) => state.user.userInfo);
@@ -160,20 +167,24 @@ function App() {
         <ThemeProvider theme={theme}>
           <CssBaseline />
           <div className="app">
-            {(currentUser || savedToken) && (
-              <>
-                {userRole === "Admin" && <Sidebar isSidebar={isSidebar} />}
-                {userRole === "Manager" && <SidebarM isSidebar={isSidebar} />}
-                {userRole === "Accountant" && (
-                  <SidebarA isSidebar={isSidebar} />
-                )}
-                {userRole === "Employee" && <SidebarE isSidebar={isSidebar} />}
-              </>
-            )}
-            <main className="content">
-              {(currentUser || savedToken) && (
-                <Topbar setIsSidebar={setIsSidebar} />
+            {(currentUser || savedToken) &&
+              location.pathname !== "/searching-archive" && (
+                <>
+                  {userRole === "Admin" && <Sidebar isSidebar={isSidebar} />}
+                  {userRole === "Manager" && <SidebarM isSidebar={isSidebar} />}
+                  {userRole === "Accountant" && (
+                    <SidebarA isSidebar={isSidebar} />
+                  )}
+                  {userRole === "Employee" && (
+                    <SidebarE isSidebar={isSidebar} />
+                  )}
+                </>
               )}
+            <main className="content">
+              {(currentUser || savedToken) &&
+                location.pathname !== "/searching-archive" && (
+                  <Topbar setIsSidebar={setIsSidebar} />
+                )}
               <Routes>
                 {(currentUser || savedToken) &&
                   [

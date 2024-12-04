@@ -9,7 +9,10 @@ import AnonImage from "../../assets/profileImage.png";
 import ContactsOutlinedIcon from "@mui/icons-material/ContactsOutlined";
 import MenuOutlinedIcon from "@mui/icons-material/MenuOutlined";
 import ReceiptOutlinedIcon from "@mui/icons-material/ReceiptOutlined";
-import MoneyOffIcon from "@mui/icons-material/MoneyOff";
+import SendAndArchiveOutlinedIcon from "@mui/icons-material/SendAndArchiveOutlined";
+import ForumOutlinedIcon from "@mui/icons-material/ForumOutlined";
+import FindInPageOutlinedIcon from "@mui/icons-material/FindInPageOutlined";
+// import MoneyOffIcon from "@mui/icons-material/MoneyOff";
 import { useSelector, useDispatch } from "react-redux";
 import { profileImage } from "../../redux/userSlice";
 import { toast } from "react-toastify";
@@ -186,14 +189,14 @@ const SideBarEmployee = () => {
               setSelected={setSelected}
               isCollapsed={isCollapsed}
             />
-            <Item
+            {/* <Item
               title={t("deduction")}
               to="/deduction"
               icon={<MoneyOffIcon />}
               selected={selected}
               setSelected={setSelected}
               isCollapsed={isCollapsed}
-            />
+            /> */}
             <Item
               title={t("notifications")}
               to="/notifications"
@@ -205,7 +208,7 @@ const SideBarEmployee = () => {
             <Item
               title={t("contact")}
               to="/contact"
-              icon={<ContactsOutlinedIcon />}
+              icon={<SendAndArchiveOutlinedIcon />}
               selected={selected}
               setSelected={setSelected}
               isCollapsed={isCollapsed}
@@ -213,7 +216,7 @@ const SideBarEmployee = () => {
             <Item
               title={t("messages")}
               to="/messages"
-              icon={<ContactsOutlinedIcon />}
+              icon={<ForumOutlinedIcon />}
               selected={selected}
               setSelected={setSelected}
               isCollapsed={isCollapsed}
@@ -222,6 +225,14 @@ const SideBarEmployee = () => {
               title={t("companyFiles")}
               to="/company-files"
               icon={<ContactsOutlinedIcon />}
+              selected={selected}
+              setSelected={setSelected}
+              isCollapsed={isCollapsed}
+            />
+            <Item
+              title={t("searchingArchive")}
+              to="/searching-archive"
+              icon={<FindInPageOutlinedIcon />}
               selected={selected}
               setSelected={setSelected}
               isCollapsed={isCollapsed}

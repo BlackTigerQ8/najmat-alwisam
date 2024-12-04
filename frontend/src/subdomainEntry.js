@@ -1,10 +1,11 @@
 import React from "react";
 import ReactDOM from "react-dom";
+import { BrowserRouter } from "react-router-dom";
 import SearchArchive from "./scenes/SearchArchive";
 
 ReactDOM.render(
-  <React.StrictMode>
+  <BrowserRouter basename="/archive">
     <SearchArchive />
-  </React.StrictMode>,
+  </BrowserRouter>,
   document.getElementById("root")
 );
