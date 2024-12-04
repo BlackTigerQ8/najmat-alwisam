@@ -22,6 +22,7 @@ const staticDirectories = [
   "uploads/drivers/contracts/Talabat",
   "uploads/drivers/invoices",
   "uploads/users/invoices",
+  "uploads/archives",
 ];
 
 async function createDirectories(dirs) {

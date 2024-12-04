@@ -67,6 +67,7 @@ const SearchArchive = () => {
       sortable: false,
       filterable: false,
       renderCell: (params) => {
+        if (!params.row.uploadedFile) return "No File";
         return (
           <Button
             variant="contained"
@@ -104,7 +105,7 @@ const SearchArchive = () => {
 
   const handleViewFile = (values) => {
     const fileUrl = values?.uploadedFile
-      ? `${process.env.REACT_APP_API_URL}/${values?.uploadedFile}`
+      ? `${process.env.REACT_APP_API_URL}/${values.uploadedFile}`
       : null;
     if (fileUrl) {
       window.open(fileUrl, "_blank");

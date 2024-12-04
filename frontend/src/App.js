@@ -5,6 +5,12 @@ import { ColorModeContext, useMode } from "./theme";
 import { CssBaseline, ThemeProvider } from "@mui/material";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { I18nextProvider, Trans, useTranslation } from "react-i18next";
+import { pulsar } from "ldrs";
+import { tokens } from "./theme";
+import { getUserRoleFromToken } from "./scenes/global/getUserRoleFromToken";
+import { setUser } from "./redux/userSlice";
+
 import Topbar from "./scenes/global/Topbar";
 import Sidebar from "./scenes/global/Sidebar";
 import SidebarA from "./scenes/global/SidebarAccountant";
@@ -27,10 +33,7 @@ import Login from "./scenes/Login";
 import DriverForm from "./scenes/DriverForm";
 import DriverWork from "./scenes/DriverWork";
 import Drivers from "./scenes/Drivers";
-import { setUser } from "./redux/userSlice";
-import { pulsar } from "ldrs";
-import { tokens } from "./theme";
-import { getUserRoleFromToken } from "./scenes/global/getUserRoleFromToken";
+
 import UserProfile from "./scenes/UserProfile";
 // import NotFound from "./scenes/NotFound";
 import Notifications from "./scenes/Notifications";
@@ -50,7 +53,7 @@ import Income from "./scenes/Income";
 import InvoicesArchive from "./scenes/InvoiceArchive";
 import CompanyFiles from "./scenes/CompanyFiles";
 import DeactivatedDrivers from "./scenes/DeactivatedDrivers";
-import { I18nextProvider, Trans, useTranslation } from "react-i18next";
+
 import ArchiveForm from "./scenes/ArchiveForm";
 import SearchArchive from "./scenes/SearchArchive";
 
@@ -64,13 +67,13 @@ function App() {
   const colors = tokens(theme.palette.mode);
   const [isSidebar, setIsSidebar] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
-  const currentUser = useSelector((state) => state.user.userInfo);
-  const userRole =
-    useSelector((state) => state.user.userRole) || getUserRoleFromToken();
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { t, i18n } = useTranslation();
 
+  const currentUser = useSelector((state) => state.user.userInfo);
+  const userRole =
+    useSelector((state) => state.user.userRole) || getUserRoleFromToken();
   const savedToken = localStorage.getItem("token");
 
   useEffect(() => {
@@ -116,6 +119,41 @@ function App() {
     );
   }
 
+  // Role-Based Routes
+  const adminRoutes = [
+    { path: "/", element: <Dashboard /> },
+    { path: "/admin-invoices", element: <AdminInvoices /> },
+    { path: "/archive", element: <InvoicesArchive /> },
+    { path: "/archive-form", element: <ArchiveForm /> },
+    { path: "/deactivated-drivers", element: <DeactivatedDrivers /> },
+  ];
+
+  const managerRoutes = [
+    { path: "/", element: <Team /> },
+    { path: "/manager-invoices", element: <ManagerInvoices /> },
+    { path: "/archive", element: <InvoicesArchive /> },
+    { path: "/archive-form", element: <ArchiveForm /> },
+    { path: "/deactivated-drivers", element: <DeactivatedDrivers /> },
+  ];
+
+  const accountantRoutes = [
+    { path: "/", element: <DriversSalary /> },
+    { path: "/drivers-salary", element: <DriversSalary /> },
+    { path: "/employees-salary", element: <EmployeesSalary /> },
+    { path: "/bank-statement", element: <BankState /> },
+    { path: "/petty-cash", element: <PettyCash /> },
+    { path: "/accountant-dashboard", element: <AccountantDashboard /> },
+    { path: "/company-spends", element: <CoSpends /> },
+    { path: "/profits", element: <Profits /> },
+    { path: "/income", element: <Income /> },
+    { path: "/spend-type", element: <SpendType /> },
+  ];
+
+  const employeeRoutes = [
+    { path: "/", element: <Invoices /> },
+    { path: "/invoices-archive", element: <InvoicesArchive /> },
+  ];
+
   return (
     <I18nextProvider i18n={i18n}>
       <ColorModeContext.Provider value={colorMode}>
@@ -137,119 +175,22 @@ function App() {
                 <Topbar setIsSidebar={setIsSidebar} />
               )}
               <Routes>
+                {(currentUser || savedToken) &&
+                  [
+                    ...adminRoutes,
+                    ...managerRoutes,
+                    ...accountantRoutes,
+                    ...employeeRoutes,
+                  ].map((route) => (
+                    <Route
+                      key={route.path}
+                      path={route.path}
+                      element={route.element}
+                    />
+                  ))}
+
                 {currentUser || savedToken ? (
                   <>
-                    {userRole === "Admin" && (
-                      <>
-                        <Route exact path="/" element={<Dashboard />} />
-                        <Route
-                          exact
-                          path="/admin-invoices"
-                          element={<AdminInvoices />}
-                        />
-                        <Route
-                          exact
-                          path="/archive"
-                          element={<InvoicesArchive />}
-                        />
-                        <Route
-                          exact
-                          path="/archive-form"
-                          element={<ArchiveForm />}
-                        />
-                        <Route
-                          exact
-                          path="/deactivated-drivers"
-                          element={<DeactivatedDrivers />}
-                        />
-                      </>
-                    )}
-                    {userRole === "Manager" && (
-                      <>
-                        <Route exact path="/" element={<Team />} />
-                        <Route
-                          exact
-                          path="/manager-invoices"
-                          element={<ManagerInvoices />}
-                        />
-                        <Route
-                          exact
-                          path="/archive"
-                          element={<InvoicesArchive />}
-                        />
-                        <Route
-                          exact
-                          path="/archive-form"
-                          element={<ArchiveForm />}
-                        />
-                        <Route
-                          exact
-                          path="/deactivated-drivers"
-                          element={<DeactivatedDrivers />}
-                        />
-                      </>
-                    )}
-                    {userRole === "Employee" && (
-                      <Route exact path="/" element={<Invoices />} />
-                    )}
-                    <Route exact path="/team" element={<Team />} />
-                    <Route
-                      path="/driver-profile/:id"
-                      element={<DriverProfile />}
-                    />
-                    <Route path="/user-profile/:id" element={<UserProfile />} />
-                    <Route exact path="/invoices" element={<Invoices />} />
-                    <Route
-                      exact
-                      path="/notifications"
-                      element={<Notifications />}
-                    />
-
-                    {userRole === "Accountant" && (
-                      <>
-                        <Route exact path="/" element={<DriversSalary />} />
-                        <Route
-                          exact
-                          path="/drivers-salary"
-                          element={<DriversSalary />}
-                        />
-                        <Route
-                          exact
-                          path="/employees-salary"
-                          element={<EmployeesSalary />}
-                        />
-                        <Route
-                          exact
-                          path="/bank-statement"
-                          element={<BankState />}
-                        />
-                        <Route
-                          exact
-                          path="/petty-cash"
-                          element={<PettyCash />}
-                        />
-
-                        <Route
-                          exact
-                          path="/accountant-dashboard"
-                          element={<AccountantDashboard />}
-                        />
-                        <Route
-                          exact
-                          path="/company-spends"
-                          element={<CoSpends />}
-                        />
-                        <Route exact path="/profits" element={<Profits />} />
-                        <Route exact path="/income" element={<Income />} />
-
-                        <Route
-                          exact
-                          path="/spend-type"
-                          element={<SpendType />}
-                        />
-                      </>
-                    )}
-
                     <Route
                       exact
                       path="/company-files"
@@ -273,16 +214,18 @@ function App() {
                     <Route exact path="/faq" element={<Faq />} />
                     <Route exact path="/geography" element={<Geography />} />
                     <Route exact path="/calendar" element={<Calendar />} />
-
-                    {userRole === "Employee" && (
-                      <>
-                        <Route
-                          exact
-                          path="/invoices-archive"
-                          element={<InvoicesArchive />}
-                        />
-                      </>
-                    )}
+                    <Route exact path="/team" element={<Team />} />
+                    <Route
+                      path="/driver-profile/:id"
+                      element={<DriverProfile />}
+                    />
+                    <Route path="/user-profile/:id" element={<UserProfile />} />
+                    <Route exact path="/invoices" element={<Invoices />} />
+                    <Route
+                      exact
+                      path="/notifications"
+                      element={<Notifications />}
+                    />
                   </>
                 ) : (
                   <Route path="/login" element={<Login />} />
