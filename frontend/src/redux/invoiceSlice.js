@@ -12,8 +12,10 @@ const initialState = {
   employeeInvoices: [],
   employeeInvoicesStatus: "",
   employeeInvoicesError: null,
-
   archivedDriverInvoices: [],
+  monthlyStats: {},
+  monthlyStatsStatus: "",
+  monthlyStatsError: null,
 };
 
 const dispatchToast = (message, type) => {
@@ -202,6 +204,25 @@ export const updateEmployeeInvoice = createAsyncThunk(
   }
 );
 
+export const fetchDriverStatsByMonth = createAsyncThunk(
+  "invoice/fetchDriverStatsByMonth",
+  async (token) => {
+    try {
+      const response = await axios.get(
+        `${API_URL}/driver-invoice/stats/month`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      return response.data.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.message || error.message);
+    }
+  }
+);
+
 const driverInvoiceSlice = createSlice({
   name: "invoice",
   initialState,
@@ -345,6 +366,19 @@ const driverInvoiceSlice = createSlice({
         state.status = "failed";
         state.error = action.error.message;
         dispatchToast(i18next.t("resetSingleDriverInvoiceRejected"), "error");
+      })
+      // Monthly Stats
+      .addCase(fetchDriverStatsByMonth.pending, (state) => {
+        state.monthlyStatsStatus = "loading";
+      })
+      .addCase(fetchDriverStatsByMonth.fulfilled, (state, action) => {
+        state.monthlyStatsStatus = "succeeded";
+        state.monthlyStats = action.payload;
+        state.monthlyStatsError = null;
+      })
+      .addCase(fetchDriverStatsByMonth.rejected, (state, action) => {
+        state.monthlyStatsStatus = "failed";
+        state.monthlyStatsError = action.error.message;
       });
   },
 });

@@ -314,7 +314,7 @@ const getDriverInvoices = async (
   let endDateForFilter = endDate;
   if (optionalDates?.optionalStartDate) {
     startDateForFilter = new Date(optionalDates?.optionalStartDate);
-    startDateForFilter.setHours(0, 0, 0, 0)
+    startDateForFilter.setHours(0, 0, 0, 0);
   }
   if (optionalDates?.optionalEndDate) {
     endDateForFilter = new Date(optionalDates?.optionalEndDate);
@@ -887,6 +887,47 @@ const getDriverSummary = async (req, res) => {
   }
 };
 
+const getDriverStatsByMonth = async (req, res) => {
+  try {
+    const driverInvoices = await getDriverInvoices([
+      "approved",
+      "visibleToAll",
+    ]);
+
+    // Grouping data by month and driver type
+    const monthlyStats = {};
+
+    driverInvoices.forEach((invoice) => {
+      const invoiceDate = new Date(invoice.invoiceDate);
+      const monthYear = `${
+        invoiceDate.getMonth() + 1
+      }-${invoiceDate.getFullYear()}`;
+      const driverType = invoice.driver.vehicle;
+
+      if (!monthlyStats[monthYear]) {
+        monthlyStats[monthYear] = {
+          car: { totalOrders: 0, totalHours: 0 },
+          bike: { totalOrders: 0, totalHours: 0 },
+        };
+      }
+
+      monthlyStats[monthYear][driverType].totalOrders +=
+        invoice.mainOrder + invoice.additionalOrder;
+      monthlyStats[monthYear][driverType].totalHours += invoice.hour;
+    });
+
+    res.status(200).json({
+      status: "Success",
+      data: monthlyStats,
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: "Error",
+      message: error.message,
+    });
+  }
+};
+
 module.exports = {
   getAllDrivers,
   getDriver,
@@ -906,4 +947,5 @@ module.exports = {
   deactivateDriver,
   activateDriver,
   getDriverSummary,
+  getDriverStatsByMonth,
 };

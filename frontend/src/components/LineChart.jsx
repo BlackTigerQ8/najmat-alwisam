@@ -2,14 +2,46 @@ import { ResponsiveLine } from "@nivo/line";
 import { useTheme } from "@mui/material";
 import { tokens } from "../theme";
 import { mockLineData as data } from "../data/mockData";
+import { useSelector } from "react-redux";
+import { pulsar } from "ldrs";
 
 const LineChart = ({ isCustomLineColors = false, isDashboard = false }) => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
+  const { statsByMonth, statsStatus } = useSelector((state) => state.drivers);
+
+  // Check if statsByMonth is available
+  pulsar.register();
+  if (!statsByMonth) {
+    return (
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        <l-pulsar
+          size="70"
+          speed="1.75"
+          color={colors.greenAccent[500]}
+        ></l-pulsar>
+      </div>
+    );
+  }
+
+  const formattedData = statsByMonth.map((stat) => ({
+    id: stat.vehicleType,
+    color: stat.color || colors.greenAccent[500],
+    data: stat.monthlyStats.map((month) => ({
+      x: month.month,
+      y: month.totalCash,
+    })),
+  }));
 
   return (
     <ResponsiveLine
-      data={data}
+      data={formattedData}
       theme={{
         axis: {
           domain: {

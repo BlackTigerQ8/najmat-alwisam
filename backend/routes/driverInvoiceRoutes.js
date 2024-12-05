@@ -8,6 +8,7 @@ const {
   fetchArchivedInvoices,
   filterArchivedInvoices,
   resetDriverInvoices,
+  getDriverStatsByMonth,
 } = require("../controllers/driverController");
 const { protect, restrictTo } = require("../middleware/authMiddleware");
 const { driverInvoicesUpload } = require("./uploadRoutes");
@@ -64,5 +65,12 @@ router
 router
   .route("/override")
   .post(protect, restrictTo("Admin", "Accountant"), overrideDriverSalary);
+
+router.get(
+  "/stats/month",
+  protect,
+  restrictTo("Admin", "Manager"),
+  getDriverStatsByMonth
+);
 
 module.exports = router;

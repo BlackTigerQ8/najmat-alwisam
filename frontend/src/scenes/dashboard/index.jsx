@@ -11,12 +11,14 @@ import { useTranslation } from "react-i18next";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchDrivers, fetchDriverSummary } from "../../redux/driversSlice";
 import { useEffect } from "react";
+import { fetchDriverStatsByMonth } from "../../redux/invoiceSlice";
 
 const Dashboard = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const { t } = useTranslation();
   const dispatch = useDispatch();
+  const { statsByMonth, statsStatus } = useSelector((state) => state.drivers);
   const { status, summary, summaryStatus } = useSelector(
     (state) => state.drivers
   );
@@ -25,6 +27,7 @@ const Dashboard = () => {
     const token = localStorage.getItem("token");
     dispatch(fetchDrivers(token));
     dispatch(fetchDriverSummary(token));
+    dispatch(fetchDriverStatsByMonth(token));
   }, [dispatch]);
 
   pulsar.register();
@@ -81,7 +84,7 @@ const Dashboard = () => {
             title={summary.mainOrder + summary.additionalOrder}
             subtitle={t("totalOrders")}
             progress="0.75"
-            increase="+14%"
+            // increase="+14%"
             icon={
               <DeliveryDiningOutlinedIcon
                 sx={{ color: colors.greenAccent[600], fontSize: "26px" }}
@@ -166,7 +169,7 @@ const Dashboard = () => {
             </Box>
           </Box>
           <Box height="250px" m="-20px 0 0 0">
-            <LineChart isDashboard={true} />
+            <LineChart isDashboard={true} statsByMonth={statsByMonth} />
           </Box>
         </Box>
         {/* ROW 2 */}
