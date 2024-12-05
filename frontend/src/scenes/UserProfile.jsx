@@ -1,4 +1,4 @@
-import React from "react";
+import React,{useEffect} from "react";
 import {
   Box,
   Button,
@@ -19,7 +19,7 @@ import { useSelector, useDispatch } from "react-redux";
 // import { trefoil } from "ldrs";
 import { pulsar } from "ldrs";
 import { ErrorMessage, Formik } from "formik";
-import { updateUser } from "../redux/usersSlice";
+import { fetchUsers, updateUser } from "../redux/usersSlice";
 import { useParams } from "react-router-dom";
 import * as Yup from "yup";
 import { useTranslation } from "react-i18next";
@@ -32,6 +32,9 @@ const UserProfile = () => {
   const { t } = useTranslation();
   const users = useSelector((state) => state.users.users ?? []);
   const params = useParams();
+  const token =
+    useSelector((state) => state.drivers.token) ||
+    localStorage.getItem("token");
   const userInfo = users.find((d) => d._id === params.id);
 
   const status = useSelector((state) => state.users.status);
@@ -48,10 +51,14 @@ const UserProfile = () => {
     role: "",
     passport: "",
     password: "",
-    createdAt: Date,
+    createdAt: new Date(),
     file: "",
     mainSalary: 0,
   };
+
+  useEffect(() => {
+    dispatch(fetchUsers(token));
+  }, [token]);
 
   const validationSchema = Yup.object().shape({
     uploadedFile: Yup.mixed().test(
@@ -105,15 +112,20 @@ const UserProfile = () => {
       if (userInfo && userInfo._id) {
         const formData = new FormData();
         Object.keys(values).forEach((key) => {
-          if (key !== "uploadedFile" && key !== "__v") {
+          if (key !== "uploadedFile" && key !== "__v" && key !== "password" && key !== "mainSalary") {
             formData.append(key, values[key] || undefined);
           }
         });
+
+        if(values.password !== userInfo.password){
+          formData.append("password" , values.password || undefined);
+        }
 
         if (values.uploadedFile)
           formData.append("uploadedFile", values.uploadedFile);
 
         formData.set("email", values.email.toLowerCase());
+        formData.append("mainSalary", values.mainSalary);
 
         await dispatch(updateUser({ userId: userInfo._id, formData }));
       } else {
@@ -134,6 +146,8 @@ const UserProfile = () => {
       window.open(fileUrl, "_blank");
     }
   };
+
+  
 
   return (
     <Box m="20px">
@@ -377,7 +391,7 @@ const UserProfile = () => {
                   color="secondary"
                   onClick={() => handleViewFile(values)}
                   sx={{ gridColumn: "span 2", marginTop: "15px" }}
-                  disabled={!values.uploadedFile && !userInfo.file}
+                  disabled={!values.file && !userInfo?.file}
                 >
                   {t("viewUploadedFile")}
                 </Button>
