@@ -18,10 +18,17 @@ const Dashboard = () => {
   const colors = tokens(theme.palette.mode);
   const { t } = useTranslation();
   const dispatch = useDispatch();
-  const { statsByMonth, statsStatus } = useSelector((state) => state.drivers);
+  const invoice = useSelector((state) => state.invoice);
   const { status, summary, summaryStatus } = useSelector(
     (state) => state.drivers
   );
+
+  
+
+  const   monthlyStats =  invoice.monthlyStats;
+  const monthlyStatsStatus = invoice.monthlyStatsStatus;
+
+  console.log('invoice',invoice, ',monthlyStats',invoice.monthlyStats)
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -31,7 +38,7 @@ const Dashboard = () => {
   }, [dispatch]);
 
   pulsar.register();
-  if (status === "loading" || summaryStatus === "loading") {
+  if (status === "loading" || summaryStatus === "loading" || monthlyStatsStatus=== "loading") {
     return (
       <div
         style={{
@@ -50,7 +57,7 @@ const Dashboard = () => {
     );
   }
 
-  if (status === "failed" || summaryStatus === "failed") {
+  if (status === "failed" || summaryStatus === "failed" || monthlyStatsStatus === "failed") {
     return (
       <Typography variant="h6" color="error">
         Failed to load drivers or summary data.
@@ -169,7 +176,7 @@ const Dashboard = () => {
             </Box>
           </Box>
           <Box height="250px" m="-20px 0 0 0">
-            <LineChart isDashboard={true} statsByMonth={statsByMonth} />
+            <LineChart isDashboard={true} monthlyStats={monthlyStats} chartField="totalOrders"/>
           </Box>
         </Box>
         {/* ROW 2 */}
@@ -210,7 +217,7 @@ const Dashboard = () => {
             </Box>
           </Box>
           <Box height="250px" m="-20px 0 0 0">
-            <LineChart isDashboard={true} />
+            <LineChart isDashboard={true} monthlyStats={monthlyStats} chartField="totalHours"/>
           </Box>
         </Box>
       </Box>

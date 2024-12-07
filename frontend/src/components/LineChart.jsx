@@ -2,17 +2,17 @@ import { ResponsiveLine } from "@nivo/line";
 import { useTheme } from "@mui/material";
 import { tokens } from "../theme";
 import { mockLineData as data } from "../data/mockData";
-import { useSelector } from "react-redux";
 import { pulsar } from "ldrs";
 
-const LineChart = ({ isCustomLineColors = false, isDashboard = false }) => {
+const month_names = {1: 'Jan', 2: 'Feb', 3: 'Mar', 4: 'Apr', 5: 'May', 6: 'Jun', 7: 'Jul', 8: 'Aug', 9: 'Sep', 10: 'Oct', 11: 'Nov', 12: 'Dec'}
+const types =['car', 'bike']
+const LineChart = ({ isDashboard = false, monthlyStats ={}, chartField}) => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
-  const { statsByMonth, statsStatus } = useSelector((state) => state.drivers);
 
-  // Check if statsByMonth is available
+  
   pulsar.register();
-  if (!statsByMonth) {
+  if (!monthlyStats) {
     return (
       <div
         style={{
@@ -30,14 +30,16 @@ const LineChart = ({ isCustomLineColors = false, isDashboard = false }) => {
     );
   }
 
-  const formattedData = statsByMonth.map((stat) => ({
-    id: stat.vehicleType,
-    color: stat.color || colors.greenAccent[500],
-    data: stat.monthlyStats.map((month) => ({
-      x: month.month,
-      y: month.totalCash,
+  const formattedData = types.map((type) =>  ({
+    id: type,
+    color:  colors.greenAccent[500],
+    data: Object.keys(monthlyStats).map((month) => ({
+      x: month_names[month],
+      y: monthlyStats[month][type][chartField],
     })),
   }));
+
+  console.log('monthlyStats',monthlyStats,'formattedData',formattedData)
 
   return (
     <ResponsiveLine

@@ -896,6 +896,12 @@ const getDriverStatsByMonth = async (req, res) => {
 
     // Grouping data by month and driver type
     const monthlyStats = {};
+    for (let i = 0; i < 12; i++) {
+      monthlyStats[i + 1] = {
+        car: { totalOrders: 0, totalHours: 0 },
+        bike: { totalOrders: 0, totalHours: 0 },
+      };
+    }
 
     driverInvoices.forEach((invoice) => {
       const invoiceDate = new Date(invoice.invoiceDate);
@@ -903,13 +909,6 @@ const getDriverStatsByMonth = async (req, res) => {
         invoiceDate.getMonth() + 1
       }-${invoiceDate.getFullYear()}`;
       const driverType = invoice.driver.vehicle;
-
-      if (!monthlyStats[monthYear]) {
-        monthlyStats[monthYear] = {
-          car: { totalOrders: 0, totalHours: 0 },
-          bike: { totalOrders: 0, totalHours: 0 },
-        };
-      }
 
       monthlyStats[monthYear][driverType].totalOrders +=
         invoice.mainOrder + invoice.additionalOrder;
