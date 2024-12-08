@@ -23,12 +23,10 @@ const Dashboard = () => {
     (state) => state.drivers
   );
 
-  
-
-  const   monthlyStats =  invoice.monthlyStats;
+  const monthlyStats = invoice.monthlyStats;
   const monthlyStatsStatus = invoice.monthlyStatsStatus;
 
-  console.log('invoice',invoice, ',monthlyStats',invoice.monthlyStats)
+  console.log("invoice", invoice, ",monthlyStats", invoice.monthlyStats);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -38,7 +36,11 @@ const Dashboard = () => {
   }, [dispatch]);
 
   pulsar.register();
-  if (status === "loading" || summaryStatus === "loading" || monthlyStatsStatus=== "loading") {
+  if (
+    status === "loading" ||
+    summaryStatus === "loading" ||
+    monthlyStatsStatus === "loading"
+  ) {
     return (
       <div
         style={{
@@ -57,7 +59,11 @@ const Dashboard = () => {
     );
   }
 
-  if (status === "failed" || summaryStatus === "failed" || monthlyStatsStatus === "failed") {
+  if (
+    status === "failed" ||
+    summaryStatus === "failed" ||
+    monthlyStatsStatus === "failed"
+  ) {
     return (
       <Typography variant="h6" color="error">
         Failed to load drivers or summary data.
@@ -107,10 +113,13 @@ const Dashboard = () => {
           justifyContent="center"
         >
           <StatBox
-            title={`${summary.totalCash.toFixed(3)} KD`}
+            title={`${summary.totalCash.toFixed(3)} ${t("kd")}`}
             subtitle={t("totalCash")}
             progress="0.50"
-            increase="+21%"
+            // increase="+21%"
+            display="flex"
+            alignItems="center"
+            justifyContent="center"
             icon={
               <PointOfSaleIcon
                 sx={{ color: colors.greenAccent[600], fontSize: "26px" }}
@@ -129,7 +138,7 @@ const Dashboard = () => {
             title={summary.totalHours}
             subtitle={t("totalHours")}
             progress="0.30"
-            increase="+5%"
+            // increase="+5%"
             icon={
               <AccessTimeFilledIcon
                 sx={{ color: colors.greenAccent[600], fontSize: "26px" }}
@@ -164,7 +173,7 @@ const Dashboard = () => {
                 fontWeight="bold"
                 color={colors.greenAccent[500]}
               >
-                {summary.totalCash.toFixed(3)} KD
+                {summary.totalCash.toFixed(3)} {t("kd")}
               </Typography>
             </Box>
             <Box>
@@ -176,7 +185,11 @@ const Dashboard = () => {
             </Box>
           </Box>
           <Box height="250px" m="-20px 0 0 0">
-            <LineChart isDashboard={true} monthlyStats={monthlyStats} chartField="totalOrders"/>
+            <LineChart
+              isDashboard={true}
+              monthlyStats={monthlyStats}
+              chartField="totalOrders"
+            />
           </Box>
         </Box>
         {/* ROW 2 */}
@@ -217,7 +230,11 @@ const Dashboard = () => {
             </Box>
           </Box>
           <Box height="250px" m="-20px 0 0 0">
-            <LineChart isDashboard={true} monthlyStats={monthlyStats} chartField="totalHours"/>
+            <LineChart
+              isDashboard={true}
+              monthlyStats={monthlyStats}
+              chartField="totalHours"
+            />
           </Box>
         </Box>
       </Box>

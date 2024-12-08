@@ -6,6 +6,9 @@ import { tokens } from "../theme";
 import AdminPanelSettingsOutlinedIcon from "@mui/icons-material/AdminPanelSettingsOutlined";
 import LockOpenOutlinedIcon from "@mui/icons-material/LockOpenOutlined";
 import SecurityOutlinedIcon from "@mui/icons-material/SecurityOutlined";
+import PointOfSaleOutlinedIcon from "@mui/icons-material/PointOfSaleOutlined";
+import PersonOutlineOutlinedIcon from "@mui/icons-material/PersonOutlineOutlined";
+
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { useNavigate } from "react-router-dom";
@@ -100,8 +103,8 @@ const Team = () => {
           >
             {role === "Admin" && <AdminPanelSettingsOutlinedIcon />}
             {role === "Manager" && <SecurityOutlinedIcon />}
-            {role === "Employee" && <SecurityOutlinedIcon />}
-            {role === "Accountant" && <LockOpenOutlinedIcon />}
+            {role === "Employee" && <PersonOutlineOutlinedIcon />}
+            {role === "Accountant" && <PointOfSaleOutlinedIcon />}
             <Typography color={colors.grey[100]} sx={{ ml: "5px" }}>
               {t(role)}
             </Typography>
