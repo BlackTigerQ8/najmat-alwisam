@@ -136,7 +136,7 @@ function App() {
   ];
 
   const managerRoutes = [
-    { path: "/", element: <Team /> },
+    { path: "/", element: <Navigate to="/team" replace /> },
     { path: "/manager-invoices", element: <ManagerInvoices /> },
     { path: "/archive", element: <InvoicesArchive /> },
     { path: "/archive-form", element: <ArchiveForm /> },
@@ -144,7 +144,7 @@ function App() {
   ];
 
   const accountantRoutes = [
-    { path: "/", element: <DriversSalary /> },
+    { path: "/", element: <Navigate to="/employees-salary" replace /> },
     { path: "/drivers-salary", element: <DriversSalary /> },
     { path: "/employees-salary", element: <EmployeesSalary /> },
     { path: "/bank-statement", element: <BankState /> },
@@ -157,9 +157,39 @@ function App() {
   ];
 
   const employeeRoutes = [
-    { path: "/", element: <Invoices /> },
+    { path: "/", element: <Navigate to="/invoices" replace /> },
     { path: "/invoices-archive", element: <InvoicesArchive /> },
   ];
+
+  const getRoutesByRole = () => {
+    switch (userRole) {
+      case "Admin":
+        return adminRoutes;
+      case "Manager":
+        return managerRoutes;
+      case "Accountant":
+        return accountantRoutes;
+      case "Employee":
+        return employeeRoutes;
+      default:
+        return [];
+    }
+  };
+
+  const getDefaultRedirect = () => {
+    switch (userRole) {
+      case "Admin":
+        return "/";
+      case "Manager":
+        return "/team";
+      case "Accountant":
+        return "/employees-salary";
+      case "Employee":
+        return "/invoices";
+      default:
+        return "/login";
+    }
+  };
 
   return (
     <I18nextProvider i18n={i18n}>
@@ -186,19 +216,21 @@ function App() {
                   <Topbar setIsSidebar={setIsSidebar} />
                 )}
               <Routes>
-                {(currentUser || savedToken) &&
-                  [
-                    ...adminRoutes,
-                    ...managerRoutes,
-                    ...accountantRoutes,
-                    ...employeeRoutes,
-                  ].map((route) => (
+                {(currentUser || savedToken) && (
+                  <>
+                    {getRoutesByRole().map((route) => (
+                      <Route
+                        key={route.path}
+                        path={route.path}
+                        element={route.element}
+                      />
+                    ))}
                     <Route
-                      key={route.path}
-                      path={route.path}
-                      element={route.element}
+                      path="*"
+                      element={<Navigate to={getDefaultRedirect()} replace />}
                     />
-                  ))}
+                  </>
+                )}
 
                 {currentUser || savedToken ? (
                   <>
@@ -245,7 +277,10 @@ function App() {
                   path="*"
                   // element={<NotFound />}
                   element={
-                    <Navigate to={currentUser ? "/" : "/login"} replace />
+                    <Navigate
+                      to={currentUser ? getDefaultRedirect() : "/login"}
+                      replace
+                    />
                   }
                 />
               </Routes>

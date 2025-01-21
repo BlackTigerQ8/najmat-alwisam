@@ -90,6 +90,8 @@ const Deduction = () => {
   const driverInfo = drivers.find((d) => d._id === params.id);
   const users = useSelector((state) => state.users.users);
   const filteredUsers = users.filter((user) => user.role !== "Admin");
+  const userInfo = useSelector((state) => state.user.userInfo);
+
   const token =
     useSelector((state) => state.drivers.token) ||
     localStorage.getItem("token");
@@ -196,7 +198,15 @@ const Deduction = () => {
                 "& > div": { gridColumn: isNonMobile ? undefined : "span 4" },
               }}
             >
-              <FormControl fullWidth sx={{ gridColumn: "span 2" }}>
+              <FormControl
+                fullWidth
+                sx={{
+                  gridColumn:
+                    userInfo.role !== "Admin" && userInfo.role !== "Manager"
+                      ? "span 4"
+                      : "span 2",
+                }}
+              >
                 <InputLabel id="select-driver-label">
                   {t("selectDriver")}
                 </InputLabel>
@@ -239,41 +249,30 @@ const Deduction = () => {
                   </IconButton>
                 )}
               </FormControl>
-              <FormControl fullWidth sx={{ gridColumn: "span 2" }}>
-                <InputLabel id="select-user-label">
-                  {t("selectUser")}
-                </InputLabel>
-                <Select
-                  labelId="select-user-label"
-                  id="select-user"
-                  value={values.selectedUser}
-                  onChange={handleChange}
-                  onBlur={handleBlur}
-                  error={!!touched.selectedUser && !!errors.selectedUser}
-                  name="selectedUser"
-                  label="Select User"
-                  disabled={values.selectedDriver}
-                >
-                  {filteredUsers.map((user) => (
-                    <MenuItem key={user._id} value={user._id}>
-                      {user.firstName} {user.lastName} - ({user.role})
-                    </MenuItem>
-                  ))}
-                </Select>
-                {values.selectedUser && (
-                  <IconButton
-                    onClick={() => setFieldValue("selectedUser", "")}
-                    sx={{ gridColumn: "span 1" }}
-                    style={{
-                      display: "flex",
-                      width: "30px",
-                      height: "30px",
-                    }}
+              {(userInfo.role === "Admin" || userInfo.role === "Manager") && (
+                <FormControl fullWidth sx={{ gridColumn: "span 2" }}>
+                  <InputLabel id="select-user-label">
+                    {t("selectUser")}
+                  </InputLabel>
+                  <Select
+                    labelId="select-user-label"
+                    id="select-user"
+                    value={values.selectedUser}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                    error={!!touched.selectedUser && !!errors.selectedUser}
+                    name="selectedUser"
+                    label="Select User"
+                    disabled={values.selectedDriver}
                   >
-                    <ClearIcon />
-                  </IconButton>
-                )}
-              </FormControl>
+                    {filteredUsers.map((user) => (
+                      <MenuItem key={user._id} value={user._id}>
+                        {user.firstName} {user.lastName} - ({user.role})
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              )}
 
               <TextField
                 fullWidth

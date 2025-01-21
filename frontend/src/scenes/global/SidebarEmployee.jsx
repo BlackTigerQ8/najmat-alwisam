@@ -12,7 +12,7 @@ import ReceiptOutlinedIcon from "@mui/icons-material/ReceiptOutlined";
 import SendAndArchiveOutlinedIcon from "@mui/icons-material/SendAndArchiveOutlined";
 import ForumOutlinedIcon from "@mui/icons-material/ForumOutlined";
 import FindInPageOutlinedIcon from "@mui/icons-material/FindInPageOutlined";
-// import MoneyOffIcon from "@mui/icons-material/MoneyOff";
+import MoneyOffIcon from "@mui/icons-material/MoneyOff";
 import { useSelector, useDispatch } from "react-redux";
 import { profileImage } from "../../redux/userSlice";
 import { toast } from "react-toastify";
@@ -189,14 +189,14 @@ const SideBarEmployee = () => {
               setSelected={setSelected}
               isCollapsed={isCollapsed}
             />
-            {/* <Item
+            <Item
               title={t("deduction")}
               to="/deduction"
               icon={<MoneyOffIcon />}
               selected={selected}
               setSelected={setSelected}
               isCollapsed={isCollapsed}
-            /> */}
+            />
             <Item
               title={t("notifications")}
               to="/notifications"

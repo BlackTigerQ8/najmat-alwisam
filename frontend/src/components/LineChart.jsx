@@ -4,13 +4,30 @@ import { tokens } from "../theme";
 import { mockLineData as data } from "../data/mockData";
 import { pulsar } from "ldrs";
 
-const month_names = {1: 'Jan', 2: 'Feb', 3: 'Mar', 4: 'Apr', 5: 'May', 6: 'Jun', 7: 'Jul', 8: 'Aug', 9: 'Sep', 10: 'Oct', 11: 'Nov', 12: 'Dec'}
-const types =['car', 'bike']
-const LineChart = ({ isDashboard = false, monthlyStats ={}, chartField}) => {
+const month_names = {
+  1: "Jan",
+  2: "Feb",
+  3: "Mar",
+  4: "Apr",
+  5: "May",
+  6: "Jun",
+  7: "Jul",
+  8: "Aug",
+  9: "Sep",
+  10: "Oct",
+  11: "Nov",
+  12: "Dec",
+};
+const types = ["car", "bike"];
+const LineChart = ({
+  isDashboard = false,
+  monthlyStats = {},
+  chartField,
+  yAxisMin = 0,
+}) => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
 
-  
   pulsar.register();
   if (!monthlyStats) {
     return (
@@ -30,16 +47,14 @@ const LineChart = ({ isDashboard = false, monthlyStats ={}, chartField}) => {
     );
   }
 
-  const formattedData = types.map((type) =>  ({
+  const formattedData = types.map((type) => ({
     id: type,
-    color:  colors.greenAccent[500],
+    color: type === "car" ? colors.greenAccent[500] : colors.blueAccent[500],
     data: Object.keys(monthlyStats).map((month) => ({
       x: month_names[month],
       y: monthlyStats[month][type][chartField],
     })),
   }));
-
-  console.log('monthlyStats',monthlyStats,'formattedData',formattedData)
 
   return (
     <ResponsiveLine
@@ -77,15 +92,16 @@ const LineChart = ({ isDashboard = false, monthlyStats ={}, chartField}) => {
           },
         },
       }}
-      colors={isDashboard ? { datum: "color" } : { scheme: "nivo" }} // added
+      colors={{ datum: "color" }}
       margin={{ top: 50, right: 110, bottom: 50, left: 60 }}
       xScale={{ type: "point" }}
       yScale={{
         type: "linear",
-        min: "auto",
-        max: "auto",
-        stacked: true,
+        min: 0, // ensure min is 0
+        max: "auto", // automatically calculate the max value
+        stacked: false,
         reverse: false,
+        clamp: true, // prevent going below zero
       }}
       yFormat=" >-.2f"
       curve="catmullRom"

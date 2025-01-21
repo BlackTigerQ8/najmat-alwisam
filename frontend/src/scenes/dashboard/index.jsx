@@ -189,6 +189,7 @@ const Dashboard = () => {
               isDashboard={true}
               monthlyStats={monthlyStats}
               chartField="totalOrders"
+              yAxisMin={0}
             />
           </Box>
         </Box>
@@ -234,6 +235,7 @@ const Dashboard = () => {
               isDashboard={true}
               monthlyStats={monthlyStats}
               chartField="totalHours"
+              yAxisMin={0}
             />
           </Box>
         </Box>

@@ -76,6 +76,10 @@ i18n
           mainSalary: "Main Salary",
           accessLevel: "Access Level",
           actions: "Actions",
+          deductionReject: "Deduction Rejected",
+          deductionApprove: "Deduction Approved",
+          Heading: "Heading",
+          Message: "Message",
           /////////////
           required: "required",
           firstName: "First Name",
@@ -497,6 +501,10 @@ i18n
           mainSalary: "الراتب الأساسي",
           accessLevel: "مستوى الوصول",
           actions: "الاجراءات",
+          deductionReject: "تم رفض الخصم",
+          deductionApprove: "تمت الموافقة على الخصم",
+          Heading: "العنوان",
+          Message: "الرسالة",
           /////////////
           required: "مطلوب",
           firstName: "الاسم الأول",

@@ -72,6 +72,10 @@ i18next
           mainSalary: "Main Salary",
           accessLevel: "Access Level",
           actions: "Actions",
+          deductionReject: "Deduction Rejected",
+          deductionApprove: "Deduction Approved",
+          Heading: "Heading",
+          Message: "Message",
           /////////////
           required: "required",
           firstName: "First Name",
@@ -322,6 +326,10 @@ i18next
           mainSalary: "الراتب الأساسي",
           accessLevel: "مستوى الوصول",
           actions: "الاجراءات",
+          deductionReject: "رفض الخصم",
+          deductionApprove: "الموافقة على الخصم",
+          Heading: "العنوان",
+          Message: "الرسالة",
           /////////////
           required: "مطلوب",
           firstName: "الاسم الأول",
