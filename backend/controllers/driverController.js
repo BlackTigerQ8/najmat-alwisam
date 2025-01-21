@@ -905,10 +905,8 @@ const getDriverStatsByMonth = async (req, res) => {
 
     driverInvoices.forEach((invoice) => {
       const invoiceDate = new Date(invoice.invoiceDate);
-      const monthYear = `${
-        invoiceDate.getMonth() + 1
-      }-${invoiceDate.getFullYear()}`;
-      const driverType = invoice.driver.vehicle;
+      const monthYear = `${invoiceDate.getMonth() + 1}`;
+      const driverType = invoice.driver.vehicle.toLowerCase();
 
       monthlyStats[monthYear][driverType].totalOrders +=
         invoice.mainOrder + invoice.additionalOrder;
