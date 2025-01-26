@@ -26,7 +26,7 @@ const Dashboard = () => {
   const monthlyStats = invoice.monthlyStats;
   const monthlyStatsStatus = invoice.monthlyStatsStatus;
 
-  console.log("invoice", invoice, ",monthlyStats", invoice.monthlyStats);
+  // console.log("invoice", invoice, ",monthlyStats", invoice.monthlyStats);
 
   useEffect(() => {
     const token = localStorage.getItem("token");

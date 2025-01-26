@@ -1,7 +1,6 @@
 import { ResponsiveLine } from "@nivo/line";
 import { useTheme } from "@mui/material";
 import { tokens } from "../theme";
-import { mockLineData as data } from "../data/mockData";
 import { pulsar } from "ldrs";
 
 const month_names = {
@@ -29,7 +28,7 @@ const LineChart = ({
   const colors = tokens(theme.palette.mode);
 
   pulsar.register();
-  if (!monthlyStats) {
+  if (!monthlyStats || Object.keys(monthlyStats).length === 0) {
     return (
       <div
         style={{
@@ -50,10 +49,15 @@ const LineChart = ({
   const formattedData = types.map((type) => ({
     id: type,
     color: type === "car" ? colors.greenAccent[500] : colors.blueAccent[500],
-    data: Object.keys(monthlyStats).map((month) => ({
-      x: month_names[month],
-      y: monthlyStats[month][type][chartField],
-    })),
+    data: Object.keys(monthlyStats)
+      .sort((a, b) => parseInt(a) - parseInt(b))
+      .map((month) => ({
+        x: month_names[month],
+        y: Math.max(
+          Number(monthlyStats[month][type][chartField]) || 0,
+          yAxisMin
+        ),
+      })),
   }));
 
   return (
@@ -97,14 +101,17 @@ const LineChart = ({
       xScale={{ type: "point" }}
       yScale={{
         type: "linear",
-        min: 0, // ensure min is 0
+        min: yAxisMin,
         max: "auto", // automatically calculate the max value
         stacked: false,
         reverse: false,
         clamp: true, // prevent going below zero
       }}
+      enableBaseline={true}
+      enableArea={true}
+      baselineValue={yAxisMin}
       yFormat=" >-.2f"
-      curve="catmullRom"
+      curve="monotoneX"
       axisTop={null}
       axisRight={null}
       axisBottom={{
@@ -112,19 +119,20 @@ const LineChart = ({
         tickSize: 0,
         tickPadding: 5,
         tickRotation: 0,
-        legend: isDashboard ? undefined : "transportation", // added
+        legend: isDashboard ? undefined : "transportation",
         legendOffset: 36,
         legendPosition: "middle",
       }}
       axisLeft={{
         orient: "left",
-        tickValues: 5, // added
+        tickValues: 5,
         tickSize: 3,
         tickPadding: 5,
         tickRotation: 0,
-        legend: isDashboard ? undefined : "count", // added
+        legend: isDashboard ? undefined : "count",
         legendOffset: -40,
         legendPosition: "middle",
+        format: (value) => Math.max(value, yAxisMin),
       }}
       enableGridX={false}
       enableGridY={true}

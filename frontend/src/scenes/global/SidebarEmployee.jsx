@@ -9,6 +9,7 @@ import AnonImage from "../../assets/profileImage.png";
 import ContactsOutlinedIcon from "@mui/icons-material/ContactsOutlined";
 import MenuOutlinedIcon from "@mui/icons-material/MenuOutlined";
 import ReceiptOutlinedIcon from "@mui/icons-material/ReceiptOutlined";
+import ArchiveOutlinedIcon from "@mui/icons-material/ArchiveOutlined";
 import SendAndArchiveOutlinedIcon from "@mui/icons-material/SendAndArchiveOutlined";
 import ForumOutlinedIcon from "@mui/icons-material/ForumOutlined";
 import FindInPageOutlinedIcon from "@mui/icons-material/FindInPageOutlined";
@@ -225,6 +226,14 @@ const SideBarEmployee = () => {
               title={t("companyFiles")}
               to="/company-files"
               icon={<ContactsOutlinedIcon />}
+              selected={selected}
+              setSelected={setSelected}
+              isCollapsed={isCollapsed}
+            />
+            <Item
+              title={t("archiveForm")}
+              to="/archive-form"
+              icon={<ArchiveOutlinedIcon />}
               selected={selected}
               setSelected={setSelected}
               isCollapsed={isCollapsed}

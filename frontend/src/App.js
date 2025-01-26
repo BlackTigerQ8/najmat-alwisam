@@ -159,6 +159,8 @@ function App() {
   const employeeRoutes = [
     { path: "/", element: <Navigate to="/invoices" replace /> },
     { path: "/invoices-archive", element: <InvoicesArchive /> },
+    { path: "/archive-form", element: <ArchiveForm /> },
+    { path: "/searching-archive", element: <SearchArchive /> },
   ];
 
   const getRoutesByRole = () => {

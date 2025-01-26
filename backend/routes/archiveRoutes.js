@@ -16,7 +16,7 @@ router
   .get(protect, getAllArchive)
   .post(
     protect,
-    restrictTo("Admin", "Manager"),
+    restrictTo("Admin", "Manager", "Employee"),
     archiveUpload.single("uploadedFile"),
     addArchive
   );
@@ -26,10 +26,10 @@ router
   .get(protect, getArchive)
   .patch(
     protect,
-    restrictTo("Admin", "Manager"),
+    restrictTo("Admin", "Manager", "Employee"),
     archiveUpload.single("uploadedFile"),
     updateArchive
   )
-  .delete(protect, restrictTo("Admin", "Manager"), deleteArchive);
+  .delete(protect, restrictTo("Admin", "Manager", "Employee"), deleteArchive);
 
 module.exports = router;
