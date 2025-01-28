@@ -1,30 +1,28 @@
-
-
-.logo{
-    display: none;
-    @media print {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-}
-
-.hidden{
-  display: flex;
+.logo {
+  display: none;
   @media print {
-    display: none !important;
-   
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 }
 
-.table, .notes {
+.hidden {
+  display: flex;
+  @media print {
+    display: none !important;
+  }
+}
+
+.table,
+.notes {
   @media print {
     margin-left: 10px;
     margin-right: 10px;
   }
 }
 
-.table{
+.table {
   display: none;
   @media print {
     display: flex;
@@ -34,8 +32,32 @@
   }
 }
 
-.grid{
+.grid {
   @media print {
     display: none !important;
+  }
+}
+
+.signatures {
+  display: none;
+  @media print {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 100px;
+    padding: 0 50px;
+  }
+}
+
+.signature {
+  @media print {
+    text-align: center;
+  }
+}
+
+.signatureLine {
+  @media print {
+    width: 200px;
+    border-bottom: 1px solid black;
+    margin-bottom: 10px;
   }
 }

@@ -71,6 +71,50 @@ const EmployeesSalary = () => {
     }, 0);
   }, [salaries]);
 
+  const totalMonthlySalary = useMemo(() => {
+    return salaries.reduce((total, employee) => {
+      return total + Number(employee.mainSalary || 0);
+    }, 0);
+  }, [salaries]);
+
+  const totalAdditionalSalary = useMemo(() => {
+    return salaries.reduce((total, employee) => {
+      return total + Number(employee.additionalSalary || 0);
+    }, 0);
+  }, [salaries]);
+
+  const totalDeductions = useMemo(() => {
+    return salaries.reduce((total, employee) => {
+      return total + Number(employee.companyDeductionAmount || 0);
+    }, 0);
+  }, [salaries]);
+
+  const totalNetSalary = useMemo(() => {
+    return totalMonthlySalary + totalAdditionalSalary - totalDeductions;
+  }, [totalMonthlySalary, totalAdditionalSalary, totalDeductions]);
+
+  // Add calculateColumnSum helper function
+  const calculateColumnSum = (fieldName) => {
+    return salaries.reduce((total, employee) => {
+      return total + Number(employee[fieldName] || 0);
+    }, 0);
+  };
+
+  const sumRow = {
+    _id: "sum-row",
+    sequenceNumber: "",
+    firstName: t("total"),
+    lastName: "",
+    mainSalary: calculateColumnSum("mainSalary"),
+    additionalSalary: calculateColumnSum("additionalSalary"),
+    companyDeductionAmount: calculateColumnSum("companyDeductionAmount"),
+    totalSalary: totalNetSalary,
+    remarks: "",
+    actions: "",
+  };
+
+  const rowsWithSum = [...salaries, sumRow];
+
   const columns = [
     {
       field: "sequenceNumber",
@@ -335,7 +379,8 @@ const EmployeesSalary = () => {
         }}
       >
         <DataGrid
-          rows={Array.isArray(salaries) ? salaries : []}
+          // rows={Array.isArray(salaries) ? salaries : []}
+          rows={rowsWithSum}
           columns={columns}
           getRowId={(row) => row._id}
           className={styles.grid}

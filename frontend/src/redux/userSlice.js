@@ -6,6 +6,8 @@ import i18next from "i18next";
 
 const API_URL = process.env.REACT_APP_API_URL;
 
+console.log("API_URL", API_URL);
+
 // Initial state
 const initialState = {
   userInfo: null,
