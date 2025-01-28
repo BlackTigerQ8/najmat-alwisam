@@ -120,6 +120,18 @@ const EmployeesSalary = () => {
       field: "sequenceNumber",
       headerName: "NO.",
       flex: 0.25,
+      renderCell: (params) => {
+        if (params.row._id === "sum-row") {
+          return "";
+        }
+        // Get the current row's position in the grid
+        const currentIndex = rowsWithSum.findIndex(
+          (row) => row._id === params.row._id
+        );
+        return currentIndex + 1;
+      },
+      // Disable sorting for sequence column
+      sortable: false,
     },
     {
       field: "name",
@@ -386,7 +398,12 @@ const EmployeesSalary = () => {
           className={styles.grid}
         />
 
-        <PrintableTable rows={salaries} columns={columns} ref={componentRef} />
+        <PrintableTable
+          rows={salaries}
+          columns={columns}
+          ref={componentRef}
+          orientation="landscape"
+        />
         <Box mt="20px" className={styles.notes}>
           <Header title={t("notes")} />
           <Typography color={colors.greenAccent[500]} fontSize={24}>

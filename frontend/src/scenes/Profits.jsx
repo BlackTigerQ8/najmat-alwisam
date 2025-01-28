@@ -309,11 +309,13 @@ const Income = () => {
       field: "name",
       headerName: "Total Spends",
       flex: 1,
+      resizable: true,
     },
     ...months.map((month) => ({
       field: `cashAmount${month}`,
       headerName: month,
       flex: 0.75,
+      resizable: true,
       renderCell: ({ row }) => {
         const { perMonthCash } = row;
 
@@ -332,6 +334,12 @@ const Income = () => {
       field: `cashAmount${month}`,
       headerName: month,
       flex: 0.75,
+    })),
+    ...months.map((month) => ({
+      field: `cashAmount${month}`,
+      headerName: month,
+      flex: 0.75,
+      resizable: true,
     })),
   ];
 

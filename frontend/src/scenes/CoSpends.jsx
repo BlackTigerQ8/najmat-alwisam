@@ -78,13 +78,12 @@ const CoSpends = () => {
       renderCell: ({ row: { spendType } }) => {
         if (!spendType) return null;
 
-        const { name = undefined } = spendTypes.find(
-          (s) => s._id === spendType
-        );
+        const spendTypeObj = spendTypes.find((s) => s._id === spendType);
+        if (!spendTypeObj) return "Unknown Type"; // Fallback for deleted/missing spend types
 
         return (
           <Box display="flex" justifyContent="center" borderRadius="4px">
-            {name}
+            {spendTypeObj.name}
           </Box>
         );
       },

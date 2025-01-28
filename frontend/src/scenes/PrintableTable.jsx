@@ -33,7 +33,12 @@ const PrintableTable = forwardRef(
     );
 
     return (
-      <div ref={ref} className={styles.table}>
+      <div
+        ref={ref}
+        className={`${styles.table} ${
+          orientation === "landscape" ? styles.printLandscape : ""
+        }`}
+      >
         <PrintLogo />
         <table>
           <thead>
@@ -61,11 +66,11 @@ const PrintableTable = forwardRef(
         <div className={styles.signatures}>
           <div className={styles.signature}>
             <div className={styles.signatureLine}></div>
-            <div>{t("AccountantSignature")}</div>
+            <div>{t("managerSignature")}</div>
           </div>
           <div className={styles.signature}>
             <div className={styles.signatureLine}></div>
-            <div>{t("managerSignature")}</div>
+            <div>{t("AccountantSignature")}</div>
           </div>
         </div>
       </div>

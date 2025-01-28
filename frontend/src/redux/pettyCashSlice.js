@@ -97,6 +97,27 @@ export const searchPettyCash = createAsyncThunk(
   }
 );
 
+export const updatePettyCash = createAsyncThunk(
+  "pettyCash/updatePettyCash",
+  async ({ id, updates }) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.patch(
+        `${API_URL}/petty-cash/${id}`,
+        updates,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  }
+);
+
 const pettyCashSlice = createSlice({
   name: "pettyCash",
   initialState,
@@ -151,6 +172,24 @@ const pettyCashSlice = createSlice({
         state.status = "failed";
         state.error = action.error.message;
         dispatchToast(i18next.t("createPettyCashRejected"), "error");
+      })
+      .addCase(updatePettyCash.pending, (state) => {
+        state.status = "loading";
+      })
+      .addCase(updatePettyCash.fulfilled, (state, action) => {
+        state.status = "succeeded";
+        const index = state.pettyCash.findIndex(
+          (item) => item._id === action.payload.data.pettyCash._id
+        );
+        if (index !== -1) {
+          state.pettyCash[index] = action.payload.data.pettyCash;
+        }
+        dispatchToast(i18next.t("updatePettyCashFulfilled"), "success");
+      })
+      .addCase(updatePettyCash.rejected, (state, action) => {
+        state.status = "failed";
+        state.error = action.error.message;
+        dispatchToast(i18next.t("updatePettyCashRejected"), "error");
       });
   },
 });

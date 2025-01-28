@@ -133,6 +133,7 @@ function App() {
     { path: "/archive", element: <InvoicesArchive /> },
     { path: "/archive-form", element: <ArchiveForm /> },
     { path: "/deactivated-drivers", element: <DeactivatedDrivers /> },
+    { path: "/invoices-archive", element: <InvoicesArchive /> },
   ];
 
   const managerRoutes = [
@@ -140,6 +141,7 @@ function App() {
     { path: "/manager-invoices", element: <ManagerInvoices /> },
     { path: "/archive", element: <InvoicesArchive /> },
     { path: "/archive-form", element: <ArchiveForm /> },
+    { path: "/invoices-archive", element: <InvoicesArchive /> },
     { path: "/deactivated-drivers", element: <DeactivatedDrivers /> },
   ];
 

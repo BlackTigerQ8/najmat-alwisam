@@ -4,7 +4,8 @@ const {
   getAllPettyCash,
   createPettyCash,
   searchPettyCash,
-  fetchCurrentYearPettyCash
+  fetchCurrentYearPettyCash,
+  updatePettyCash,
 } = require("../controllers/pettyCashController");
 
 const router = express.Router();
@@ -18,8 +19,12 @@ router
   .route("/search")
   .post(protect, restrictTo("Admin", "Accountant"), searchPettyCash);
 
-  router
+router
   .route("/current-year")
   .get(protect, restrictTo("Admin", "Accountant"), fetchCurrentYearPettyCash);
+
+router
+  .route("/:id")
+  .patch(protect, restrictTo("Admin", "Accountant"), updatePettyCash);
 
 module.exports = router;

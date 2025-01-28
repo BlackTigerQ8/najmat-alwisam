@@ -92,12 +92,11 @@ const Dashboard = () => {
           display="flex"
           alignItems="center"
           justifyContent="center"
+          textAlign="center"
         >
           <StatBox
             title={summary.mainOrder + summary.additionalOrder}
             subtitle={t("totalOrders")}
-            progress="0.75"
-            // increase="+14%"
             icon={
               <DeliveryDiningOutlinedIcon
                 sx={{ color: colors.greenAccent[600], fontSize: "26px" }}
@@ -111,15 +110,11 @@ const Dashboard = () => {
           display="flex"
           alignItems="center"
           justifyContent="center"
+          textAlign="center"
         >
           <StatBox
             title={`${summary.totalCash.toFixed(3)} ${t("kd")}`}
             subtitle={t("totalCash")}
-            progress="0.50"
-            // increase="+21%"
-            display="flex"
-            alignItems="center"
-            justifyContent="center"
             icon={
               <PointOfSaleIcon
                 sx={{ color: colors.greenAccent[600], fontSize: "26px" }}
@@ -133,12 +128,11 @@ const Dashboard = () => {
           display="flex"
           alignItems="center"
           justifyContent="center"
+          textAlign="center"
         >
           <StatBox
             title={summary.totalHours}
             subtitle={t("totalHours")}
-            progress="0.30"
-            // increase="+5%"
             icon={
               <AccessTimeFilledIcon
                 sx={{ color: colors.greenAccent[600], fontSize: "26px" }}

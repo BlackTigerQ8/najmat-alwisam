@@ -2,4 +2,8 @@
   @page {
     size: var(--print-orientation, portrait);
   }
+
+  .print-landscape {
+    --print-orientation: landscape;
+  }
 }

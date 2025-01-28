@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import * as yup from "yup";
 import {
   Box,
@@ -11,6 +11,7 @@ import {
   FormControl,
   InputLabel,
   Select,
+  ListSubheader,
 } from "@mui/material";
 import ClearIcon from "@mui/icons-material/Clear";
 import { Formik } from "formik";
@@ -23,17 +24,20 @@ import {
   fetchPettyCash,
   createPettyCash,
   searchPettyCash,
+  updatePettyCash,
 } from "../redux/pettyCashSlice";
 import { pulsar } from "ldrs";
 import { fetchDrivers } from "../redux/driversSlice";
 import { fetchUsers } from "../redux/usersSlice";
 import { fetchAllSpendTypes } from "../redux/spendTypeSlice";
 import { useTranslation } from "react-i18next";
+import { useReactToPrint } from "react-to-print";
+import PrintableTable from "./PrintableTable";
+import SaveIcon from "@mui/icons-material/Save";
 
 const initialValues = {
-  serialNumber: "",
-  requestApplicant: "",
-  requestDate: "",
+  startDate: "",
+  endDate: "",
 };
 
 const newPettyCashInitialValues = {
@@ -51,9 +55,14 @@ const newPettyCashInitialValues = {
 };
 
 const pettyCashRequestSchema = yup.object().shape({
-  serialNumber: yup.number(),
-  requestApplicant: yup.string(),
-  requestDate: yup.string(),
+  startDate: yup.string(),
+  endDate: yup
+    .string()
+    .test("dates", "End date must be after start date", function (endDate) {
+      const { startDate } = this.parent;
+      if (!startDate || !endDate) return true;
+      return new Date(endDate) >= new Date(startDate);
+    }),
 });
 
 const addNewPettyCashSchema = yup.object().shape({
@@ -78,6 +87,13 @@ const PettyCash = () => {
   const pettyCash = useSelector((state) => state.pettyCash.pettyCash);
   const pageStatus = useSelector((state) => state.pettyCash.status);
   const error = useSelector((state) => state.pettyCash.error);
+  const componentRef = useRef();
+  const [editedRows, setEditedRows] = useState({});
+  const [rowModifications, setRowModifications] = useState({});
+  const [searchDates, setSearchDates] = useState({
+    startDate: "",
+    endDate: "",
+  });
 
   const pettyCashSearchResults = useSelector(
     (state) => state.pettyCash.searchResults
@@ -94,6 +110,11 @@ const PettyCash = () => {
     useSelector((state) => state.drivers.token) ||
     localStorage.getItem("token");
 
+  const handlePrint = useReactToPrint({
+    content: () => componentRef.current,
+    documentTitle: "Petty Cash Report",
+  });
+
   async function handleFormSubmit(values) {
     try {
       dispatch(
@@ -101,6 +122,10 @@ const PettyCash = () => {
           values,
         })
       );
+      setSearchDates({
+        startDate: values.startDate,
+        endDate: values.endDate,
+      });
 
       // TODO: Uncomment this later
 
@@ -116,22 +141,32 @@ const PettyCash = () => {
   }
 
   const totalSpends = useMemo(
-    () => pettyCash.reduce((sum, pettyCash) => sum + pettyCash.cashAmount, 0),
+    () =>
+      Number(
+        pettyCash.reduce(
+          (sum, pettyCash) => sum + (pettyCash.cashAmount || 0),
+          0
+        )
+      ).toFixed(3),
     [pettyCash]
   );
   const totalAmountOnWorker = useMemo(
     () =>
-      pettyCash.reduce(
-        (sum, pettyCash) =>
-          sum +
-          (pettyCash.deductedFromDriver || pettyCash.deductedFromUser
-            ? pettyCash.cashAmount
-            : 0),
-        0
-      ),
+      Number(
+        pettyCash.reduce(
+          (sum, pettyCash) =>
+            sum +
+            (pettyCash.deductedFromDriver || pettyCash.deductedFromUser
+              ? pettyCash.cashAmount || 0
+              : 0),
+          0
+        )
+      ).toFixed(3),
     [pettyCash]
   );
-  const totalAmountOnCompany = totalSpends - totalAmountOnWorker;
+  const totalAmountOnCompany = Number(
+    totalSpends - totalAmountOnWorker
+  ).toFixed(3);
 
   useEffect(() => {
     dispatch(fetchDrivers(token));
@@ -143,33 +178,63 @@ const PettyCash = () => {
     {
       field: "sequence",
       headerName: "NO.",
+      editable: false,
+    },
+    {
+      field: "serialNumber",
+      headerName: t("serialNumber"),
+      flex: 1,
+      editable: true,
     },
     {
       field: "spendsDate",
+      type: "date",
       valueFormatter: (params) => {
         const date = new Date(params.value);
-        const formattedDate = `${date.getDate()}/${
-          date.getMonth() + 1
-        }/${date.getFullYear()}`;
-        return formattedDate;
+        return `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`;
       },
       headerName: t("spendsDate"),
       flex: 1,
+      editable: true,
     },
     {
       field: "spendsReason",
       headerName: t("spendsReason"),
       flex: 1,
+      editable: true,
     },
     {
       field: "cashAmount",
       headerName: t("cashAmount"),
       flex: 1,
+      editable: true,
+      type: "number",
     },
     {
       field: "spendType",
       headerName: t("spendTypes"),
       flex: 1,
+      editable: true,
+      renderEditCell: (params) => (
+        <FormControl fullWidth>
+          <Select
+            value={params.value}
+            onChange={(e) =>
+              params.api.setEditCellValue({
+                id: params.id,
+                field: params.field,
+                value: e.target.value,
+              })
+            }
+          >
+            {spendTypes.map((type) => (
+              <MenuItem key={type._id} value={type._id}>
+                {type.name}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+      ),
       renderCell: ({ row: { spendType } }) => {
         const { name = undefined } = spendTypes.find(
           (s) => s._id === spendType
@@ -186,10 +251,76 @@ const PettyCash = () => {
       field: "spendsRemarks",
       headerName: t("remarks"),
       flex: 1,
+      editable: true,
     },
     {
       field: "deductedFrom",
       headerName: t("deductedFrom"),
+      editable: true,
+      flex: 1,
+      renderEditCell: (params) => {
+        const handleChange = (event) => {
+          console.log("Selection changed:", event.target.value); // Debug log
+          const [type, id] = event.target.value.split(":");
+
+          // Create updates object
+          const updates = {
+            deductedFromDriver: type === "driver" ? id : null,
+            deductedFromUser: type === "user" ? id : null,
+          };
+
+          console.log("Updates to apply:", updates); // Debug log
+
+          // Update the modifications state
+          setRowModifications((prev) => {
+            const newState = {
+              ...prev,
+              [params.id]: {
+                ...(prev[params.id] || {}),
+                ...updates,
+              },
+            };
+            console.log("New modifications state:", newState); // Debug log
+            return newState;
+          });
+
+          // Mark row as edited
+          setEditedRows((prev) => ({
+            ...prev,
+            [params.id]: true,
+          }));
+        };
+
+        const currentValue = params.row.deductedFromDriver
+          ? `driver:${params.row.deductedFromDriver}`
+          : params.row.deductedFromUser
+          ? `user:${params.row.deductedFromUser}`
+          : "";
+
+        return (
+          <FormControl fullWidth>
+            <Select value={currentValue} onChange={handleChange}>
+              <MenuItem value="">
+                <em>None</em>
+              </MenuItem>
+              <ListSubheader>{t("drivers")}</ListSubheader>
+              {drivers.map((driver) => (
+                <MenuItem key={driver._id} value={`driver:${driver._id}`}>
+                  {driver.firstName} {driver.lastName}
+                </MenuItem>
+              ))}
+              <ListSubheader>{t("users")}</ListSubheader>
+              {users
+                .filter((user) => user.role !== "Admin")
+                .map((user) => (
+                  <MenuItem key={user._id} value={`user:${user._id}`}>
+                    {user.firstName} {user.lastName} - ({user.role})
+                  </MenuItem>
+                ))}
+            </Select>
+          </FormControl>
+        );
+      },
       renderCell: ({ row: { deductedFromDriver, deductedFromUser } }) => {
         if (!deductedFromDriver && !deductedFromUser) return null;
 
@@ -211,11 +342,119 @@ const PettyCash = () => {
         );
       },
     },
+    {
+      field: "actions",
+      headerName: t("actions"),
+      flex: 1,
+      sortable: false,
+      filterable: false,
+      renderCell: (params) => {
+        const rowId = params.row._id;
+        const hasChanges = Boolean(
+          editedRows[rowId] && rowModifications[rowId]
+        );
+
+        return (
+          <Button
+            color="secondary"
+            variant="contained"
+            size="small"
+            startIcon={<SaveIcon />}
+            onClick={() => handleRowUpdate(rowId)}
+            disabled={!hasChanges}
+          >
+            {t("save")}
+          </Button>
+        );
+      },
+    },
   ];
 
-  useEffect(() => {
-    dispatch(fetchPettyCash());
-  }, [dispatch]);
+  // Update the handleRowUpdate function
+  const handleRowUpdate = async (id) => {
+    try {
+      const modifications = rowModifications[id];
+
+      if (!modifications || Object.keys(modifications).length === 0) {
+        return;
+      }
+
+      const formattedModifications = { ...modifications };
+
+      if ("cashAmount" in formattedModifications) {
+        formattedModifications.cashAmount = Number(
+          formattedModifications.cashAmount
+        );
+      }
+      if ("serialNumber" in formattedModifications) {
+        formattedModifications.serialNumber = Number(
+          formattedModifications.serialNumber
+        );
+      }
+      if ("spendsDate" in formattedModifications) {
+        formattedModifications.spendsDate = new Date(
+          formattedModifications.spendsDate
+        )
+          .toISOString()
+          .split("T")[0];
+      }
+
+      await dispatch(
+        updatePettyCash({
+          id,
+          updates: formattedModifications,
+        })
+      ).unwrap();
+
+      setEditedRows((prev) => {
+        const newState = { ...prev };
+        delete newState[id];
+        return newState;
+      });
+
+      setRowModifications((prev) => {
+        const newState = { ...prev };
+        delete newState[id];
+        return newState;
+      });
+
+      await dispatch(fetchPettyCash());
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const processRowUpdate = (newRow, oldRow) => {
+    const id = newRow._id;
+    const changes = {};
+
+    Object.keys(newRow).forEach((field) => {
+      if (newRow[field] !== oldRow[field]) {
+        changes[field] = newRow[field];
+      }
+    });
+
+    if (Object.keys(changes).length > 0) {
+      setRowModifications((prev) => ({
+        ...prev,
+        [id]: {
+          ...(prev[id] || {}),
+          ...changes,
+        },
+      }));
+
+      setEditedRows((prev) => ({
+        ...prev,
+        [id]: true,
+      }));
+    }
+
+    return newRow;
+  };
+
+  const handleProcessRowUpdateError = (error) => {
+    console.log(error);
+  };
 
   pulsar.register();
   if (status === "loading") {
@@ -256,10 +495,17 @@ const PettyCash = () => {
   return (
     <Box m="20px">
       <Header title={t("pettyCashTitle")} subtitle={t("pettyCashSubtitle")} />
+      <Typography variant="h5" color="secondary" mb={2}>
+        {t("searchPettyCash")}
+      </Typography>
       <Formik
-        initialValues={initialValues}
+        initialValues={{
+          startDate: searchDates.startDate,
+          endDate: searchDates.endDate,
+        }}
         validationSchema={pettyCashRequestSchema}
         onSubmit={handleFormSubmit}
+        enableReinitialize={true}
       >
         {({
           values,
@@ -282,41 +528,30 @@ const PettyCash = () => {
               <TextField
                 fullWidth
                 variant="filled"
-                type="number"
-                label={t("serialNumber")}
+                type="date"
+                label={t("startingDate")}
                 onBlur={handleBlur}
                 onChange={handleChange}
-                value={values.serialNumber}
-                name="serialNumber"
-                error={!!touched.serialNumber && !!errors.serialNumber}
-                helperText={touched.serialNumber && errors.serialNumber}
+                value={values.startDate}
+                name="startDate"
+                error={!!touched.startDate && !!errors.startDate}
+                helperText={touched.startDate && errors.startDate}
                 sx={{ gridColumn: "span 1" }}
-              />
-              <TextField
-                fullWidth
-                variant="filled"
-                type="text"
-                label={t("requestApplicant")}
-                onBlur={handleBlur}
-                onChange={handleChange}
-                value={values.requestApplicant}
-                name="requestApplicant"
-                error={!!touched.requestApplicant && !!errors.requestApplicant}
-                helperText={touched.requestApplicant && errors.requestApplicant}
-                sx={{ gridColumn: "span 1" }}
+                InputLabelProps={{ shrink: true }}
               />
               <TextField
                 fullWidth
                 variant="filled"
                 type="date"
-                label={t("requestDate")}
+                label={t("endingDate")}
                 onBlur={handleBlur}
                 onChange={handleChange}
-                value={values.requestDate}
-                name="requestDate"
-                error={!!touched.requestDate && !!errors.requestDate}
-                helperText={touched.requestDate && errors.requestDate}
+                value={values.endDate}
+                name="endDate"
+                error={!!touched.endDate && !!errors.endDate}
+                helperText={touched.endDate && errors.endDate}
                 sx={{ gridColumn: "span 1" }}
+                InputLabelProps={{ shrink: true }}
               />
               <Button type="submit" color="secondary" variant="contained">
                 {t("search")}
@@ -327,10 +562,11 @@ const PettyCash = () => {
       </Formik>
 
       {
-        <Box mt="50px">
-          <PettyCashForm />
+        <Box mt="40px">
+          <PettyCashForm handlePrint={handlePrint} />
         </Box>
       }
+
       <Box
         mt="40px"
         mb="40px"
@@ -340,7 +576,7 @@ const PettyCash = () => {
             border: "none",
           },
           "& .MuiDataGrid-cell": {
-            borderBottom: "none",
+            borderBottom: `1px solid ${colors.grey[200]}`,
           },
           "& .name-column--cell": {
             color: colors.greenAccent[300],
@@ -362,33 +598,76 @@ const PettyCash = () => {
           rows={searchStatus ? pettyCashSearchResults : pettyCash}
           columns={columns}
           getRowId={(row) => row._id}
+          rowsPerPageOptions={[10, 25, 50]}
+          editMode="cell"
+          processRowUpdate={processRowUpdate}
+          onProcessRowUpdateError={handleProcessRowUpdateError}
+          isCellEditable={(params) => params.field !== "sequence"}
+          experimentalFeatures={{ newEditingApi: true }}
         />
+        {/* Summary Section */}
         <Box
+          mt={4}
+          p={3}
+          bgcolor={colors.primary[400]}
+          borderRadius="4px"
           display="grid"
-          gap="70px"
-          gridTemplateColumns="repeat(3, minmax(0, 1fr))"
+          gap="30px"
+          gridTemplateColumns="repeat(3, 1fr)"
           sx={{
-            "& > div": { gridColumn: isNonMobile ? undefined : "span 4" },
+            "& > div": {
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              textAlign: "center",
+              padding: "20px",
+              borderRadius: "8px",
+            },
           }}
         >
-          <Typography variant="h4" color="secondary" mt={4}>
-            {t("totalSpends")} :
-            <strong>
-              <span> {totalSpends} </span> {t("kd")}
-            </strong>
-          </Typography>
-          <Typography variant="h4" color="secondary" mt={4}>
-            {t("totalAmountOnWorkers")} :
-            <strong>
-              <span> {totalAmountOnWorker} </span> {t("kd")}
-            </strong>
-          </Typography>
-          <Typography variant="h4" color="secondary" mt={4}>
-            {t("totalAmountOnCompany")} :
-            <strong>
-              <span> {totalAmountOnCompany} </span> {t("kd")}
-            </strong>
-          </Typography>
+          <Box>
+            <Typography
+              variant="subtitle2"
+              color={colors.grey[100]}
+              mb={1}
+              sx={{ fontSize: "1.1rem", fontWeight: "bold" }}
+            >
+              {t("totalSpends")}
+            </Typography>
+            <Typography variant="h4" color="secondary">
+              <span>{totalSpends}</span>
+              <span style={{ fontSize: "1em" }}> {t("kd")}</span>
+            </Typography>
+          </Box>
+          <Box>
+            <Typography
+              variant="subtitle2"
+              color={colors.grey[100]}
+              mb={1}
+              sx={{ fontSize: "1.1rem", fontWeight: "bold" }}
+            >
+              {t("totalAmountOnWorkers")}
+            </Typography>
+            <Typography variant="h4" color="secondary">
+              <span>{totalAmountOnWorker}</span>
+              <span style={{ fontSize: "1em" }}> {t("kd")}</span>
+            </Typography>
+          </Box>
+          <Box>
+            <Typography
+              variant="subtitle2"
+              color={colors.grey[100]}
+              mb={1}
+              sx={{ fontSize: "1.1rem", fontWeight: "bold" }}
+            >
+              {t("totalAmountOnCompany")}
+            </Typography>
+            <Typography variant="h4" color="secondary">
+              <span>{totalAmountOnCompany}</span>
+              <span style={{ fontSize: "1em" }}> {t("kd")}</span>
+            </Typography>
+          </Box>
         </Box>
       </Box>
       <Box
@@ -399,11 +678,17 @@ const PettyCash = () => {
           "& > div": { gridColumn: isNonMobile ? undefined : "span 4" },
         }}
       ></Box>
+      <PrintableTable
+        rows={pettyCash}
+        columns={columns}
+        ref={componentRef}
+        orientation="landscape"
+      />
     </Box>
   );
 };
 
-function PettyCashForm({ isNonMobile }) {
+function PettyCashForm({ isNonMobile, handlePrint }) {
   const drivers = useSelector((state) => state.drivers.drivers);
   const users = useSelector((state) => state.users.users);
   const spendTypes = useSelector((state) => state.spendType.spendTypes);
@@ -464,6 +749,45 @@ function PettyCashForm({ isNonMobile }) {
               "& > div": { gridColumn: isNonMobile ? undefined : "span 2" },
             }}
           >
+            <TextField
+              fullWidth
+              variant="filled"
+              type="text"
+              label={t("requestApplicant")}
+              onBlur={handleBlur}
+              onChange={handleChange}
+              value={values.requestApplicant}
+              name="requestApplicant"
+              error={!!touched.requestApplicant && !!errors.requestApplicant}
+              helperText={touched.requestApplicant && errors.requestApplicant}
+              sx={{ gridColumn: "span 1" }}
+            />
+            <TextField
+              fullWidth
+              variant="filled"
+              type="date"
+              label={t("requestDate")}
+              onBlur={handleBlur}
+              onChange={handleChange}
+              value={values.requestDate}
+              name="requestDate"
+              error={!!touched.requestDate && !!errors.requestDate}
+              helperText={touched.requestDate && errors.requestDate}
+              sx={{ gridColumn: "span 1" }}
+            />
+            <TextField
+              fullWidth
+              variant="filled"
+              type="number"
+              label={t("serialNumber")}
+              onBlur={handleBlur}
+              onChange={handleChange}
+              value={values.serialNumber}
+              name="serialNumber"
+              error={!!touched.serialNumber && !!errors.serialNumber}
+              helperText={touched.serialNumber && errors.serialNumber}
+              sx={{ gridColumn: "span 1" }}
+            />
             <FormControl fullWidth sx={{ gridColumn: "span 2" }}>
               <InputLabel id="select-user-label">{t("selectUser")}</InputLabel>
               <Select
@@ -582,19 +906,6 @@ function PettyCashForm({ isNonMobile }) {
             <TextField
               fullWidth
               variant="filled"
-              type="number"
-              label={t("serialNumber")}
-              onBlur={handleBlur}
-              onChange={handleChange}
-              value={values.serialNumber}
-              name="serialNumber"
-              error={!!touched.serialNumber && !!errors.serialNumber}
-              helperText={touched.serialNumber && errors.serialNumber}
-              sx={{ gridColumn: "span 1" }}
-            />
-            <TextField
-              fullWidth
-              variant="filled"
               type="text"
               label={t("spendsReason")}
               onBlur={handleBlur}
@@ -612,7 +923,7 @@ function PettyCashForm({ isNonMobile }) {
               label={t("cashAmount")}
               onBlur={handleBlur}
               onChange={handleChange}
-              value={values.cashAmount}
+              value={Number(values.cashAmount).toFixed(3)}
               name="cashAmount"
               error={!!touched.cashAmount && !!errors.cashAmount}
               helperText={touched.cashAmount && errors.cashAmount}
@@ -631,32 +942,7 @@ function PettyCashForm({ isNonMobile }) {
               helperText={touched.spendsRemarks && errors.spendsRemarks}
               sx={{ gridColumn: "span 1" }}
             />
-            <TextField
-              fullWidth
-              variant="filled"
-              type="text"
-              label={t("requestApplicant")}
-              onBlur={handleBlur}
-              onChange={handleChange}
-              value={values.requestApplicant}
-              name="requestApplicant"
-              error={!!touched.requestApplicant && !!errors.requestApplicant}
-              helperText={touched.requestApplicant && errors.requestApplicant}
-              sx={{ gridColumn: "span 1" }}
-            />
-            <TextField
-              fullWidth
-              variant="filled"
-              type="date"
-              label={t("requestDate")}
-              onBlur={handleBlur}
-              onChange={handleChange}
-              value={values.requestDate}
-              name="requestDate"
-              error={!!touched.requestDate && !!errors.requestDate}
-              helperText={touched.requestDate && errors.requestDate}
-              sx={{ gridColumn: "span 1" }}
-            />
+
             <TextField
               fullWidth
               variant="filled"
@@ -670,25 +956,52 @@ function PettyCashForm({ isNonMobile }) {
               helperText={touched.spendsDate && errors.spendsDate}
               sx={{ gridColumn: "span 1" }}
             />
-            {!pettyCash.length && (
-              <TextField
-                fullWidth
-                variant="filled"
-                type="number"
-                label={t("startingBalance")}
-                onBlur={handleBlur}
-                onChange={handleChange}
-                value={values.currentBalance}
-                name="currentBalance"
-                error={!!touched.currentBalance && !!errors.currentBalance}
-                helperText={touched.currentBalance && errors.currentBalance}
-                sx={{ gridColumn: "span 1" }}
-              />
-            )}
 
-            <Button type="submit" color="secondary" variant="contained">
-              {t("saveData")}
-            </Button>
+            <TextField
+              fullWidth
+              variant="filled"
+              type="number"
+              label={t("startingBalance")}
+              onBlur={handleBlur}
+              onChange={handleChange}
+              value={values.currentBalance}
+              name="currentBalance"
+              error={!!touched.currentBalance && !!errors.currentBalance}
+              helperText={touched.currentBalance && errors.currentBalance}
+              sx={{ gridColumn: "span 1" }}
+            />
+
+            <Box
+              display="flex"
+              sx={{ gridColumn: "span 1" }}
+              marginLeft={"20px"}
+              gap={"20px"}
+              justifyContent={"flex-start"}
+            >
+              <Button
+                type="submit"
+                color="secondary"
+                variant="contained"
+                sx={{ width: "50%" }}
+              >
+                {t("saveData")}
+              </Button>
+            </Box>
+            <Box
+              display="flex"
+              sx={{ gridColumn: "span 1" }}
+              gap={"20px"}
+              justifyContent={"flex-end"}
+            >
+              <Button
+                onClick={handlePrint}
+                color="primary"
+                variant="contained"
+                sx={{ width: "30%", height: "50px" }}
+              >
+                {t("print")}
+              </Button>
+            </Box>
           </Box>
         </form>
       )}

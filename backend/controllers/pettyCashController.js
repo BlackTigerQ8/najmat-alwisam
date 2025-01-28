@@ -136,7 +136,8 @@ const createPettyCash = async (req, res) => {
 };
 
 const searchPettyCash = async (req, res) => {
-  const { serialNumber, requestApplicant, requestDate } = req.body;
+  const { serialNumber, requestApplicant, requestDate, startDate, endDate } =
+    req.body;
 
   let query = {};
 
@@ -148,6 +149,19 @@ const searchPettyCash = async (req, res) => {
   }
   if (requestDate) {
     query.requestDate = new Date(requestDate);
+  }
+
+  if (startDate || endDate) {
+    query.spendsDate = {};
+    if (startDate) {
+      query.spendsDate.$gte = new Date(startDate);
+    }
+    if (endDate) {
+      // Add one day to include the end date fully
+      const endDateTime = new Date(endDate);
+      endDateTime.setDate(endDateTime.getDate() + 1);
+      query.spendsDate.$lt = endDateTime;
+    }
   }
 
   try {
@@ -217,10 +231,64 @@ const fetchCurrentYearPettyCash = async (req, res) => {
   });
 };
 
+const updatePettyCash = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updates = req.body;
+
+    // Validate that only one deduction field is set
+    if (updates.deductedFromUser && updates.deductedFromDriver) {
+      return res.status(400).json({
+        message: "Cannot deduct from both user and driver simultaneously",
+      });
+    }
+
+    // Verify referenced entities exist if being updated
+    if (updates.deductedFromDriver) {
+      const driver = await Driver.findById(updates.deductedFromDriver);
+      if (!driver) {
+        return res.status(404).json({ message: "Driver does not exist" });
+      }
+    }
+
+    if (updates.deductedFromUser) {
+      const user = await User.findById(updates.deductedFromUser);
+      if (!user) {
+        return res.status(404).json({ message: "User does not exist" });
+      }
+    }
+
+    const pettyCash = await PettyCash.findByIdAndUpdate(
+      id,
+      { ...updates },
+      { new: true, runValidators: true }
+    );
+
+    if (!pettyCash) {
+      return res.status(404).json({
+        message: "Petty cash record not found",
+      });
+    }
+
+    res.status(200).json({
+      status: "Success",
+      data: {
+        pettyCash,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: "Error",
+      message: error.message,
+    });
+  }
+};
+
 module.exports = {
   getAllPettyCash,
   createPettyCash,
   searchPettyCash,
   fetchCurrentMonthPettyCash,
   fetchCurrentYearPettyCash,
+  updatePettyCash,
 };
