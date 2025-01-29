@@ -112,12 +112,20 @@ i18n
           viewUploadedFile: "View Uploaded File",
           update: "Update",
           delete: "Delete",
+          confirmDeletePettyCashTitle: "Delete Petty Cash",
+          confirmDeletePettyCashMessage:
+            "Are you sure you want to delete this petty cash?",
+          cancel: "Cancel",
+          deletePettyCashFulfilled: "Petty cash is deleted successfully!",
+          deletePettyCashRejected:
+            "Can't delete a petty cash, you can try later!",
           add: "Add",
           edit: "Edit",
           addNewDriver: "Add New Driver",
           /////////////
           additionalSalary: "Additional Salary",
           talabatDeductionAmount: "Talabat Deduction Amount",
+
           companyDeductionAmount: "Company Deduction Amount",
           pettyCashDeductionAmount: "Petty Cash Deduction",
           deductionReason: "Deduction Reason",
@@ -221,12 +229,15 @@ i18n
           from: "From",
           cashSpends: "Cash Expenses",
           deductedFrom: "Deducted From",
+          deductFromUser: "Deduct From User",
+          deductFromDriver: "Deduct From Driver",
           /////////////
           spendTypesTitle: "EXPENSE TYPES",
           spendTypesSubtitle: "Expense Types Page",
           addNewSpendType: "Add New Expense Type",
           /////////////
           bankStatementTitle: "BANK STATEMENT",
+
           bankStatementSubtitle: "Bank Statement Page",
           addNewRow: "ADD NEW ROW",
           bankAccountNumber: "Bank Account Number",
@@ -546,10 +557,18 @@ i18n
           viewUploadedFile: "عرض الملف المحمل",
           update: "تحديث",
           delete: "حذف",
+          confirmDeletePettyCashTitle: "حذف العهدة النقدية",
+          confirmDeletePettyCashMessage:
+            "هل أنت متأكد من رغبتك في حذف هذه العهدة النقدية؟",
+          cancel: "إلغاء",
+          deletePettyCashFulfilled: "تم حذف العهدة النقدية بنجاح",
+          deletePettyCashRejected:
+            "لا يمكن حذف العهدة النقدية، يمكنك المحاولة لاحقًا",
           add: "إضافة",
           edit: "تعديل",
           addNewDriver: "إضافة سائق جديد",
           /////////////
+
           additionalSalary: "الراتب الإضافي",
           talabatDeductionAmount: "خصم طلبات",
           companyDeductionAmount: "خصم الشركة",
@@ -654,6 +673,8 @@ i18n
           from: "من",
           cashSpends: "المصاريف النقدية",
           deductedFrom: "مخصومة من",
+          deductFromUser: "خصم من الموظف",
+          deductFromDriver: "خصم من السائق",
           /////////////
           spendTypesTitle: "أنواع المصاريف",
           spendTypesSubtitle: "صفحة أنواع المصاريف",

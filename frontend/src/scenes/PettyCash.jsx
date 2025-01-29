@@ -12,6 +12,11 @@ import {
   InputLabel,
   Select,
   ListSubheader,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
 } from "@mui/material";
 import ClearIcon from "@mui/icons-material/Clear";
 import { Formik } from "formik";
@@ -25,6 +30,7 @@ import {
   createPettyCash,
   searchPettyCash,
   updatePettyCash,
+  deletePettyCash,
 } from "../redux/pettyCashSlice";
 import { pulsar } from "ldrs";
 import { fetchDrivers } from "../redux/driversSlice";
@@ -34,6 +40,7 @@ import { useTranslation } from "react-i18next";
 import { useReactToPrint } from "react-to-print";
 import PrintableTable from "./PrintableTable";
 import SaveIcon from "@mui/icons-material/Save";
+import DeleteIcon from "@mui/icons-material/Delete";
 
 const initialValues = {
   startDate: "",
@@ -94,6 +101,8 @@ const PettyCash = () => {
     startDate: "",
     endDate: "",
   });
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleteId, setDeleteId] = useState(null);
 
   const pettyCashSearchResults = useSelector(
     (state) => state.pettyCash.searchResults
@@ -179,6 +188,47 @@ const PettyCash = () => {
       field: "sequence",
       headerName: "NO.",
       editable: false,
+      flex: 0.5,
+    },
+    {
+      field: "requestApplicant",
+      headerName: t("requestApplicant"),
+      flex: 1,
+      editable: true,
+      renderEditCell: (params) => (
+        <FormControl fullWidth>
+          <Select
+            value={params.value}
+            onChange={(e) =>
+              params.api.setEditCellValue({
+                id: params.id,
+                field: params.field,
+                value: e.target.value,
+              })
+            }
+          >
+            {users.map((user) => (
+              <MenuItem key={user._id} value={user._id}>
+                {user.firstName} {user.lastName} - ({user.role})
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+      ),
+      renderCell: ({ row: { requestApplicant } }) => {
+        const { firstName = undefined, lastName = undefined } = users.find(
+          (u) => u._id === requestApplicant
+        ) || {
+          firstName: "Deleted",
+          lastName: "User",
+        };
+
+        return (
+          <Box display="flex" justifyContent="center" borderRadius="4px">
+            {firstName} {lastName}
+          </Box>
+        );
+      },
     },
     {
       field: "serialNumber",
@@ -186,6 +236,7 @@ const PettyCash = () => {
       flex: 1,
       editable: true,
     },
+
     {
       field: "spendsDate",
       type: "date",
@@ -260,7 +311,6 @@ const PettyCash = () => {
       flex: 1,
       renderEditCell: (params) => {
         const handleChange = (event) => {
-          console.log("Selection changed:", event.target.value); // Debug log
           const [type, id] = event.target.value.split(":");
 
           // Create updates object
@@ -269,20 +319,26 @@ const PettyCash = () => {
             deductedFromUser: type === "user" ? id : null,
           };
 
-          console.log("Updates to apply:", updates); // Debug log
+          // Update the cell value immediately
+          params.api.setEditCellValue({
+            id: params.id,
+            field: "deductedFromDriver",
+            value: updates.deductedFromDriver,
+          });
+          params.api.setEditCellValue({
+            id: params.id,
+            field: "deductedFromUser",
+            value: updates.deductedFromUser,
+          });
 
           // Update the modifications state
-          setRowModifications((prev) => {
-            const newState = {
-              ...prev,
-              [params.id]: {
-                ...(prev[params.id] || {}),
-                ...updates,
-              },
-            };
-            console.log("New modifications state:", newState); // Debug log
-            return newState;
-          });
+          setRowModifications((prev) => ({
+            ...prev,
+            [params.id]: {
+              ...(prev[params.id] || {}),
+              ...updates,
+            },
+          }));
 
           // Mark row as edited
           setEditedRows((prev) => ({
@@ -355,16 +411,27 @@ const PettyCash = () => {
         );
 
         return (
-          <Button
-            color="secondary"
-            variant="contained"
-            size="small"
-            startIcon={<SaveIcon />}
-            onClick={() => handleRowUpdate(rowId)}
-            disabled={!hasChanges}
-          >
-            {t("save")}
-          </Button>
+          <Box display="flex" gap={1}>
+            <Button
+              color="secondary"
+              variant="contained"
+              size="small"
+              startIcon={<SaveIcon />}
+              onClick={() => handleRowUpdate(rowId)}
+              disabled={!hasChanges}
+            >
+              {t("save")}
+            </Button>
+            <Button
+              color="error"
+              variant="contained"
+              size="small"
+              startIcon={<DeleteIcon />}
+              onClick={() => handleDeleteClick(rowId)}
+            >
+              {t("delete")}
+            </Button>
+          </Box>
         );
       },
     },
@@ -475,6 +542,23 @@ const PettyCash = () => {
       </div>
     );
   }
+
+  const handleDeleteClick = (id) => {
+    setDeleteId(id);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    try {
+      await dispatch(deletePettyCash(deleteId)).unwrap();
+      await dispatch(fetchPettyCash());
+    } catch (error) {
+      console.error("Failed to delete petty cash:", error);
+    } finally {
+      setDeleteDialogOpen(false);
+      setDeleteId(null);
+    }
+  };
 
   if (status === "failed") {
     return (
@@ -684,6 +768,34 @@ const PettyCash = () => {
         ref={componentRef}
         orientation="landscape"
       />
+      <Dialog
+        open={deleteDialogOpen}
+        onClose={() => setDeleteDialogOpen(false)}
+        aria-labelledby="alert-dialog-title"
+        aria-describedby="alert-dialog-description"
+      >
+        <DialogTitle id="alert-dialog-title">
+          {t("confirmDeletePettyCashTitle")}
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText id="alert-dialog-description">
+            {t("confirmDeletePettyCashMessage")}
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDeleteDialogOpen(false)} color="primary">
+            {t("cancel")}
+          </Button>
+          <Button
+            onClick={handleDeleteConfirm}
+            color="error"
+            variant="contained"
+            autoFocus
+          >
+            {t("delete")}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };
@@ -749,19 +861,40 @@ function PettyCashForm({ isNonMobile, handlePrint }) {
               "& > div": { gridColumn: isNonMobile ? undefined : "span 2" },
             }}
           >
-            <TextField
-              fullWidth
-              variant="filled"
-              type="text"
-              label={t("requestApplicant")}
-              onBlur={handleBlur}
-              onChange={handleChange}
-              value={values.requestApplicant}
-              name="requestApplicant"
-              error={!!touched.requestApplicant && !!errors.requestApplicant}
-              helperText={touched.requestApplicant && errors.requestApplicant}
-              sx={{ gridColumn: "span 1" }}
-            />
+            <FormControl fullWidth sx={{ gridColumn: "span 2" }}>
+              <InputLabel id="select-user-label">
+                {t("requestApplicant")}
+              </InputLabel>
+              <Select
+                labelId="select-user-label"
+                id="select-user"
+                value={values.requestApplicant}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                error={!!touched.requestApplicant && !!errors.requestApplicant}
+                name="requestApplicant"
+                label="Select User"
+              >
+                {filteredUsers.map((user) => (
+                  <MenuItem key={user._id} value={user._id}>
+                    {user.firstName} {user.lastName} - ({user.role})
+                  </MenuItem>
+                ))}
+              </Select>
+              {values.requestApplicant && (
+                <IconButton
+                  onClick={() => setFieldValue("requestApplicant", "")}
+                  sx={{ gridColumn: "span 1" }}
+                  style={{
+                    display: "flex",
+                    width: "30px",
+                    height: "30px",
+                  }}
+                >
+                  <ClearIcon />
+                </IconButton>
+              )}
+            </FormControl>
             <TextField
               fullWidth
               variant="filled"
@@ -788,8 +921,11 @@ function PettyCashForm({ isNonMobile, handlePrint }) {
               helperText={touched.serialNumber && errors.serialNumber}
               sx={{ gridColumn: "span 1" }}
             />
+
             <FormControl fullWidth sx={{ gridColumn: "span 2" }}>
-              <InputLabel id="select-user-label">{t("selectUser")}</InputLabel>
+              <InputLabel id="select-user-label">
+                {t("deductFromUser")}
+              </InputLabel>
               <Select
                 labelId="select-user-label"
                 id="select-user"
@@ -824,7 +960,7 @@ function PettyCashForm({ isNonMobile, handlePrint }) {
 
             <FormControl fullWidth sx={{ gridColumn: "span 2" }}>
               <InputLabel id="select-driver-label">
-                {t("selectDriver")}
+                {t("deductFromDriver")}
               </InputLabel>
               <Select
                 labelId="select-driver-label"

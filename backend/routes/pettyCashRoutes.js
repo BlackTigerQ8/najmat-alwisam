@@ -6,6 +6,7 @@ const {
   searchPettyCash,
   fetchCurrentYearPettyCash,
   updatePettyCash,
+  deletePettyCash,
 } = require("../controllers/pettyCashController");
 
 const router = express.Router();
@@ -25,6 +26,7 @@ router
 
 router
   .route("/:id")
-  .patch(protect, restrictTo("Admin", "Accountant"), updatePettyCash);
+  .patch(protect, restrictTo("Admin", "Accountant"), updatePettyCash)
+  .delete(protect, restrictTo("Admin", "Accountant"), deletePettyCash);
 
 module.exports = router;

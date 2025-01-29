@@ -27,19 +27,29 @@ const searchBankStatementRecords = async (req, res) => {
   try {
     const { bankAccountNumber, startDate, endDate } = req.body;
 
-    if (!startDate || !endDate)
-      throw new Error("Start date or end date is missing");
+    if (!startDate || !endDate) {
+      return res.status(400).json({
+        status: "Error",
+        message: "Start date and end date are required",
+      });
+    }
 
-    const bankStatement = await BankStatement.find({
+    // Create date objects for range query
+    const startDateTime = new Date(startDate);
+    const endDateTime = new Date(endDate);
+
+    const query = {
       bankAccountNumber,
       statementDate: {
-        $gte: startDate,
-        $lte: endDate,
+        $gte: startDateTime,
+        $lte: endDateTime,
       },
-    }).sort([
-      ["bankAccountNumber", 1], // Sort by bankAccountNumber in ascending order
-      ["sequence", -1], // Then sort by sequence in descending order
-    ]);
+    };
+
+    const bankStatement = await BankStatement.find(query).sort({
+      statementDate: 1,
+    });
+
     res.status(200).json({
       status: "Success",
       data: {

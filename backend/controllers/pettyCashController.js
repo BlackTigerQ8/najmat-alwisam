@@ -136,36 +136,29 @@ const createPettyCash = async (req, res) => {
 };
 
 const searchPettyCash = async (req, res) => {
-  const { serialNumber, requestApplicant, requestDate, startDate, endDate } =
-    req.body;
-
-  let query = {};
-
-  if (serialNumber) {
-    query.serialNumber = serialNumber;
-  }
-  if (requestApplicant) {
-    query.requestApplicant = new RegExp(requestApplicant, "i"); // Case-insensitive search
-  }
-  if (requestDate) {
-    query.requestDate = new Date(requestDate);
-  }
-
-  if (startDate || endDate) {
-    query.spendsDate = {};
-    if (startDate) {
-      query.spendsDate.$gte = new Date(startDate);
-    }
-    if (endDate) {
-      // Add one day to include the end date fully
-      const endDateTime = new Date(endDate);
-      endDateTime.setDate(endDateTime.getDate() + 1);
-      query.spendsDate.$lt = endDateTime;
-    }
-  }
-
   try {
-    const results = await PettyCash.find(query);
+    const { startDate, endDate } = req.body;
+
+    if (!startDate || !endDate) {
+      return res.status(400).json({
+        status: "Error",
+        message: "Start date and end date are required",
+      });
+    }
+
+    // Create date objects for range query
+    const startDateTime = new Date(startDate);
+    const endDateTime = new Date(endDate);
+
+    const query = {
+      spendsDate: {
+        $gte: startDateTime,
+        $lte: endDateTime,
+      },
+    };
+
+    const results = await PettyCash.find(query).sort({ spendsDate: 1 });
+
     res.status(200).json({
       status: "Success",
       data: {
@@ -284,6 +277,29 @@ const updatePettyCash = async (req, res) => {
   }
 };
 
+const deletePettyCash = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const pettyCash = await PettyCash.findByIdAndDelete(id);
+
+    if (!pettyCash) {
+      return res.status(404).json({
+        message: "Petty cash record not found",
+      });
+    }
+
+    res.status(200).json({
+      status: "Success",
+      data: null,
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: "Error",
+      message: error.message,
+    });
+  }
+};
+
 module.exports = {
   getAllPettyCash,
   createPettyCash,
@@ -291,4 +307,5 @@ module.exports = {
   fetchCurrentMonthPettyCash,
   fetchCurrentYearPettyCash,
   updatePettyCash,
+  deletePettyCash,
 };
