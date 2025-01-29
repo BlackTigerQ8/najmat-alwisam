@@ -310,6 +310,7 @@ const DriversSalary = () => {
   const sumRow = {
     _id: "sum-row",
     sequenceNumber: t("total"),
+    firstName: t("total"),
     name: "",
     vehicle: "",
     mainOrder: calculateColumnSum("mainOrder"),
@@ -505,50 +506,174 @@ const DriversSalary = () => {
           editRowsModel={editRowsModel}
           onEditRowsModelChange={(newModel) => setEditRowsModel(newModel)}
           className={styles.grid}
+          getRowClassName={(params) =>
+            params.row._id === "sum-row" ? `sum-row-highlight` : ""
+          }
+          sx={{
+            "& .sum-row-highlight": {
+              bgcolor: colors.blueAccent[700],
+              "&:hover": {
+                bgcolor: colors.blueAccent[600],
+              },
+            },
+          }}
         />
         <PrintableTable
           rows={rowsWithSum}
           columns={columns}
           ref={componentRef}
+          orientation="landscape"
+          summary={{
+            netCarDriversSalary,
+            netBikeDriversSalary,
+            totalMonthlySalary,
+            totalMonthlyDeduction,
+            totalNetSalary,
+          }}
         />
 
+        {/* Summary Section */}
         <Box mt="20px" className={styles.notes}>
-          <Header title="NOTES" />
-          <Typography color={colors.greenAccent[500]} fontSize={24}>
-            {t("carDriversTotalNetSalary")}
-            <strong>
-              {" "}
-              {netCarDriversSalary} {t("kd")}
-            </strong>
-          </Typography>
-          <Typography color={colors.greenAccent[500]} fontSize={24}>
-            {t("bikeDriversTotalNetSalary")}
-            <strong>
-              {" "}
-              {netBikeDriversSalary} {t("kd")}
-            </strong>
-          </Typography>
-          <Typography color={colors.greenAccent[500]} fontSize={24}>
-            {t("totalMonthlySalary")}
-            <strong>
-              {" "}
-              {totalMonthlySalary} {t("kd")}
-            </strong>
-          </Typography>
-          <Typography color={colors.greenAccent[500]} fontSize={24}>
-            {t("totalMonthlyDeduction")}
-            <strong>
-              {" "}
-              {totalMonthlyDeduction} {t("kd")}
-            </strong>
-          </Typography>
-          <Typography color={colors.greenAccent[500]} fontSize={24}>
-            {t("totalNetSalary")}
-            <strong>
-              {" "}
-              {totalNetSalary} {t("kd")}
-            </strong>
-          </Typography>
+          <Box
+            mt={4}
+            p={3}
+            bgcolor={colors.primary[400]}
+            borderRadius="4px"
+            display="grid"
+            gap="30px"
+            sx={{
+              gridTemplateColumns: {
+                xs: "1fr",
+                sm: "repeat(2, 1fr)",
+                md: "repeat(5, 1fr)",
+              },
+              "& > div": {
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                textAlign: "center",
+                padding: "20px",
+                borderRadius: "8px",
+              },
+            }}
+          >
+            <Box>
+              <Typography
+                variant="subtitle2"
+                color={colors.grey[100]}
+                mb={1}
+                sx={{
+                  fontSize: { xs: "1rem", sm: "1.1rem" },
+                  fontWeight: "bold",
+                }}
+              >
+                {t("carDriversTotalNetSalary")}
+              </Typography>
+              <Typography
+                variant="h4"
+                color="secondary"
+                sx={{
+                  fontSize: { xs: "1.5rem", sm: "2rem", md: "2.125rem" },
+                }}
+              >
+                <span>{netCarDriversSalary}</span>
+                <span style={{ fontSize: "1em" }}> {t("kd")}</span>
+              </Typography>
+            </Box>
+            <Box>
+              <Typography
+                variant="subtitle2"
+                color={colors.grey[100]}
+                mb={1}
+                sx={{
+                  fontSize: { xs: "1rem", sm: "1.1rem" },
+                  fontWeight: "bold",
+                }}
+              >
+                {t("bikeDriversTotalNetSalary")}
+              </Typography>
+              <Typography
+                variant="h4"
+                color="secondary"
+                sx={{
+                  fontSize: { xs: "1.5rem", sm: "2rem", md: "2.125rem" },
+                }}
+              >
+                <span>{netBikeDriversSalary}</span>
+                <span style={{ fontSize: "1em" }}> {t("kd")}</span>
+              </Typography>
+            </Box>
+            <Box>
+              <Typography
+                variant="subtitle2"
+                color={colors.grey[100]}
+                mb={1}
+                sx={{
+                  fontSize: { xs: "1rem", sm: "1.1rem" },
+                  fontWeight: "bold",
+                }}
+              >
+                {t("totalMonthlySalary")}
+              </Typography>
+              <Typography
+                variant="h4"
+                color="secondary"
+                sx={{
+                  fontSize: { xs: "1.5rem", sm: "2rem", md: "2.125rem" },
+                }}
+              >
+                <span>{totalMonthlySalary}</span>
+                <span style={{ fontSize: "1em" }}> {t("kd")}</span>
+              </Typography>
+            </Box>
+            <Box>
+              <Typography
+                variant="subtitle2"
+                color={colors.grey[100]}
+                mb={1}
+                sx={{
+                  fontSize: { xs: "1rem", sm: "1.1rem" },
+                  fontWeight: "bold",
+                }}
+              >
+                {t("totalMonthlyDeduction")}
+              </Typography>
+              <Typography
+                variant="h4"
+                color="secondary"
+                sx={{
+                  fontSize: { xs: "1.5rem", sm: "2rem", md: "2.125rem" },
+                }}
+              >
+                <span>{totalMonthlyDeduction}</span>
+                <span style={{ fontSize: "1em" }}> {t("kd")}</span>
+              </Typography>
+            </Box>
+            <Box>
+              <Typography
+                variant="subtitle2"
+                color={colors.grey[100]}
+                mb={1}
+                sx={{
+                  fontSize: { xs: "1rem", sm: "1.1rem" },
+                  fontWeight: "bold",
+                }}
+              >
+                {t("totalNetSalary")}
+              </Typography>
+              <Typography
+                variant="h4"
+                color="secondary"
+                sx={{
+                  fontSize: { xs: "1.5rem", sm: "2rem", md: "2.125rem" },
+                }}
+              >
+                <span>{totalNetSalary}</span>
+                <span style={{ fontSize: "1em" }}> {t("kd")}</span>
+              </Typography>
+            </Box>
+          </Box>
         </Box>
       </Box>
     </Box>

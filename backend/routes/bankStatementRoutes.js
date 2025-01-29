@@ -6,6 +6,7 @@ const {
   createBankStatementRecord,
   searchBankStatementRecords,
   fetchCurrentYearBankStatement,
+  deleteBankStatement,
 } = require("../controllers/bankStatementController");
 
 const router = express.Router();
@@ -27,4 +28,10 @@ router
     restrictTo("Admin", "Accountant"),
     fetchCurrentYearBankStatement
   );
+
+router
+  .route("/:id")
+  .patch(protect, restrictTo("Admin", "Accountant"), updateBankStatement)
+  .delete(protect, restrictTo("Admin", "Accountant"), deleteBankStatement);
+
 module.exports = router;

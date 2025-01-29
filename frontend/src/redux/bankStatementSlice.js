@@ -102,6 +102,44 @@ export const createBankStatement = createAsyncThunk(
   }
 );
 
+export const updateBankStatement = createAsyncThunk(
+  "bankStatement/updateBankStatement",
+  async ({ id, updates }) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.patch(
+        `${API_URL}/bank-statement/${id}`,
+        updates,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  }
+);
+
+export const deleteBankStatement = createAsyncThunk(
+  "bankStatement/deleteBankStatement",
+  async (id) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.delete(`${API_URL}/bank-statement/${id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  }
+);
+
 const bankStatementSlice = createSlice({
   name: "bankStatement",
   initialState,
@@ -159,6 +197,32 @@ const bankStatementSlice = createSlice({
       .addCase(searchBankStatement.rejected, (state, action) => {
         state.searchStatus = "failed";
         state.error = action.error.message;
+      })
+      .addCase(updateBankStatement.pending, (state) => {
+        state.status = "loading";
+      })
+      .addCase(updateBankStatement.fulfilled, (state, action) => {
+        const updatedStatement = action.payload.data.bankStatement;
+        state.bankStatement = state.bankStatement.map((statement) =>
+          statement._id === updatedStatement._id ? updatedStatement : statement
+        );
+        dispatchToast(i18next.t("updateBankStatementFulfilled"), "success");
+      })
+      .addCase(updateBankStatement.rejected, (state, action) => {
+        dispatchToast(i18next.t("updateBankStatementRejected"), "error");
+      })
+      .addCase(deleteBankStatement.pending, (state) => {
+        state.status = "loading";
+      })
+      .addCase(deleteBankStatement.fulfilled, (state, action) => {
+        const deletedId = action.payload.data.id;
+        state.bankStatement = state.bankStatement.filter(
+          (statement) => statement._id !== deletedId
+        );
+        dispatchToast(i18next.t("deleteBankStatementFulfilled"), "success");
+      })
+      .addCase(deleteBankStatement.rejected, (state, action) => {
+        dispatchToast(i18next.t("deleteBankStatementRejected"), "error");
       });
   },
 });

@@ -206,6 +206,7 @@ const EmployeesSalary = () => {
       headerName: t("remarks"),
       flex: 1,
       editable: true,
+      type: String,
     },
 
     {
@@ -217,16 +218,19 @@ const EmployeesSalary = () => {
       sortable: false,
       filterable: false,
       renderCell: (params) => {
+        const isSumRow = params.row._id === "sum-row";
         return (
           <Box display="flex" justifyContent="center">
-            <Button
-              variant="contained"
-              color="primary"
-              size="small"
-              style={{ marginRight: 8 }}
-              onClick={() => handleUpdate(params.row)}
-              startIcon={<UpdateIcon />}
-            ></Button>
+            {isSumRow ? null : (
+              <Button
+                variant="contained"
+                color="primary"
+                size="small"
+                style={{ marginRight: 8 }}
+                onClick={() => handleUpdate(params.row)}
+                startIcon={<UpdateIcon />}
+              ></Button>
+            )}
           </Box>
         );
       },
@@ -391,29 +395,75 @@ const EmployeesSalary = () => {
         }}
       >
         <DataGrid
-          // rows={Array.isArray(salaries) ? salaries : []}
           rows={rowsWithSum}
           columns={columns}
           getRowId={(row) => row._id}
           className={styles.grid}
+          getRowClassName={(params) =>
+            params.row._id === "sum-row" ? `sum-row-highlight` : ""
+          }
+          sx={{
+            "& .sum-row-highlight": {
+              bgcolor: colors.blueAccent[700],
+              "&:hover": {
+                bgcolor: colors.blueAccent[600],
+              },
+            },
+          }}
         />
+
+        <Box mt="20px" className={styles.notes}>
+          <Box
+            mt={4}
+            p={3}
+            bgcolor={colors.primary[400]}
+            borderRadius="4px"
+            display="grid"
+            gap="30px"
+            sx={{
+              gridTemplateColumns: {
+                xs: "1fr", // Single column on mobile
+                sm: "repeat(2, 1fr)", // Two columns on tablet
+                md: "repeat(1, 1fr)", // Four columns on desktop
+              },
+              "& > div": {
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                textAlign: "center",
+                padding: "20px",
+                borderRadius: "8px",
+              },
+            }}
+          >
+            <Typography
+              color={colors.greenAccent[500]}
+              fontSize={24}
+              display="flex"
+              flexDirection="column"
+              justifyContent="center"
+              alignItems="center"
+            >
+              {": "}
+              {t("employeesTotalNetSalary")}
+              <strong style={{ fontSize: "40px" }}>
+                {netEmployeesSalaries}
+                <span> {t("kd")} </span>
+              </strong>
+            </Typography>
+          </Box>
+        </Box>
 
         <PrintableTable
           rows={salaries}
           columns={columns}
           ref={componentRef}
-          orientation="landscape"
+          orientation="portrait"
+          summary={{
+            netEmployeesSalaries: netEmployeesSalaries,
+          }}
         />
-        <Box mt="20px" className={styles.notes}>
-          <Header title={t("notes")} />
-          <Typography color={colors.greenAccent[500]} fontSize={24}>
-            {t("employeesTotalNetSalary")}
-            <strong>
-              {" "}
-              {netEmployeesSalaries} {t("kd")}
-            </strong>
-          </Typography>
-        </Box>
       </Box>
     </Box>
   );

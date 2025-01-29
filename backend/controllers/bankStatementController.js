@@ -206,10 +206,41 @@ const updateBankStatement = async (req, res) => {
   }
 };
 
+// @desc    Delete bank statement
+// @route   DELETE /api/bank-statement/:id
+// @access  Private/Accountant
+const deleteBankStatement = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const bankStatement = await BankStatement.findByIdAndDelete(id);
+
+    if (!bankStatement) {
+      return res.status(404).json({
+        status: "Error",
+        message: "Bank statement not found",
+      });
+    }
+
+    res.status(200).json({
+      status: "Success",
+      data: {
+        id,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: "Error",
+      message: error.message,
+    });
+  }
+};
+
 module.exports = {
   getAllBankStatement,
   updateBankStatement,
   createBankStatementRecord,
   searchBankStatementRecords,
   fetchCurrentYearBankStatement,
+  deleteBankStatement,
 };

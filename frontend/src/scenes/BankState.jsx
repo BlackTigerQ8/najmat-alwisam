@@ -15,7 +15,14 @@ import {
   InputLabel,
   Select,
   MenuItem,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  Dialog,
+  DialogContentText,
 } from "@mui/material";
+import SaveIcon from "@mui/icons-material/Save";
+import DeleteIcon from "@mui/icons-material/Delete";
 import { DataGrid } from "@mui/x-data-grid";
 import Header from "../components/Header";
 import { tokens } from "../theme";
@@ -26,6 +33,8 @@ import {
   createBankStatement,
   fetchBankStatement,
   searchBankStatement,
+  updateBankStatement,
+  deleteBankStatement,
 } from "../redux/bankStatementSlice";
 import { Formik } from "formik";
 import useMediaQuery from "@mui/material/useMediaQuery";
@@ -90,6 +99,12 @@ const BankState = () => {
     localStorage.getItem("token");
   const [editRowsModel, setEditRowsModel] = useState({});
 
+  const [rows, setRows] = useState([]);
+  const [editedRows, setEditedRows] = useState({});
+  const [rowModifications, setRowModifications] = useState({});
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleteId, setDeleteId] = useState(null);
+
   const getStatementsByAccountNumber = useCallback(
     (selectedAccountNumber) => {
       return bankStatement.filter(
@@ -98,6 +113,11 @@ const BankState = () => {
     },
     [bankStatement]
   );
+
+  useEffect(() => {
+    // Update rows whenever bankStatement or searchResults change
+    setRows(searchStatus ? searchResults : bankStatement);
+  }, [searchStatus, bankStatement, searchResults]);
 
   const totalSpends = useMemo(() => {
     if (searchStatus) {
@@ -127,12 +147,149 @@ const BankState = () => {
     return totalDeposits - totalSpends;
   }, [totalDeposits, totalSpends]);
 
+  const formatNegativeNumber = (value) => {
+    const num = Number(value);
+    if (num < 0) {
+      return (
+        <span style={{ color: "red", fontSize: "1.2em", fontWeight: "bold" }}>
+          ({num.toLocaleString()})
+        </span>
+      );
+    }
+    return num.toLocaleString();
+  };
+  const handleRowUpdate = async (id) => {
+    try {
+      const modifications = rowModifications[id];
+
+      if (!modifications || Object.keys(modifications).length === 0) {
+        return;
+      }
+
+      const formattedModifications = { ...modifications };
+
+      // ... your existing formatting logic ...
+
+      await dispatch(
+        updateBankStatement({
+          id,
+          updates: formattedModifications,
+        })
+      ).unwrap();
+
+      setEditedRows((prev) => {
+        const newState = { ...prev };
+        delete newState[id];
+        return newState;
+      });
+
+      setRowModifications((prev) => {
+        const newState = { ...prev };
+        delete newState[id];
+        return newState;
+      });
+
+      // Update the rows state with the server response
+      await dispatch(fetchBankStatement());
+    } catch (error) {
+      // If save fails, revert the UI to the original state
+      setRows(searchStatus ? searchResults : bankStatement);
+      console.log(error);
+    }
+  };
+
+  const handleDeleteClick = (id) => {
+    setDeleteId(id);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    try {
+      await dispatch(deleteBankStatement(deleteId)).unwrap();
+      await dispatch(fetchBankStatement());
+    } catch (error) {
+      console.error("Failed to delete bank statement:", error);
+    } finally {
+      setDeleteDialogOpen(false);
+      setDeleteId(null);
+    }
+  };
+
+  const processRowUpdate = (newRow, oldRow) => {
+    const id = newRow._id;
+    const changes = {};
+
+    Object.keys(newRow).forEach((field) => {
+      if (newRow[field] !== oldRow[field]) {
+        changes[field] = newRow[field];
+      }
+    });
+
+    if (Object.keys(changes).length > 0) {
+      // Store changes for save operation
+      setRowModifications((prev) => ({
+        ...prev,
+        [id]: {
+          ...(prev[id] || {}),
+          ...changes,
+        },
+      }));
+
+      setEditedRows((prev) => ({
+        ...prev,
+        [id]: true,
+      }));
+
+      // Immediately update the UI
+      setRows((prevRows) =>
+        prevRows.map((row) => (row._id === id ? { ...row, ...changes } : row))
+      );
+    }
+
+    return newRow;
+  };
+
+  // Add calculateColumnSum helper function
+  const calculateColumnSum = (fieldName) => {
+    const data = searchStatus ? searchResults : bankStatement;
+    return data.reduce((total, statement) => {
+      return total + Number(statement[fieldName] || 0);
+    }, 0);
+  };
+
+  const rowsWithSum = useMemo(() => {
+    const sumRow = {
+      _id: "sum-row",
+      sequence: "",
+      statementDate: "",
+      deposits: calculateColumnSum("deposits"),
+      spends: calculateColumnSum("spends"),
+      balance: calculateColumnSum("deposits") - calculateColumnSum("spends"),
+      statementRemarks: "",
+      checkNumber: null,
+      statementDetails: "",
+      actions: "",
+    };
+
+    return [...rows, sumRow];
+  }, [rows, calculateColumnSum, t]);
+
   const columns = [
     {
       field: "sequence",
       headerName: "NO.",
       editable: false,
       flex: 0.5,
+      renderCell: (params) => {
+        if (params.row._id === "sum-row") {
+          return "";
+        }
+        const currentIndex = rowsWithSum.findIndex(
+          (row) => row._id === params.row._id
+        );
+        return currentIndex + 1;
+      },
+      sortable: false,
     },
     {
       field: "statementDate",
@@ -140,13 +297,41 @@ const BankState = () => {
       flex: 1,
       headerAlign: "center",
       align: "center",
-      valueFormatter: (params) => {
-        const date = new Date(params.value);
-        const formattedDate = `${date.getDate()}/${
-          date.getMonth() + 1
-        }/${date.getFullYear()}`;
-        return formattedDate;
+      editable: (params) => params.row._id !== "sum-row",
+      renderCell: (params) => {
+        // Check for sum row
+        if (params.row._id === "sum-row") {
+          return t("total");
+        }
+        // Handle regular date formatting
+        if (params.value) {
+          const date = new Date(params.value);
+          if (!isNaN(date.getTime())) {
+            // Check if date is valid
+            return `${date.getDate()}/${
+              date.getMonth() + 1
+            }/${date.getFullYear()}`;
+          }
+        }
+        return params.value;
       },
+      renderEditCell: (params) => (
+        <TextField
+          fullWidth
+          variant="filled"
+          type="date"
+          value={params.value?.split("T")[0] || ""}
+          onChange={(e) =>
+            params.api.setEditCellValue({
+              id: params.id,
+              field: params.field,
+              value: e.target.value,
+            })
+          }
+          sx={{ width: "100%" }}
+          InputLabelProps={{ shrink: true }}
+        />
+      ),
     },
     {
       field: "deposits",
@@ -155,14 +340,18 @@ const BankState = () => {
       headerAlign: "center",
       align: "center",
       editable: true,
+      type: "number",
+      renderCell: (params) => formatNegativeNumber(params.value),
     },
     {
       field: "spends",
-      headerName: t("spends"),
+      headerName: t("withdrawals"),
       flex: 1,
       headerAlign: "center",
       align: "center",
       editable: true,
+      type: "number",
+      renderCell: (params) => formatNegativeNumber(params.value),
     },
     {
       field: "balance",
@@ -170,6 +359,8 @@ const BankState = () => {
       flex: 1,
       headerAlign: "center",
       align: "center",
+      type: "number",
+      renderCell: (params) => formatNegativeNumber(params.value),
     },
     {
       field: "statementRemarks",
@@ -177,6 +368,7 @@ const BankState = () => {
       flex: 1,
       headerAlign: "center",
       align: "center",
+      editable: true,
     },
     {
       field: "checkNumber",
@@ -184,6 +376,8 @@ const BankState = () => {
       flex: 1,
       headerAlign: "center",
       align: "center",
+      editable: true,
+      type: "number",
     },
     {
       field: "statementDetails",
@@ -191,6 +385,47 @@ const BankState = () => {
       flex: 1,
       headerAlign: "center",
       align: "center",
+      editable: true,
+    },
+    {
+      field: "actions",
+      headerName: t("actions"),
+      flex: 1,
+      sortable: false,
+      filterable: false,
+      renderCell: (params) => {
+        const rowId = params.row._id;
+        const isSumRow = rowId === "sum-row";
+        if (isSumRow) return null;
+
+        const hasChanges = Boolean(
+          editedRows[rowId] && rowModifications[rowId]
+        );
+
+        return (
+          <Box display="flex" gap={1}>
+            <Button
+              color="secondary"
+              variant="contained"
+              size="small"
+              startIcon={<SaveIcon />}
+              onClick={() => handleRowUpdate(rowId)}
+              disabled={!hasChanges}
+            >
+              {t("save")}
+            </Button>
+            <Button
+              color="error"
+              variant="contained"
+              size="small"
+              startIcon={<DeleteIcon />}
+              onClick={() => handleDeleteClick(rowId)}
+            >
+              {t("delete")}
+            </Button>
+          </Box>
+        );
+      },
     },
   ];
 
@@ -366,7 +601,7 @@ const BankState = () => {
                     fullWidth
                     variant="filled"
                     type="number"
-                    label={t("spends")}
+                    label={t("withdrawals")}
                     onBlur={handleBlur}
                     onChange={handleChange}
                     value={values.spends}
@@ -461,38 +696,167 @@ const BankState = () => {
         </Box>
         <Box mt="40px" height="75vh">
           <DataGrid
-            rows={searchStatus ? searchResults : bankStatement}
+            rows={rowsWithSum}
             columns={columns}
             getRowId={(row) => row._id}
             editRowsModel={editRowsModel}
             onEditCellChange={handleCellValueChange}
             className={styles.grid}
+            processRowUpdate={processRowUpdate}
+            onProcessRowUpdateError={(error) => console.log(error)}
+            getRowClassName={(params) =>
+              params.row._id === "sum-row" ? `sum-row-highlight` : ""
+            }
+            sx={{
+              "& .sum-row-highlight": {
+                bgcolor: colors.blueAccent[700],
+                "&:hover": {
+                  bgcolor: colors.blueAccent[600],
+                },
+              },
+            }}
           />
           <PrintableTable
             rows={searchStatus ? searchResults : bankStatement}
             columns={columns}
             ref={componentRef}
+            orientation="landscape"
+            page="bankStatement"
+            summary={{
+              totalDeposits: formatNegativeNumber(totalDeposits),
+              totalSpends: formatNegativeNumber(totalSpends),
+              totalBalance: formatNegativeNumber(totalBalance),
+            }}
           />
-          <Typography variant="h4" color="secondary" mt={4}>
-            {t("totalWithdrawals")} :
-            <strong>
-              <span> {totalSpends} </span> {t("kd")}
-            </strong>
-          </Typography>
-          <Typography variant="h4" color="secondary" mt={4}>
-            {t("totalDeposits")} :
-            <strong>
-              <span> {totalDeposits} </span> {t("kd")}
-            </strong>
-          </Typography>
-          <Typography variant="h4" color="secondary" mt={4}>
-            {t("currentBalance")} :
-            <strong>
-              <span> {totalBalance} </span> {t("kd")}
-            </strong>
-          </Typography>
+          {/* Summary Section */}
+          <Box mt="20px" className={styles.notes}>
+            <Box
+              mt={4}
+              p={3}
+              bgcolor={colors.primary[400]}
+              borderRadius="4px"
+              display="grid"
+              gap="30px"
+              sx={{
+                gridTemplateColumns: {
+                  xs: "1fr",
+                  sm: "repeat(3, 1fr)",
+                  md: "repeat(3, 1fr)",
+                },
+                "& > div": {
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  textAlign: "center",
+                  padding: "20px",
+                  borderRadius: "8px",
+                },
+              }}
+            >
+              <Box>
+                <Typography
+                  variant="subtitle2"
+                  color={colors.grey[100]}
+                  mb={1}
+                  sx={{
+                    fontSize: { xs: "1rem", sm: "1.1rem" },
+                    fontWeight: "bold",
+                  }}
+                >
+                  {t("totalWithdrawals")}
+                </Typography>
+                <Typography
+                  variant="h4"
+                  color="secondary"
+                  sx={{
+                    fontSize: { xs: "1.5rem", sm: "2rem", md: "2.125rem" },
+                  }}
+                >
+                  {formatNegativeNumber(totalSpends)}
+                  <span style={{ fontSize: "1em" }}> KD</span>
+                </Typography>
+              </Box>
+
+              <Box>
+                <Typography
+                  variant="subtitle2"
+                  color={colors.grey[100]}
+                  mb={1}
+                  sx={{
+                    fontSize: { xs: "1rem", sm: "1.1rem" },
+                    fontWeight: "bold",
+                  }}
+                >
+                  {t("totalDeposits")}
+                </Typography>
+                <Typography
+                  variant="h4"
+                  color="secondary"
+                  sx={{
+                    fontSize: { xs: "1.5rem", sm: "2rem", md: "2.125rem" },
+                  }}
+                >
+                  {formatNegativeNumber(totalDeposits)}
+                  <span style={{ fontSize: "1em" }}> KD</span>
+                </Typography>
+              </Box>
+
+              <Box>
+                <Typography
+                  variant="subtitle2"
+                  color={colors.grey[100]}
+                  mb={1}
+                  sx={{
+                    fontSize: { xs: "1rem", sm: "1.1rem" },
+                    fontWeight: "bold",
+                  }}
+                >
+                  {t("currentBalance")}
+                </Typography>
+                <Typography
+                  variant="h4"
+                  color="secondary"
+                  sx={{
+                    fontSize: { xs: "1.5rem", sm: "2rem", md: "2.125rem" },
+                  }}
+                >
+                  {formatNegativeNumber(totalBalance)}
+                  <span style={{ fontSize: "1em" }}> KD</span>
+                </Typography>
+              </Box>
+            </Box>
+          </Box>
         </Box>
       </Box>
+      <Dialog
+        open={deleteDialogOpen}
+        onClose={() => setDeleteDialogOpen(false)}
+        aria-labelledby="alert-dialog-title"
+        aria-describedby="alert-dialog-description"
+      >
+        <DialogTitle id="alert-dialog-title">
+          {t("confirmDeleteBankStatementTitle")}
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText id="alert-dialog-description">
+            {t("confirmDeleteBankStatementMessage")}
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDeleteDialogOpen(false)} color="primary">
+            {t("cancel")}
+          </Button>
+          <Button
+            onClick={handleDeleteConfirm}
+            color="error"
+            variant="contained"
+            autoFocus
+          >
+            {t("delete")}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };
@@ -500,6 +864,8 @@ const BankState = () => {
 export function BankStatementSearchForm({ isNonMobile, handlePrint }) {
   const dispatch = useDispatch();
   const { t } = useTranslation();
+  const theme = useTheme();
+  const colors = tokens(theme.palette.mode);
 
   const onSearchSubmit = async (values) => [
     dispatch(searchBankStatement({ values })),
@@ -581,14 +947,37 @@ export function BankStatementSearchForm({ isNonMobile, handlePrint }) {
               helperText={touched.endDate && errors.endDate}
               sx={{ gridColumn: "span 1" }}
             />
-            <Box display="flex" sx={{ gridColumn: "span 1" }}>
-              <Button type="submit" color="secondary" variant="contained">
-                {t("search")}
+            <Box
+              display="flex"
+              gap="20px"
+              sx={{
+                gridColumn: "span 2",
+                justifyContent: "flex-end",
+                alignItems: "center",
+              }}
+            >
+              <Button
+                type="submit"
+                color="secondary"
+                variant="contained"
+                sx={{
+                  width: "120px",
+                  height: "50px",
+                  "&:hover": { backgroundColor: colors.greenAccent[600] },
+                }}
+              >
+                {t("saveData")}
               </Button>
-            </Box>
-
-            <Box display="flex" sx={{ gridColumn: "span 1" }}>
-              <Button onClick={handlePrint} color="primary" variant="contained">
+              <Button
+                onClick={handlePrint}
+                color="primary"
+                variant="contained"
+                sx={{
+                  width: "120px",
+                  height: "50px",
+                  "&:hover": { backgroundColor: colors.blueAccent[600] },
+                }}
+              >
                 {t("print")}
               </Button>
             </Box>

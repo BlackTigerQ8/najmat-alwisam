@@ -42,11 +42,6 @@ import PrintableTable from "./PrintableTable";
 import SaveIcon from "@mui/icons-material/Save";
 import DeleteIcon from "@mui/icons-material/Delete";
 
-const initialValues = {
-  startDate: "",
-  endDate: "",
-};
-
 const newPettyCashInitialValues = {
   requestApplicant: "",
   requestDate: "",
@@ -244,6 +239,7 @@ const PettyCash = () => {
     {
       field: "spendsDate",
       type: "date",
+
       valueFormatter: (params) => {
         const date = new Date(params.value);
         return `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`;
@@ -701,8 +697,12 @@ const PettyCash = () => {
           borderRadius="4px"
           display="grid"
           gap="30px"
-          gridTemplateColumns="repeat(3, 1fr)"
           sx={{
+            gridTemplateColumns: {
+              xs: "1fr", // Single column on mobile
+              sm: "repeat(2, 1fr)", // Two columns on tablet
+              md: "repeat(3, 1fr)", // Three columns on desktop
+            },
             "& > div": {
               display: "flex",
               flexDirection: "column",
@@ -719,13 +719,22 @@ const PettyCash = () => {
               variant="subtitle2"
               color={colors.grey[100]}
               mb={1}
-              sx={{ fontSize: "1.1rem", fontWeight: "bold" }}
+              sx={{
+                fontSize: { xs: "1rem", sm: "1.1rem" },
+                fontWeight: "bold",
+              }}
             >
               {t("totalSpends")}
             </Typography>
-            <Typography variant="h4" color="secondary">
+            <Typography
+              variant="h4"
+              color="secondary"
+              sx={{
+                fontSize: { xs: "1.5rem", sm: "2rem", md: "2.125rem" },
+              }}
+            >
               <span>{totalSpends}</span>
-              <span style={{ fontSize: "1em" }}> {t("kd")}</span>
+              <span style={{ fontSize: "1em" }}> KD</span>
             </Typography>
           </Box>
           <Box>
@@ -733,13 +742,22 @@ const PettyCash = () => {
               variant="subtitle2"
               color={colors.grey[100]}
               mb={1}
-              sx={{ fontSize: "1.1rem", fontWeight: "bold" }}
+              sx={{
+                fontSize: { xs: "1rem", sm: "1.1rem" },
+                fontWeight: "bold",
+              }}
             >
               {t("totalAmountOnWorkers")}
             </Typography>
-            <Typography variant="h4" color="secondary">
+            <Typography
+              variant="h4"
+              color="secondary"
+              sx={{
+                fontSize: { xs: "1.5rem", sm: "2rem", md: "2.125rem" },
+              }}
+            >
               <span>{totalAmountOnWorker}</span>
-              <span style={{ fontSize: "1em" }}> {t("kd")}</span>
+              <span style={{ fontSize: "1em" }}> KD</span>
             </Typography>
           </Box>
           <Box>
@@ -747,13 +765,22 @@ const PettyCash = () => {
               variant="subtitle2"
               color={colors.grey[100]}
               mb={1}
-              sx={{ fontSize: "1.1rem", fontWeight: "bold" }}
+              sx={{
+                fontSize: { xs: "1rem", sm: "1.1rem" },
+                fontWeight: "bold",
+              }}
             >
               {t("totalAmountOnCompany")}
             </Typography>
-            <Typography variant="h4" color="secondary">
+            <Typography
+              variant="h4"
+              color="secondary"
+              sx={{
+                fontSize: { xs: "1.5rem", sm: "2rem", md: "2.125rem" },
+              }}
+            >
               <span>{totalAmountOnCompany}</span>
-              <span style={{ fontSize: "1em" }}> {t("kd")}</span>
+              <span style={{ fontSize: "1em" }}> KD</span>
             </Typography>
           </Box>
         </Box>
@@ -770,7 +797,12 @@ const PettyCash = () => {
         rows={pettyCash}
         columns={columns}
         ref={componentRef}
-        orientation="landscape"
+        orientation="portrait"
+        page="pettyCash"
+        summary={{
+          totalAmountOnWorker,
+          totalAmountOnCompany,
+        }}
       />
       <Dialog
         open={deleteDialogOpen}
@@ -860,9 +892,11 @@ function PettyCashForm({ isNonMobile, handlePrint }) {
           <Box
             display="grid"
             gap="30px"
-            gridTemplateColumns="repeat(4, minmax(0, 1fr))"
+            gridTemplateColumns="repeat(6, minmax(0, 1fr))"
             sx={{
-              "& > div": { gridColumn: isNonMobile ? undefined : "span 2" },
+              "& > div": {
+                gridColumn: isNonMobile ? undefined : "span 2",
+              },
             }}
           >
             <FormControl fullWidth sx={{ gridColumn: "span 2" }}>
@@ -902,19 +936,6 @@ function PettyCashForm({ isNonMobile, handlePrint }) {
             <TextField
               fullWidth
               variant="filled"
-              type="date"
-              label={t("requestDate")}
-              onBlur={handleBlur}
-              onChange={handleChange}
-              value={values.requestDate}
-              name="requestDate"
-              error={!!touched.requestDate && !!errors.requestDate}
-              helperText={touched.requestDate && errors.requestDate}
-              sx={{ gridColumn: "span 1" }}
-            />
-            <TextField
-              fullWidth
-              variant="filled"
               type="number"
               label={t("serialNumber")}
               onBlur={handleBlur}
@@ -925,89 +946,94 @@ function PettyCashForm({ isNonMobile, handlePrint }) {
               helperText={touched.serialNumber && errors.serialNumber}
               sx={{ gridColumn: "span 1" }}
             />
-
+            <TextField
+              fullWidth
+              variant="filled"
+              type="date"
+              label={t("requestDate")}
+              onBlur={handleBlur}
+              onChange={handleChange}
+              value={values.requestDate}
+              name="requestDate"
+              error={!!touched.requestDate && !!errors.requestDate}
+              helperText={touched.requestDate && errors.requestDate}
+              sx={{ gridColumn: "span 1" }}
+            />
+          </Box>
+          <hr style={{ border: "1px solid #ee8020", margin: "40px 0" }} />
+          <Box
+            display="grid"
+            gap="30px"
+            gridTemplateColumns="repeat(6, minmax(0, 1fr))"
+            sx={{
+              "& > div": { gridColumn: isNonMobile ? undefined : "span 2" },
+            }}
+          >
             <FormControl fullWidth sx={{ gridColumn: "span 2" }}>
-              <InputLabel id="select-user-label">
-                {t("deductFromUser")}
+              <InputLabel id="deducted-from-label">
+                {t("deductedFrom")}
               </InputLabel>
               <Select
-                labelId="select-user-label"
-                id="select-user"
-                value={values.deductedFromUser}
-                onChange={handleChange}
-                onBlur={handleBlur}
-                error={!!touched.deductedFromUser && !!errors.deductedFromUser}
-                name="deductedFromUser"
-                label="Select User"
-                disabled={!!values.deductedFromDriver}
-              >
-                {filteredUsers.map((user) => (
-                  <MenuItem key={user._id} value={user._id}>
-                    {user.firstName} {user.lastName} - ({user.role})
-                  </MenuItem>
-                ))}
-              </Select>
-              {values.deductedFromUser && (
-                <IconButton
-                  onClick={() => setFieldValue("deductedFromUser", "")}
-                  sx={{ gridColumn: "span 1" }}
-                  style={{
-                    display: "flex",
-                    width: "30px",
-                    height: "30px",
-                  }}
-                >
-                  <ClearIcon />
-                </IconButton>
-              )}
-            </FormControl>
-
-            <FormControl fullWidth sx={{ gridColumn: "span 2" }}>
-              <InputLabel id="select-driver-label">
-                {t("deductFromDriver")}
-              </InputLabel>
-              <Select
-                labelId="select-driver-label"
-                id="select-driver"
-                value={values.deductedFromDriver}
-                onChange={handleChange}
+                labelId="deducted-from-label"
+                id="deducted-from"
+                value={
+                  values.deductedFromDriver
+                    ? `driver:${values.deductedFromDriver}`
+                    : values.deductedFromUser
+                    ? `user:${values.deductedFromUser}`
+                    : ""
+                }
+                onChange={(event) => {
+                  const [type, id] = event.target.value.split(":");
+                  setFieldValue(
+                    "deductedFromDriver",
+                    type === "driver" ? id : ""
+                  );
+                  setFieldValue("deductedFromUser", type === "user" ? id : "");
+                }}
                 onBlur={handleBlur}
                 error={
-                  !!touched.deductedFromDriver && !!errors.deductedFromDriver
+                  (!!touched.deductedFromDriver &&
+                    !!errors.deductedFromDriver) ||
+                  (!!touched.deductedFromUser && !!errors.deductedFromUser)
                 }
-                name="deductedFromDriver"
-                label="Select Driver"
-                disabled={!!values.deductedFromUser}
-                MenuProps={{
-                  MenuListProps: { disablePadding: true },
-                  PaperProps: {
-                    style: {
-                      maxHeight: 500,
-                    },
-                  },
-                }}
+                label={t("deductedFrom")}
               >
+                <MenuItem value="">
+                  <em>None</em>
+                </MenuItem>
+                <ListSubheader>{t("drivers")}</ListSubheader>
                 {drivers.map((driver) => (
-                  <MenuItem key={driver._id} value={driver._id}>
+                  <MenuItem key={driver._id} value={`driver:${driver._id}`}>
                     {driver.firstName} {driver.lastName}
                   </MenuItem>
                 ))}
+                <ListSubheader>{t("users")}</ListSubheader>
+                {users
+                  .filter((user) => user.role !== "Admin")
+                  .map((user) => (
+                    <MenuItem key={user._id} value={`user:${user._id}`}>
+                      {user.firstName} {user.lastName} - ({user.role})
+                    </MenuItem>
+                  ))}
               </Select>
-              {values.deductedFromDriver && (
+              {(values.deductedFromDriver || values.deductedFromUser) && (
                 <IconButton
-                  onClick={() => setFieldValue("deductedFromDriver", "")}
-                  sx={{ gridColumn: "span 1" }}
-                  style={{
-                    display: "flex",
-                    width: "30px",
-                    height: "30px",
+                  onClick={() => {
+                    setFieldValue("deductedFromDriver", "");
+                    setFieldValue("deductedFromUser", "");
+                  }}
+                  sx={{
+                    position: "absolute",
+                    right: 32,
+                    top: "50%",
+                    transform: "translateY(-50%)",
                   }}
                 >
                   <ClearIcon />
                 </IconButton>
               )}
             </FormControl>
-
             <FormControl fullWidth sx={{ gridColumn: "span 2" }}>
               <InputLabel id="select-user-label">
                 {t("selectSpendType")}
@@ -1110,34 +1136,34 @@ function PettyCashForm({ isNonMobile, handlePrint }) {
               helperText={touched.currentBalance && errors.currentBalance}
               sx={{ gridColumn: "span 1" }}
             />
-
             <Box
-              display="flex"
-              sx={{ gridColumn: "span 1" }}
-              marginLeft={"20px"}
-              gap={"20px"}
-              justifyContent={"flex-start"}
+              sx={{
+                gridColumn: "span 1",
+                display: "flex",
+                justifyContent: "flex-end",
+              }}
             >
               <Button
                 type="submit"
                 color="secondary"
                 variant="contained"
-                sx={{ width: "50%" }}
+                sx={{ width: "120px", height: "50px" }}
               >
                 {t("saveData")}
               </Button>
             </Box>
+
             <Box
               display="flex"
-              sx={{ gridColumn: "span 1" }}
-              gap={"20px"}
-              justifyContent={"flex-end"}
+              sx={{ gridColumn: "span 2" }}
+              gap="20px"
+              justifyContent="flex-end"
             >
               <Button
                 onClick={handlePrint}
                 color="primary"
                 variant="contained"
-                sx={{ width: "30%", height: "50px" }}
+                sx={{ width: "120px", height: "50px" }}
               >
                 {t("print")}
               </Button>
