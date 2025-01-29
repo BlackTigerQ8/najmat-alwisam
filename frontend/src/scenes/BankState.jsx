@@ -42,11 +42,11 @@ const initialValues = {
   statementRemarks: "",
   checkNumber: "",
   statementDetails: "",
-  bankAccountNumber: 7568,
+  bankAccountNumber: 11010718657,
 };
 
 const searchInitialValues = {
-  bankAccountNumber: 7568,
+  bankAccountNumber: 11010718657,
   startDate: "",
   endDate: "",
 };
@@ -128,6 +128,12 @@ const BankState = () => {
   }, [totalDeposits, totalSpends]);
 
   const columns = [
+    {
+      field: "sequence",
+      headerName: "NO.",
+      editable: false,
+      flex: 0.5,
+    },
     {
       field: "statementDate",
       headerName: t("date"),
@@ -322,8 +328,8 @@ const BankState = () => {
                         touched.bankAccountNumber && errors.bankAccountNumber
                       }
                     >
-                      <MenuItem value={"7568"}>7568</MenuItem>
-                      <MenuItem value={"1638"}>1638</MenuItem>
+                      <MenuItem value={61010108361}>حساب الأرباح</MenuItem>
+                      <MenuItem value={11010718657}>حساب المصاريف</MenuItem>
                     </Select>
                   </FormControl>
                   <TextField
@@ -463,7 +469,7 @@ const BankState = () => {
             className={styles.grid}
           />
           <PrintableTable
-            rows={searchStatus ? searchStatus : bankStatement}
+            rows={searchStatus ? searchResults : bankStatement}
             columns={columns}
             ref={componentRef}
           />
@@ -545,8 +551,8 @@ export function BankStatementSearchForm({ isNonMobile, handlePrint }) {
                   touched.bankAccountNumber && errors.bankAccountNumber
                 }
               >
-                <MenuItem value={"7568"}>7568</MenuItem>
-                <MenuItem value={"1638"}>1638</MenuItem>
+                <MenuItem value={61010108361}>حساب الأرباح</MenuItem>
+                <MenuItem value={11010718657}>حساب المصاريف</MenuItem>
               </Select>
             </FormControl>
             <TextField

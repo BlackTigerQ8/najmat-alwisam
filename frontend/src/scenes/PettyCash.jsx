@@ -183,6 +183,10 @@ const PettyCash = () => {
     dispatch(fetchAllSpendTypes(token));
   }, [token]);
 
+  useEffect(() => {
+    dispatch(fetchPettyCash());
+  }, [dispatch]);
+
   const columns = [
     {
       field: "sequence",
