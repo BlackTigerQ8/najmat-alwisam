@@ -13,6 +13,11 @@ const initialState = {
   searchStatus: "",
   searchError: null,
   currentYearPettyCash: [],
+  lockedValues: {
+    requestApplicant: "",
+    serialNumber: "",
+  },
+  fieldsLocked: false,
 };
 
 const dispatchToast = (message, type) => {
@@ -83,7 +88,10 @@ export const searchPettyCash = createAsyncThunk(
       const token = localStorage.getItem("token");
       const response = await axios.post(
         `${API_URL}/petty-cash/search`,
-        values,
+        {
+          startDate: values.startDate,
+          endDate: values.endDate,
+        },
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -191,7 +199,26 @@ export const deletePettyCash = createAsyncThunk(
 const pettyCashSlice = createSlice({
   name: "pettyCash",
   initialState,
-  reducers: {},
+  reducers: {
+    setLockedValues: (state, action) => {
+      state.lockedValues = {
+        requestApplicant: action.payload.requestApplicant,
+        serialNumber: action.payload.serialNumber,
+      };
+      state.fieldsLocked = true;
+    },
+    clearLockedValue: (state, action) => {
+      const fieldName = action.payload;
+      delete state.lockedValues[fieldName];
+      if (Object.keys(state.lockedValues).length === 0) {
+        state.fieldsLocked = false;
+        state.lockedValues = {
+          requestApplicant: "",
+          serialNumber: "",
+        };
+      }
+    },
+  },
   extraReducers: (builder) => {
     builder
       .addCase(fetchPettyCash.pending, (state) => {
@@ -292,3 +319,4 @@ const pettyCashSlice = createSlice({
 });
 
 export default pettyCashSlice.reducer;
+export const { setLockedValues, clearLockedValue } = pettyCashSlice.actions;

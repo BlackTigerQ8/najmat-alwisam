@@ -120,7 +120,7 @@
   @media print {
     display: flex;
     justify-content: space-between;
-    margin-top: 100px;
+    margin-top: 50px;
     padding: 0 50px;
   }
 }
@@ -144,5 +144,11 @@
     color: red !important;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
+  }
+}
+
+.pageBreak {
+  @media print {
+    page-break-before: always;
   }
 }

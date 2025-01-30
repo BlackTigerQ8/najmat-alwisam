@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   Box,
   Button,
@@ -6,7 +6,10 @@ import {
   Typography,
   useMediaQuery,
   useTheme,
+  Modal,
+  IconButton,
 } from "@mui/material";
+import InfoIcon from "@mui/icons-material/Info";
 import { useSelector, useDispatch } from "react-redux";
 import { DataGrid } from "@mui/x-data-grid";
 import Header from "../components/Header";
@@ -20,12 +23,17 @@ import { fetchUsers } from "../redux/usersSlice";
 import { useTranslation } from "react-i18next";
 import * as yup from "yup";
 import { Formik } from "formik";
+import { useReactToPrint } from "react-to-print";
+import PrintableTable from "./PrintableTable";
+import styles from "./Print.module.css";
 
 const CoSpends = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const dispatch = useDispatch();
   const { t } = useTranslation();
+  const componentRef = useRef();
+  const detailsComponentRef = useRef();
 
   const pettyCash = useSelector((state) => state.pettyCash.pettyCash);
   const bankStatement = useSelector(
@@ -47,6 +55,9 @@ const CoSpends = () => {
     startDate: "",
     endDate: "",
   });
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedSpendType, setSelectedSpendType] = useState(null);
+  const [isSearchActive, setIsSearchActive] = useState(false);
 
   const searchSchema = yup.object().shape({
     startDate: yup.string().required("Start date is required"),
@@ -64,17 +75,31 @@ const CoSpends = () => {
     try {
       dispatch(
         searchCombinedSpends({
-          values,
+          values: {
+            startDate: values.startDate,
+            endDate: values.endDate,
+          },
         })
       );
       setSearchDates({
         startDate: values.startDate,
         endDate: values.endDate,
       });
+      setIsSearchActive(true);
     } catch (error) {
       console.error("Error searching:", error);
     }
   }
+
+  const handleClearSearch = () => {
+    setSearchDates({
+      startDate: "",
+      endDate: "",
+    });
+    setIsSearchActive(false);
+    dispatch(fetchPettyCash());
+    dispatch(fetchBankStatement());
+  };
 
   useEffect(() => {
     dispatch(fetchPettyCash());
@@ -86,23 +111,24 @@ const CoSpends = () => {
 
   const combinedData = useMemo(() => {
     // If we have search results, use those instead of the full data
-    if (searchResults) {
-      const pettyCashData = searchResults.pettyCash.map((item) => ({
-        date: item.requestDate,
-        source: "PettyCash",
-        remarks: item.spendsRemarks,
-        ...item,
-      }));
+    if (isSearchActive && searchResults) {
+      const pettyCashData =
+        searchResults.pettyCash?.map((item) => ({
+          date: item.requestDate,
+          source: "PettyCash",
+          remarks: item.spendsRemarks,
+          ...item,
+        })) || [];
+
       const bankStatementData =
-        searchResults.bankStatement
-          ?.filter((x) => x.spends > 0)
-          .map((item) => ({
-            date: item.statementDate,
-            source: "BankStatement",
-            remarks: item.statementRemarks,
-            cashAmount: item.spends,
-            ...item,
-          })) || [];
+        searchResults.bankStatement?.map((item) => ({
+          date: item.statementDate,
+          source: "BankStatement",
+          remarks: item.statementRemarks,
+          cashAmount: item.spends,
+          ...item,
+        })) || [];
+
       return [...pettyCashData, ...bankStatementData];
     }
 
@@ -113,17 +139,93 @@ const CoSpends = () => {
       remarks: item.spendsRemarks,
       ...item,
     }));
-    const bankStatementData = bankStatement
-      .filter((x) => x.spends > 0)
-      .map((item) => ({
-        date: item.statementDate,
-        source: "BankStatement",
-        remarks: item.statementRemarks,
-        cashAmount: item.spends,
-        ...item,
-      }));
+
+    const bankStatementData =
+      bankStatement
+        .filter((x) => x.spends > 0)
+        .map((item) => ({
+          date: item.statementDate,
+          source: "BankStatement",
+          remarks: item.statementRemarks,
+          cashAmount: item.spends,
+          ...item,
+        })) || [];
+
     return [...pettyCashData, ...bankStatementData];
-  }, [pettyCash, bankStatement, searchResults]);
+  }, [pettyCash, bankStatement, searchResults, isSearchActive]);
+
+  const groupedData = useMemo(() => {
+    // Group data by spendType, and then by source and serialNumber
+    const grouped = combinedData.reduce((acc, item) => {
+      const spendTypeId = item.spendType;
+      const groupKey = `${spendTypeId}-${item.source || ""}-${
+        item.serialNumber || ""
+      }`;
+
+      if (!acc[groupKey]) {
+        acc[groupKey] = {
+          _id: `group-${groupKey}`,
+          spendType: spendTypeId,
+          source: item.source,
+          serialNumber: item.serialNumber,
+          date: item.date, // Keep the date of the first entry
+          cashAmount: 0,
+          details: [],
+          isGroupRow: true,
+          hasMultipleEntries: false,
+        };
+      }
+
+      acc[groupKey].cashAmount += Number(item.cashAmount || 0);
+      acc[groupKey].details.push(item);
+      acc[groupKey].hasMultipleEntries = acc[groupKey].details.length > 1;
+
+      return acc;
+    }, {});
+
+    return Object.values(grouped);
+  }, [combinedData]);
+
+  const handleRowClick = (spendTypeId) => {
+    setSelectedSpendType(
+      groupedData.find((row) => row.spendType === spendTypeId)
+    );
+    setModalOpen(true);
+  };
+
+  // Handle main table printing
+  const handlePrint = useReactToPrint({
+    content: () => componentRef.current,
+  });
+
+  // Handle detailed view printing
+  const handleDetailsPrint = useReactToPrint({
+    content: () => detailsComponentRef.current,
+  });
+
+  // Calculate totals for summary
+  const totalSpends = useMemo(() => {
+    return Number(
+      groupedData.reduce((sum, item) => sum + Number(item.cashAmount || 0), 0)
+    ).toFixed(3);
+  }, [groupedData]);
+
+  const totalAmountOnWorker = useMemo(() => {
+    return Number(
+      combinedData.reduce(
+        (sum, item) =>
+          sum +
+          (item.deductedFromDriver || item.deductedFromUser
+            ? Number(item.cashAmount || 0)
+            : 0),
+        0
+      )
+    ).toFixed(3);
+  }, [combinedData]);
+
+  const totalAmountOnCompany = Number(
+    totalSpends - totalAmountOnWorker
+  ).toFixed(3);
 
   const columns = [
     {
@@ -141,49 +243,65 @@ const CoSpends = () => {
     { field: "serialNumber", headerName: t("serialNumber"), flex: 1 },
     { field: "source", headerName: t("from"), flex: 1 },
     {
-      field: "name",
+      field: "spendType",
       headerName: t("spendTypes"),
       flex: 1,
-      renderCell: ({ row: { spendType } }) => {
-        if (!spendType) return null;
+      align: "center",
+      renderCell: ({ row }) => {
+        if (!row.spendType) return null;
 
-        const spendTypeObj = spendTypes.find((s) => s._id === spendType);
-        if (!spendTypeObj) return "Unknown Type"; // Fallback for deleted/missing spend types
+        const spendTypeObj = spendTypes.find((s) => s._id === row.spendType);
+        if (!spendTypeObj) return "Unknown Type";
 
         return (
-          <Box display="flex" justifyContent="center" borderRadius="4px">
+          <Box display="flex" alignItems="center" gap={1}>
             {spendTypeObj.name}
+            {row.hasMultipleEntries && (
+              <IconButton
+                size="small"
+                onClick={() => handleRowClick(row.spendType)}
+              >
+                <InfoIcon />
+              </IconButton>
+            )}
           </Box>
         );
       },
     },
-    { field: "cashAmount", headerName: t("cashSpends"), flex: 1 },
     {
-      field: "fetchedDeduction",
-      headerName: t("deductedFrom"),
+      field: "cashAmount",
+      headerName: t("cashSpends"),
       flex: 1,
-      renderCell: ({ row: { deductedFromDriver, deductedFromUser } }) => {
-        if (!deductedFromDriver && !deductedFromUser) return null;
-
-        let person = "";
-
-        if (deductedFromDriver) {
-          person = drivers.find((d) => d._id === deductedFromDriver);
-        } else if (deductedFromUser) {
-          person = users.find((u) => u._id === deductedFromUser);
-        }
-
-        // Return null or placeholder if person not found
-        if (!person) return "N/A";
-
-        return (
-          <Box display="flex" justifyContent="center" borderRadius="4px">
-            {person.firstName} {person.lastName}
-          </Box>
-        );
+      valueFormatter: (params) => {
+        return Number(params.value).toFixed(3);
       },
     },
-    { field: "remarks", headerName: t("remarks"), flex: 1 },
+    // {
+    //   field: "fetchedDeduction",
+    //   headerName: t("deductedFrom"),
+    //   flex: 1,
+    //   renderCell: ({ row: { deductedFromDriver, deductedFromUser } }) => {
+    //     if (!deductedFromDriver && !deductedFromUser) return null;
+
+    //     let person = "";
+
+    //     if (deductedFromDriver) {
+    //       person = drivers.find((d) => d._id === deductedFromDriver);
+    //     } else if (deductedFromUser) {
+    //       person = users.find((u) => u._id === deductedFromUser);
+    //     }
+
+    //     // Return null or placeholder if person not found
+    //     if (!person) return "N/A";
+
+    //     return (
+    //       <Box display="flex" justifyContent="center" borderRadius="4px">
+    //         {person.firstName} {person.lastName}
+    //       </Box>
+    //     );
+    //   },
+    // },
+    // { field: "remarks", headerName: t("remarks"), flex: 1 },
   ];
 
   pulsar.register();
@@ -305,9 +423,36 @@ const CoSpends = () => {
                 sx={{ gridColumn: "span 1" }}
                 InputLabelProps={{ shrink: true }}
               />
-              <Button type="submit" color="secondary" variant="contained">
-                {t("search")}
-              </Button>
+              <Box display="flex" gap={2}>
+                <Button type="submit" color="secondary" variant="contained">
+                  {t("search")}
+                </Button>
+                {isSearchActive && (
+                  <Button
+                    type="button"
+                    color="error"
+                    variant="contained"
+                    onClick={handleClearSearch}
+                  >
+                    {t("clear")}
+                  </Button>
+                )}
+              </Box>
+
+              <Box
+                display="flex"
+                sx={{ gridColumn: "span 2" }}
+                gap="20px"
+                justifyContent="flex-end"
+              >
+                <Button
+                  onClick={handlePrint}
+                  color="primary"
+                  variant="contained"
+                >
+                  {t("print")}
+                </Button>
+              </Box>
             </Box>
           </form>
         )}
@@ -337,14 +482,238 @@ const CoSpends = () => {
             borderTop: "none",
             backgroundColor: colors.blueAccent[700],
           },
+          "& .grouped-row": {
+            backgroundColor: colors.blueAccent[900],
+            "&:hover": {
+              backgroundColor: colors.blueAccent[600],
+            },
+          },
         }}
       >
         <DataGrid
-          rows={combinedData}
+          rows={groupedData}
           columns={columns}
           getRowId={(row) => row._id}
+          // getRowClassName={(params) =>
+          //   params.row.hasMultipleEntries ? "grouped-row" : ""
+          // }
         />
       </Box>
+
+      {/* Add Summary Section */}
+      <Box
+        mt={4}
+        p={3}
+        bgcolor={colors.primary[400]}
+        borderRadius="4px"
+        display="grid"
+        gap="30px"
+        sx={{
+          gridTemplateColumns: {
+            xs: "1fr", // Single column on mobile
+            sm: "repeat(2, 1fr)", // Two columns on tablet
+            md: "repeat(3, 1fr)", // Three columns on desktop
+          },
+          "& > div": {
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            textAlign: "center",
+            padding: "20px",
+            borderRadius: "8px",
+          },
+        }}
+      >
+        <Box>
+          <Typography
+            variant="subtitle2"
+            color={colors.grey[100]}
+            mb={1}
+            sx={{
+              fontSize: { xs: "1rem", sm: "1.1rem" },
+              fontWeight: "bold",
+            }}
+          >
+            {t("totalSpends")}
+          </Typography>
+          <Typography
+            variant="h4"
+            color="secondary"
+            sx={{
+              fontSize: { xs: "1.5rem", sm: "2rem", md: "2.125rem" },
+            }}
+          >
+            <span>{totalSpends}</span>
+            <span style={{ fontSize: "1em" }}> KD</span>
+          </Typography>
+        </Box>
+        <Box>
+          <Typography
+            variant="subtitle2"
+            color={colors.grey[100]}
+            mb={1}
+            sx={{
+              fontSize: { xs: "1rem", sm: "1.1rem" },
+              fontWeight: "bold",
+            }}
+          >
+            {t("totalAmountOnWorkers")}
+          </Typography>
+          <Typography
+            variant="h4"
+            color="secondary"
+            sx={{
+              fontSize: { xs: "1.5rem", sm: "2rem", md: "2.125rem" },
+            }}
+          >
+            <span>{totalAmountOnWorker}</span>
+            <span style={{ fontSize: "1em" }}> KD</span>
+          </Typography>
+        </Box>
+        <Box>
+          <Typography
+            variant="subtitle2"
+            color={colors.grey[100]}
+            mb={1}
+            sx={{
+              fontSize: { xs: "1rem", sm: "1.1rem" },
+              fontWeight: "bold",
+            }}
+          >
+            {t("totalAmountOnCompany")}
+          </Typography>
+          <Typography
+            variant="h4"
+            color="secondary"
+            sx={{
+              fontSize: { xs: "1.5rem", sm: "2rem", md: "2.125rem" },
+            }}
+          >
+            <span>{totalAmountOnCompany}</span>
+            <span style={{ fontSize: "1em" }}> KD</span>
+          </Typography>
+        </Box>
+      </Box>
+
+      {/* Hidden Printable Tables */}
+      <div style={{ display: "none" }}>
+        <div ref={componentRef}>
+          {/* Main Summary Table */}
+          <PrintableTable
+            rows={groupedData}
+            columns={columns}
+            page="coSpends"
+            summary={{
+              totalSpends,
+              totalAmountOnWorker,
+              totalAmountOnCompany,
+            }}
+          />
+
+          {/* Detail Tables - One for each grouped item */}
+          {groupedData
+            .filter((group) => group.hasMultipleEntries)
+            .map((group, index) => (
+              <div key={group._id} className={styles.pageBreak}>
+                <PrintableTable
+                  rows={group.details}
+                  columns={[
+                    {
+                      field: "date",
+                      headerName: t("date"),
+                      valueFormatter: (params) => {
+                        const date = new Date(params.value);
+                        return `${date.getDate()}/${
+                          date.getMonth() + 1
+                        }/${date.getFullYear()}`;
+                      },
+                    },
+                    { field: "serialNumber", headerName: t("serialNumber") },
+                    { field: "source", headerName: t("from") },
+                    {
+                      field: "cashAmount",
+                      headerName: t("cashSpends"),
+                      valueFormatter: (params) =>
+                        Number(params.value).toFixed(3),
+                    },
+                    { field: "remarks", headerName: t("remarks") },
+                  ]}
+                  page="coSpendsDetails"
+                  summary={{
+                    totalAmount: group.cashAmount,
+                    spendTypeName: spendTypes.find(
+                      (s) => s._id === group.spendType
+                    )?.name,
+                  }}
+                />
+              </div>
+            ))}
+        </div>
+      </div>
+
+      {/* Details Modal */}
+      <Modal
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        aria-labelledby="spend-type-details"
+      >
+        <Box
+          sx={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            width: "80%",
+            maxHeight: "80vh",
+            bgcolor: colors.primary[400],
+            border: `2px solid ${colors.primary[500]}`,
+            boxShadow: 24,
+            p: 4,
+            overflow: "auto",
+          }}
+        >
+          {selectedSpendType && (
+            <>
+              <Typography variant="h5" mb={3}>
+                {
+                  spendTypes.find((s) => s._id === selectedSpendType.spendType)
+                    ?.name
+                }{" "}
+                - Details
+              </Typography>
+              <DataGrid
+                rows={selectedSpendType.details}
+                columns={[
+                  {
+                    field: "date",
+                    headerName: t("date"),
+                    flex: 1,
+                    valueFormatter: (params) => {
+                      const date = new Date(params.value);
+                      return `${date.getDate()}/${
+                        date.getMonth() + 1
+                      }/${date.getFullYear()}`;
+                    },
+                  },
+                  {
+                    field: "serialNumber",
+                    headerName: t("serialNumber"),
+                    flex: 1,
+                  },
+                  { field: "source", headerName: t("from"), flex: 1 },
+                  { field: "cashAmount", headerName: t("cashSpends"), flex: 1 },
+                  { field: "remarks", headerName: t("remarks"), flex: 1 },
+                ]}
+                getRowId={(row) => row._id}
+                autoHeight
+                pageSize={5}
+                rowsPerPageOptions={[5, 10, 20]}
+              />
+            </>
+          )}
+        </Box>
+      </Modal>
     </Box>
   );
 };

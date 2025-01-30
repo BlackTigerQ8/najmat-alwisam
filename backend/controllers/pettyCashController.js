@@ -148,7 +148,10 @@ const searchPettyCash = async (req, res) => {
 
     // Create date objects for range query
     const startDateTime = new Date(startDate);
+    startDateTime.setHours(0, 0, 0, 0);
+
     const endDateTime = new Date(endDate);
+    endDateTime.setHours(23, 59, 59, 999);
 
     const query = {
       spendsDate: {
@@ -157,7 +160,11 @@ const searchPettyCash = async (req, res) => {
       },
     };
 
-    const results = await PettyCash.find(query).sort({ spendsDate: 1 });
+    const results = await PettyCash.find(query)
+      .sort({ spendsDate: 1 })
+      .populate("spendType")
+      .populate("deductedFromUser")
+      .populate("deductedFromDriver");
 
     res.status(200).json({
       status: "Success",

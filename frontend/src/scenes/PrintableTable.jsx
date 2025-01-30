@@ -112,20 +112,12 @@ const PrintableTable = forwardRef(
             {rows.map((row) => (
               <tr key={row._id}>
                 {printableColumns.map((column) => {
-                  // Debug log
-                  console.log(
-                    "Column:",
-                    column.field,
-                    "Value:",
-                    row[column.field]
-                  );
-
                   return (
                     <td key={column.field} style={{ textAlign: "center" }}>
                       {column.renderCell
                         ? column.renderCell({
-                            row: row, // Pass the full row
-                            value: row[column.field], // And the specific value
+                            row: row,
+                            value: row[column.field],
                           })
                         : typeof row[column.field] === "number"
                         ? formatNegativeNumber(row[column.field])
@@ -142,6 +134,50 @@ const PrintableTable = forwardRef(
         {summary && (
           <div className={styles.summary}>
             <div className={styles.summaryBox}>
+              {/* For CoSpends main summary */}
+              {page === "coSpends" && (
+                <>
+                  <div className={styles.summaryItem}>
+                    <span>{t("totalAmountOnWorkers")}: </span>
+                    <strong>
+                      {summary.totalAmountOnWorker}
+                      <span> {t("kd")} </span>
+                    </strong>
+                  </div>
+                  <div className={styles.summaryItem}>
+                    <span>{t("totalAmountOnCompany")}: </span>
+                    <strong>
+                      {summary.totalAmountOnCompany}
+                      <span> {t("kd")} </span>
+                    </strong>
+                  </div>
+                  <div className={styles.summaryItem}>
+                    <span>{t("totalSpends")}: </span>
+                    <strong>
+                      {summary.totalSpends}
+                      <span> {t("kd")} </span>
+                    </strong>
+                  </div>
+                </>
+              )}
+
+              {/* For CoSpends details */}
+              {page === "coSpendsDetails" && (
+                <>
+                  <div className={styles.summaryItem}>
+                    <span>{t("spendType")}: </span>
+                    <strong>{summary.spendTypeName}</strong>
+                  </div>
+                  <div className={styles.summaryItem}>
+                    <span>{t("totalAmount")}: </span>
+                    <strong>
+                      {summary.totalAmount}
+                      <span> {t("kd")} </span>
+                    </strong>
+                  </div>
+                </>
+              )}
+
               {/* For BankStatement page */}
               {page === "bankStatement" && (
                 <>
@@ -183,6 +219,13 @@ const PrintableTable = forwardRef(
                     <span>{t("totalAmountOnCompany")}: </span>
                     <strong>
                       {summary.totalAmountOnCompany}
+                      <span> {t("kd")} </span>
+                    </strong>
+                  </div>
+                  <div className={styles.summaryItem}>
+                    <span>{t("totalSpends")}: </span>
+                    <strong>
+                      {summary.totalSpends}
                       <span> {t("kd")} </span>
                     </strong>
                   </div>

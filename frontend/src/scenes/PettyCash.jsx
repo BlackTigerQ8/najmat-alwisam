@@ -31,6 +31,8 @@ import {
   searchPettyCash,
   updatePettyCash,
   deletePettyCash,
+  setLockedValues,
+  clearLockedValue,
 } from "../redux/pettyCashSlice";
 import { pulsar } from "ldrs";
 import { fetchDrivers } from "../redux/driversSlice";
@@ -57,9 +59,10 @@ const newPettyCashInitialValues = {
 };
 
 const pettyCashRequestSchema = yup.object().shape({
-  startDate: yup.string(),
+  startDate: yup.string().required(),
   endDate: yup
     .string()
+    .required()
     .test("dates", "End date must be after start date", function (endDate) {
       const { startDate } = this.parent;
       if (!startDate || !endDate) return true;
@@ -96,6 +99,7 @@ const PettyCash = () => {
     startDate: "",
     endDate: "",
   });
+  const [isSearchActive, setIsSearchActive] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleteId, setDeleteId] = useState(null);
 
@@ -123,13 +127,17 @@ const PettyCash = () => {
     try {
       dispatch(
         searchPettyCash({
-          values,
+          values: {
+            startDate: values.startDate,
+            endDate: values.endDate,
+          },
         })
       );
       setSearchDates({
         startDate: values.startDate,
         endDate: values.endDate,
       });
+      setIsSearchActive(true);
 
       // TODO: Uncomment this later
 
@@ -143,6 +151,15 @@ const PettyCash = () => {
       console.error("Row does not have a valid _id field:");
     }
   }
+
+  const handleClearSearch = () => {
+    setSearchDates({
+      startDate: "",
+      endDate: "",
+    });
+    setIsSearchActive(false);
+    dispatch(fetchPettyCash());
+  };
 
   const totalSpends = useMemo(
     () =>
@@ -579,7 +596,7 @@ const PettyCash = () => {
   return (
     <Box m="20px">
       <Header title={t("pettyCashTitle")} subtitle={t("pettyCashSubtitle")} />
-      <Typography variant="h5" color="secondary" mb={2}>
+      <Typography variant="h2" color="secondary" mb={2}>
         {t("searchPettyCash")}
       </Typography>
       <Formik
@@ -640,6 +657,16 @@ const PettyCash = () => {
               <Button type="submit" color="secondary" variant="contained">
                 {t("search")}
               </Button>
+              {isSearchActive && (
+                <Button
+                  type="button"
+                  color="error"
+                  variant="contained"
+                  onClick={handleClearSearch}
+                >
+                  {t("clear")}
+                </Button>
+              )}
             </Box>
           </form>
         )}
@@ -802,6 +829,7 @@ const PettyCash = () => {
         summary={{
           totalAmountOnWorker,
           totalAmountOnCompany,
+          totalSpends,
         }}
       />
       <Dialog
@@ -844,10 +872,18 @@ function PettyCashForm({ isNonMobile, handlePrint }) {
   const filteredUsers = users.filter((user) => user.role !== "Admin");
   const dispatch = useDispatch();
   const { t } = useTranslation();
+  const lockedValues = useSelector((state) => state.pettyCash.lockedValues);
+  const fieldsLocked = useSelector((state) => state.pettyCash.fieldsLocked);
 
-  async function handleFormSubmit(values, options) {
+  const initialFormValues = {
+    ...newPettyCashInitialValues,
+    requestApplicant: lockedValues.requestApplicant || "",
+    serialNumber: lockedValues.serialNumber || "",
+  };
+
+  const handleFormSubmit = async (values, { resetForm }) => {
     try {
-      dispatch(
+      await dispatch(
         createPettyCash({
           values: {
             ...values,
@@ -855,9 +891,24 @@ function PettyCashForm({ isNonMobile, handlePrint }) {
             deductedFromDriver: values.deductedFromDriver || undefined,
           },
         })
+      ).unwrap();
+
+      // Save only requestApplicant and serialNumber to Redux
+      dispatch(
+        setLockedValues({
+          requestApplicant: values.requestApplicant,
+          serialNumber: values.serialNumber,
+        })
       );
 
-      options.resetForm();
+      // Reset form while keeping locked values
+      resetForm({
+        values: {
+          ...newPettyCashInitialValues,
+          requestApplicant: values.requestApplicant,
+          serialNumber: values.serialNumber,
+        },
+      });
 
       // TODO: Uncomment this later
 
@@ -867,14 +918,24 @@ function PettyCashForm({ isNonMobile, handlePrint }) {
       //   companyDeductionAmount: values.companyDeductionAmount,
       //   role: userInfo.role
       // })));
+      dispatch(fetchPettyCash());
     } catch (error) {
-      console.error("Row does not have a valid _id field:");
+      console.error("Error submitting form:", error);
     }
-  }
+  };
+
+  // Add handler for unlocking fields
+  const handleUnlock = (fieldName, setFieldValue) => {
+    dispatch(clearLockedValue(fieldName));
+    setFieldValue(fieldName, "");
+  };
 
   return (
     <Formik
-      initialValues={newPettyCashInitialValues}
+      initialValues={{
+        ...newPettyCashInitialValues,
+        ...(fieldsLocked ? lockedValues : {}),
+      }}
       validationSchema={addNewPettyCashSchema}
       onSubmit={handleFormSubmit}
     >
@@ -912,6 +973,7 @@ function PettyCashForm({ isNonMobile, handlePrint }) {
                 error={!!touched.requestApplicant && !!errors.requestApplicant}
                 name="requestApplicant"
                 label="Select User"
+                disabled={fieldsLocked && lockedValues.requestApplicant}
               >
                 {filteredUsers.map((user) => (
                   <MenuItem key={user._id} value={user._id}>
@@ -919,14 +981,16 @@ function PettyCashForm({ isNonMobile, handlePrint }) {
                   </MenuItem>
                 ))}
               </Select>
-              {values.requestApplicant && (
+              {fieldsLocked && lockedValues.requestApplicant && (
                 <IconButton
-                  onClick={() => setFieldValue("requestApplicant", "")}
-                  sx={{ gridColumn: "span 1" }}
-                  style={{
-                    display: "flex",
-                    width: "30px",
-                    height: "30px",
+                  onClick={() =>
+                    handleUnlock("requestApplicant", setFieldValue)
+                  }
+                  sx={{
+                    position: "absolute",
+                    right: 32,
+                    top: "50%",
+                    transform: "translateY(-50%)",
                   }}
                 >
                   <ClearIcon />
@@ -945,6 +1009,17 @@ function PettyCashForm({ isNonMobile, handlePrint }) {
               error={!!touched.serialNumber && !!errors.serialNumber}
               helperText={touched.serialNumber && errors.serialNumber}
               sx={{ gridColumn: "span 1" }}
+              disabled={fieldsLocked && lockedValues.serialNumber}
+              InputProps={{
+                endAdornment: fieldsLocked && lockedValues.serialNumber && (
+                  <IconButton
+                    onClick={() => handleUnlock("serialNumber", setFieldValue)}
+                    edge="end"
+                  >
+                    <ClearIcon />
+                  </IconButton>
+                ),
+              }}
             />
             <TextField
               fullWidth
@@ -958,6 +1033,7 @@ function PettyCashForm({ isNonMobile, handlePrint }) {
               error={!!touched.requestDate && !!errors.requestDate}
               helperText={touched.requestDate && errors.requestDate}
               sx={{ gridColumn: "span 1" }}
+              InputLabelProps={{ shrink: true }}
             />
           </Box>
           <hr style={{ border: "1px solid #ee8020", margin: "40px 0" }} />
