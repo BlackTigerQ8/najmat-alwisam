@@ -115,7 +115,7 @@ const CoSpends = () => {
       const pettyCashData =
         searchResults.pettyCash?.map((item) => ({
           date: item.requestDate,
-          source: "PettyCash",
+          source: t("pettyCash"),
           remarks: item.spendsRemarks,
           ...item,
         })) || [];
@@ -123,7 +123,7 @@ const CoSpends = () => {
       const bankStatementData =
         searchResults.bankStatement?.map((item) => ({
           date: item.statementDate,
-          source: "BankStatement",
+          source: t("bankStatement"),
           remarks: item.statementRemarks,
           cashAmount: item.spends,
           ...item,
@@ -135,7 +135,7 @@ const CoSpends = () => {
     // Otherwise use the full data
     const pettyCashData = pettyCash.map((item) => ({
       date: item.requestDate,
-      source: "PettyCash",
+      source: t("pettyCash"),
       remarks: item.spendsRemarks,
       ...item,
     }));
@@ -145,7 +145,7 @@ const CoSpends = () => {
         .filter((x) => x.spends > 0)
         .map((item) => ({
           date: item.statementDate,
-          source: "BankStatement",
+          source: t("bankStatement"),
           remarks: item.statementRemarks,
           cashAmount: item.spends,
           ...item,
