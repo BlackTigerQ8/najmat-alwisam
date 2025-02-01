@@ -64,6 +64,7 @@ const ManagerInvoices = () => {
         talabatDeductionAmount: driverInvoice.talabatDeductionAmount,
         ...driverInvoice.driver,
         type: "driver",
+        file: driverInvoice.file,
       });
 
       sequenceNumber++;
@@ -86,6 +87,7 @@ const ManagerInvoices = () => {
         talabatDeductionAmount: 0,
         type: "user",
         ...userInvoice.user,
+        file: userInvoice.file,
       });
 
       sequenceNumber++;
@@ -271,8 +273,9 @@ const ManagerInvoices = () => {
   };
 
   const handleViewFile = (values) => {
-    const fileUrl = values?.file
-      ? `${process.env.REACT_APP_API_URL}/${values?.file}`
+    const decodedPath = decodeURIComponent(values.file);
+    const fileUrl = decodedPath
+      ? `${process.env.REACT_APP_API_URL}/${decodedPath}`
       : null;
 
     if (fileUrl) {

@@ -274,20 +274,29 @@ const createDriverInvoice = async (req, res) => {
 
 const getAllInvoices = async (req, res) => {
   try {
-    let status = undefined;
+    let status = [];
     switch (req.user.role) {
       case "Admin":
-        status = "pendingAdminReview";
+        status = ["pendingAdminReview"];
         break;
       case "Manager":
-        status = "pendingManagerReview";
+        status = ["pendingManagerReview"];
         break;
       case "Accountant":
-        status = "approved";
+        status = ["approved"];
         break;
     }
 
-    const driverInvoices = await getDriverInvoices([status, "visibleToAll"]);
+    console.log("Filtering by status:", status);
+
+    // Debug: First check all invoices without status filter
+    const allInvoices = await DriverInvoice.find().populate("driver");
+    console.log("Total invoices in DB:", allInvoices.length);
+
+    // Then apply the status filter
+    const driverInvoices = await DriverInvoice.find({
+      status: { $in: status },
+    }).populate("driver");
 
     res.status(200).json({
       status: "Success",
@@ -378,7 +387,6 @@ const bikeDriverSalary = (
 
 const getDriverSalaries = async (req, res) => {
   const drivers = await filterDriversByStatus();
-
   const driversData = {};
 
   // Check if user already exists in userData, if not, create new entry
@@ -418,10 +426,11 @@ const getDriverSalaries = async (req, res) => {
           optionalEndDate: endDate,
         }
       : undefined;
-
   const driverInvoices = await getDriverInvoices(status, dateFilter);
 
   for (const invoice of driverInvoices) {
+    if (!invoice?.driver?._id) continue;
+
     const {
       mainOrder = 0,
       additionalOrder = 0,
@@ -468,6 +477,9 @@ const getDriverSalaries = async (req, res) => {
     driverData.salaryMainOrders = mainSalary;
     driverData.salaryAdditionalOrders = additionalSalary;
   }
+
+  // Convert driversData object to array
+  const driverSalariesArray = Object.values(driversData);
 
   res.status(200).json({
     status: "Success",
@@ -889,28 +901,54 @@ const getDriverSummary = async (req, res) => {
 
 const getDriverStatsByMonth = async (req, res) => {
   try {
-    const driverInvoices = await getDriverInvoices([
-      "approved",
-      "visibleToAll",
-    ]);
+    const currentDate = new Date();
+    const currentYear = currentDate.getFullYear();
 
-    // Grouping data by month and driver type
+    // Get start and end of current year
+    const yearStart = new Date(currentYear, 0, 1); // January 1st of current year
+    const yearEnd = new Date(currentYear, 11, 31); // December 31st of current year
+
+    // Get all invoices for the current year
+    const yearInvoices = await DriverInvoice.find({
+      invoiceDate: {
+        $gte: yearStart,
+        $lte: yearEnd,
+      },
+      status: {
+        $in: ["approved", "visibleToAll", "visibleToAllArchived"],
+      },
+    }).populate("driver");
+
+    // Initialize stats for all months of the current year
     const monthlyStats = {};
-    for (let i = 0; i < 12; i++) {
-      monthlyStats[i + 1] = {
-        car: { totalOrders: 0, totalHours: 0 },
-        bike: { totalOrders: 0, totalHours: 0 },
+    for (let month = 1; month <= 12; month++) {
+      monthlyStats[month] = {
+        car: { totalOrders: 0, totalCash: 0, totalHours: 0 },
+        bike: { totalOrders: 0, totalCash: 0, totalHours: 0 },
+        totalOrders: 0,
+        totalCash: 0,
       };
     }
 
-    driverInvoices.forEach((invoice) => {
+    // Process invoices
+    yearInvoices.forEach((invoice) => {
+      if (!invoice.driver?.vehicle) return;
+
       const invoiceDate = new Date(invoice.invoiceDate);
-      const monthYear = `${invoiceDate.getMonth() + 1}`;
+      const month = invoiceDate.getMonth() + 1; // Get 1-based month
       const driverType = invoice.driver.vehicle.toLowerCase();
 
-      monthlyStats[monthYear][driverType].totalOrders +=
-        invoice.mainOrder + invoice.additionalOrder;
-      monthlyStats[monthYear][driverType].totalHours += invoice.hour;
+      const orders = (invoice.mainOrder || 0) + (invoice.additionalOrder || 0);
+      const cash = invoice.cash || 0;
+
+      // Update vehicle-specific stats
+      monthlyStats[month][driverType].totalOrders += orders;
+      monthlyStats[month][driverType].totalHours += invoice.hour || 0;
+      monthlyStats[month][driverType].totalCash += cash;
+
+      // Update combined totals
+      monthlyStats[month].totalOrders += orders;
+      monthlyStats[month].totalCash += cash;
     });
 
     res.status(200).json({
@@ -918,6 +956,7 @@ const getDriverStatsByMonth = async (req, res) => {
       data: monthlyStats,
     });
   } catch (error) {
+    console.error("Error in getDriverStatsByMonth:", error);
     res.status(500).json({
       status: "Error",
       message: error.message,

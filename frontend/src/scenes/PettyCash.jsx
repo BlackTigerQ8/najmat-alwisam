@@ -58,31 +58,6 @@ const newPettyCashInitialValues = {
   serialNumber: "",
 };
 
-const pettyCashRequestSchema = yup.object().shape({
-  startDate: yup.string().required(),
-  endDate: yup
-    .string()
-    .required()
-    .test("dates", "End date must be after start date", function (endDate) {
-      const { startDate } = this.parent;
-      if (!startDate || !endDate) return true;
-      return new Date(endDate) >= new Date(startDate);
-    }),
-});
-
-const addNewPettyCashSchema = yup.object().shape({
-  requestApplicant: yup.string().required(),
-  requestDate: yup.string().required(),
-  spendsDate: yup.string().required(),
-  spendsReason: yup.string().required(),
-  cashAmount: yup.string().required(),
-  spendType: yup.string().required(),
-  spendsRemarks: yup.string(),
-  deductedFromUser: yup.string(),
-  deductedFromDriver: yup.string(),
-  currentBalance: yup.number(),
-});
-
 const PettyCash = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
@@ -117,6 +92,18 @@ const PettyCash = () => {
   const token =
     useSelector((state) => state.drivers.token) ||
     localStorage.getItem("token");
+
+  const pettyCashRequestSchema = yup.object().shape({
+    startDate: yup.string().required(t("startDateRequired")),
+    endDate: yup
+      .string()
+      .required(t("endDateRequired"))
+      .test("dates", t("endDateMustBeAfterStartDate"), function (endDate) {
+        const { startDate } = this.parent;
+        if (!startDate || !endDate) return true;
+        return new Date(endDate) >= new Date(startDate);
+      }),
+  });
 
   const handlePrint = useReactToPrint({
     content: () => componentRef.current,
@@ -277,6 +264,7 @@ const PettyCash = () => {
       flex: 1,
       editable: true,
       type: "number",
+      valueFormatter: (params) => Number(params.value).toFixed(3),
     },
     {
       field: "spendType",
@@ -929,6 +917,20 @@ function PettyCashForm({ isNonMobile, handlePrint }) {
     dispatch(clearLockedValue(fieldName));
     setFieldValue(fieldName, "");
   };
+
+  const addNewPettyCashSchema = yup.object().shape({
+    requestApplicant: yup.string().required(t("requestApplicantRequired")),
+    serialNumber: yup.string().required(t("serialNumberRequired")),
+    requestDate: yup.string().required(t("requestDateRequired")),
+    spendsDate: yup.string().required(t("spendsDateRequired")),
+    spendsReason: yup.string().required(t("spendsReasonRequired")),
+    cashAmount: yup.string().required(t("cashAmountRequired")),
+    spendType: yup.string().required(t("spendTypeRequired")),
+    spendsRemarks: yup.string(),
+    deductedFromUser: yup.string(),
+    deductedFromDriver: yup.string(),
+    currentBalance: yup.number(),
+  });
 
   return (
     <Formik

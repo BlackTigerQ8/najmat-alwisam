@@ -162,12 +162,19 @@ i18n
           submit: "Submit",
           selectUser: "Select User",
           selectDriver: "Select Driver",
+          deductionReasonRequired: "Deduction reason is required",
+          fileRequired: "File is required",
+          fileTypeMustBePdf: "Only PDF files are allowed",
+          selectedFieldsRequired: "Please select a driver or user",
+          atLeastOneFieldRequired:
+            "Please fill at least one of Talabat Deduction Amount or Company Deduction Amount",
           /////////////
           contactTitle: "CONTACT",
           contactSubtitle: "Contact page to contact the company team",
           /////////////
           MESSAGES: "MESSAGES",
           messagesSubtitle: "Received Messages Page",
+
           /////////////
           invoicesTitle: "INVOICES",
           invoices: "Invoices",
@@ -280,6 +287,16 @@ i18n
           saveData: "Save Data",
           totalSpends: "Total Expenses",
           totalAmountOnWorkers: "Total amount on employees/drivers",
+          requestApplicantRequired: "Select request applicant",
+          serialNumberRequired: "Enter serial number",
+          requestDateRequired: "Select request date",
+          spendsDateRequired: "Select spends date",
+          spendsReasonRequired: "Enter spends reason",
+          cashAmountRequired: "Enter cash amount",
+          spendTypeRequired: "Select spend type",
+          startDateRequired: "Select start date",
+          endDateRequired: "Select end date",
+          endDateMustBeAfterStartDate: "End date must be after start date",
 
           updatePettyCashFulfilled: "Petty cash is updated successfully!",
           updatePettyCashRejected:
@@ -469,6 +486,9 @@ i18n
           deleteArchiveRejected: "Can't delete archive, please try later",
           noFileAvailable: "No file available for this archive",
           backToMainSystem: "Back to system",
+          totalOrdersThisMonth: "Total Orders This Month",
+          totalCashThisMonth: "Total Cash This Month",
+          totalHoursThisMonth: "Total Hours This Month",
         },
       },
       ar: {
@@ -620,9 +640,15 @@ i18n
           submit: "تقديم",
           selectUser: "اختر الموظف",
           selectDriver: "اختر السائق",
+          deductionReasonRequired: "سبب الخصم مطلوب",
+          fileRequired: "الملف مطلوب",
+          fileTypeMustBePdf: "يجب أن يكون الملف بصيغة PDF",
+          selectedFieldsRequired: "يجب اختيار سائق أو موظف",
+          atLeastOneFieldRequired: "يجب ملء إحدى قيمتي خصم طلبات أو خصم الشركة",
           /////////////
           contactTitle: "التواصل",
           contactSubtitle: "صفحة الاتصال للتواصل مع فريق الشركة",
+
           /////////////
           MESSAGES: "الرسائل",
           messagesSubtitle: "صفحة الرسائل المستلمة",
@@ -734,6 +760,18 @@ i18n
           saveData: "حفظ البيانات",
           totalSpends: "إجمالي المصروفات",
           totalAmountOnWorkers: "إجمالي المبلغ على الموظفين/السائقين",
+          requestApplicantRequired: "اختر مقدم الطلب",
+          serialNumberRequired: "ادخل الرقم التسلسلي",
+          requestDateRequired: "اختر تاريخ الطلب",
+          spendsDateRequired: "اختر تاريخ المصروفات",
+          spendsReasonRequired: "ادخل سبب المصروفات",
+          cashAmountRequired: "ادخل مبلغ العهدة النقدية",
+          spendTypeRequired: "اختر نوع المصروف",
+          startDateRequired: "اختر تاريخ البدء",
+          endDateRequired: "اختر تاريخ الانتهاء",
+          endDateMustBeAfterStartDate:
+            "يجب أن يكون تاريخ الانتهاء بعد تاريخ البدء",
+
           updatePettyCashFulfilled: "تم تحديث العهدة النقدية بنجاح",
           updatePettyCashRejected:
             "لا يمكن تحديث العهدة النقدية، يمكنك المحاولة لاحقًا",
@@ -914,6 +952,9 @@ i18n
           deleteArchiveRejected: "فشل حذف الملف",
           noFileAvailable: "لا يوجد ملف في الأرشيف",
           backToMainSystem: "الرجوع إلى صفحة النظام",
+          totalOrdersThisMonth: "إجمالي الطلبات هذا الشهر",
+          totalCashThisMonth: "إجمالي النقود هذا الشهر",
+          totalHoursThisMonth: "إجمالي الساعات هذا الشهر",
         },
       },
     },

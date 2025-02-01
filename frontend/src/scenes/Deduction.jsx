@@ -37,49 +37,6 @@ const initialValues = {
   uploadedFile: null,
 };
 
-const userSchema = yup
-  .object()
-  .shape({
-    deductionReason: yup.string().required("Required"),
-    talabatDeductionAmount: yup.string(),
-    companyDeductionAmount: yup.string(),
-    selectedDriver: yup.string(),
-    selectedUser: yup.string(),
-    uploadedFile: yup
-      .mixed()
-      .required("Required")
-      .test("fileType", "Only PDF files are allowed", (value) => {
-        return value && value.type === "application/pdf";
-      }),
-  })
-  .test({
-    name: "selectedFieldsRequired",
-    test: function (values) {
-      const { selectedDriver, selectedUser } = values;
-      if (!selectedDriver && !selectedUser) {
-        throw this.createError({
-          path: "selectedDriver",
-          message: "Please select a driver or user",
-        });
-      }
-      return true;
-    },
-  })
-  .test({
-    name: "atLeastOneFieldRequired",
-    test: function (values) {
-      const { talabatDeductionAmount, companyDeductionAmount } = values;
-      if (!talabatDeductionAmount && !companyDeductionAmount) {
-        throw this.createError({
-          path: "talabatDeductionAmount",
-          message:
-            "Please fill at least one of Talabat Deduction Amount or Company Deduction Amount",
-        });
-      }
-      return true;
-    },
-  });
-
 const Deduction = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
@@ -98,6 +55,48 @@ const Deduction = () => {
   const status = useSelector((state) => state.drivers.status);
   const error = useSelector((state) => state.drivers.error);
   const { t } = useTranslation();
+
+  const userSchema = yup
+    .object()
+    .shape({
+      deductionReason: yup.string().required(t("deductionReasonRequired")),
+      talabatDeductionAmount: yup.string(),
+      companyDeductionAmount: yup.string(),
+      selectedDriver: yup.string(),
+      selectedUser: yup.string(),
+      uploadedFile: yup
+        .mixed()
+        .required(t("fileRequired"))
+        .test("fileType", t("fileTypeMustBePdf"), (value) => {
+          return value && value.type === "application/pdf";
+        }),
+    })
+    .test({
+      name: "selectedFieldsRequired",
+      test: function (values) {
+        const { selectedDriver, selectedUser } = values;
+        if (!selectedDriver && !selectedUser) {
+          throw this.createError({
+            path: "selectedDriver",
+            message: t("selectedFieldsRequired"),
+          });
+        }
+        return true;
+      },
+    })
+    .test({
+      name: "atLeastOneFieldRequired",
+      test: function (values) {
+        const { talabatDeductionAmount, companyDeductionAmount } = values;
+        if (!talabatDeductionAmount && !companyDeductionAmount) {
+          throw this.createError({
+            path: "talabatDeductionAmount",
+            message: t("atLeastOneFieldRequired"),
+          });
+        }
+        return true;
+      },
+    });
 
   useEffect(() => {
     dispatch(fetchDrivers(token));
@@ -332,6 +331,8 @@ const Deduction = () => {
                 </InputLabel>
                 <Input
                   id="uploadedFile"
+                  accept="application/pdf"
+                  crossOrigin="anonymous"
                   type="file"
                   name="uploadedFile"
                   onBlur={handleBlur}

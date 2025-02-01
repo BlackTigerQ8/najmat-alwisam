@@ -224,22 +224,23 @@ const logoutUser = (req, res) => {
 };
 
 const getAllInvoices = async (req, res) => {
-  console.log("In get all employee invoices method");
+  console.log("In get all employee invoices method >>>>");
   try {
-    let status = undefined;
+    let status = [];
     switch (req.user.role) {
       case "Admin":
-        status = "pendingAdminReview";
+        status = ["pendingAdminReview"];
         break;
       case "Manager":
-        status = "pendingManagerReview";
+        status = ["pendingManagerReview"];
         break;
       case "Accountant":
-        status = "approved";
+        status = ["approved"];
         break;
     }
+
     const employeeInvoices = await getEmployeeInvoices([
-      status,
+      ...status,
       "visibleToAll",
     ]);
 
@@ -258,17 +259,23 @@ const getAllInvoices = async (req, res) => {
   }
 };
 
-async function getEmployeeInvoices(status = ["approved"], customDates) {
-  const { startDate, endDate } = customDates || getMonthDateRange();
-
-  const invoices = await EmployeeInvoice.find({
+async function getEmployeeInvoices(
+  status = ["approved"],
+  customDates = undefined
+) {
+  const query = {
     status: { $in: status },
-    invoiceDate: {
-      $gte: startDate,
-      $lt: endDate,
-    },
-  }).populate("user");
+  };
 
+  // Only add date range if customDates is provided
+  if (customDates) {
+    query.invoiceDate = {
+      $gte: customDates.startDate,
+      $lt: customDates.endDate,
+    };
+  }
+
+  const invoices = await EmployeeInvoice.find(query).populate("user");
   return invoices.filter((invoice) => invoice.user);
 }
 

@@ -13,6 +13,18 @@ import { fetchDrivers, fetchDriverSummary } from "../../redux/driversSlice";
 import { useEffect } from "react";
 import { fetchDriverStatsByMonth } from "../../redux/invoiceSlice";
 
+const calculateTotalStats = (monthlyStats) => {
+  return Object.values(monthlyStats).reduce(
+    (totals, month) => {
+      return {
+        totalOrders: totals.totalOrders + (month.totalOrders || 0),
+        totalCash: totals.totalCash + (month.totalCash || 0),
+      };
+    },
+    { totalOrders: 0, totalCash: 0 }
+  );
+};
+
 const Dashboard = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
@@ -26,7 +38,9 @@ const Dashboard = () => {
   const monthlyStats = invoice.monthlyStats;
   const monthlyStatsStatus = invoice.monthlyStatsStatus;
 
-  // console.log("invoice", invoice, ",monthlyStats", invoice.monthlyStats);
+  const allMonthsTotals = calculateTotalStats(monthlyStats);
+
+  const currentYear = new Date().getFullYear();
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -96,7 +110,7 @@ const Dashboard = () => {
         >
           <StatBox
             title={summary.mainOrder + summary.additionalOrder}
-            subtitle={t("totalOrders")}
+            subtitle={t("totalOrdersThisMonth")}
             icon={
               <DeliveryDiningOutlinedIcon
                 sx={{ color: colors.greenAccent[600], fontSize: "26px" }}
@@ -114,7 +128,7 @@ const Dashboard = () => {
         >
           <StatBox
             title={`${summary.totalCash.toFixed(3)} ${t("kd")}`}
-            subtitle={t("totalCash")}
+            subtitle={t("totalCashThisMonth")}
             icon={
               <PointOfSaleIcon
                 sx={{ color: colors.greenAccent[600], fontSize: "26px" }}
@@ -132,7 +146,7 @@ const Dashboard = () => {
         >
           <StatBox
             title={summary.totalHours}
-            subtitle={t("totalHours")}
+            subtitle={t("totalHoursThisMonth")}
             icon={
               <AccessTimeFilledIcon
                 sx={{ color: colors.greenAccent[600], fontSize: "26px" }}
@@ -147,27 +161,79 @@ const Dashboard = () => {
           gridRow="span 2"
           backgroundColor={colors.primary[400]}
         >
-          <Box
-            mt="25px"
-            p="0 30px"
-            display="flex "
-            justifyContent="space-between"
-            alignItems="center"
-          >
+          <Box mt="25px" p="0 30px" alignItems="center">
             <Box>
-              <Typography
-                variant="h5"
-                fontWeight="600"
-                color={colors.grey[100]}
-              >
-                {t("totalCash")}
-              </Typography>
+              <Box display="flex" gap="20px" justifyContent="space-between">
+                <Typography
+                  variant="h5"
+                  fontWeight="600"
+                  color={colors.grey[100]}
+                >
+                  {t("totalCash")}
+                </Typography>
+                <Typography
+                  variant="h5"
+                  fontWeight="600"
+                  color={colors.grey[100]}
+                >
+                  {currentYear} {t("year")}
+                </Typography>
+              </Box>
               <Typography
                 variant="h3"
                 fontWeight="bold"
                 color={colors.greenAccent[500]}
               >
-                {summary.totalCash.toFixed(3)} {t("kd")}
+                {allMonthsTotals.totalCash.toFixed(3)} {t("kd")}
+              </Typography>
+            </Box>
+            <Box>
+              {/* <IconButton>
+                <DownloadOutlinedIcon
+                  sx={{ fontSize: "26px", color: colors.greenAccent[500] }}
+                />
+              </IconButton> */}
+            </Box>
+          </Box>
+          <Box height="250px" m="-20px 0 0 0">
+            <LineChart
+              isDashboard={true}
+              monthlyStats={monthlyStats}
+              chartField="totalCash"
+              yAxisMin={0}
+            />
+          </Box>
+        </Box>
+        {/* ROW 2 */}
+        <Box
+          gridColumn="span 12"
+          gridRow="span 2"
+          backgroundColor={colors.primary[400]}
+        >
+          <Box mt="25px" p="0 30px" alignItems="center">
+            <Box>
+              <Box display="flex" gap="20px" justifyContent="space-between">
+                <Typography
+                  variant="h5"
+                  fontWeight="600"
+                  color={colors.grey[100]}
+                >
+                  {t("totalOrders")}
+                </Typography>
+                <Typography
+                  variant="h5"
+                  fontWeight="600"
+                  color={colors.grey[100]}
+                >
+                  {currentYear} {t("year")}
+                </Typography>
+              </Box>
+              <Typography
+                variant="h3"
+                fontWeight="bold"
+                color={colors.greenAccent[500]}
+              >
+                {allMonthsTotals.totalOrders}
               </Typography>
             </Box>
             <Box>
@@ -183,52 +249,6 @@ const Dashboard = () => {
               isDashboard={true}
               monthlyStats={monthlyStats}
               chartField="totalOrders"
-              yAxisMin={0}
-            />
-          </Box>
-        </Box>
-        {/* ROW 2 */}
-        <Box
-          gridColumn="span 12"
-          gridRow="span 2"
-          backgroundColor={colors.primary[400]}
-        >
-          <Box
-            mt="25px"
-            p="0 30px"
-            display="flex "
-            justifyContent="space-between"
-            alignItems="center"
-          >
-            <Box>
-              <Typography
-                variant="h5"
-                fontWeight="600"
-                color={colors.grey[100]}
-              >
-                {t("totalOrders")}
-              </Typography>
-              <Typography
-                variant="h3"
-                fontWeight="bold"
-                color={colors.greenAccent[500]}
-              >
-                {summary.mainOrder + summary.additionalOrder}
-              </Typography>
-            </Box>
-            <Box>
-              {/* <IconButton>
-                <DownloadOutlinedIcon
-                  sx={{ fontSize: "26px", color: colors.greenAccent[500] }}
-                />
-              </IconButton> */}
-            </Box>
-          </Box>
-          <Box height="250px" m="-20px 0 0 0">
-            <LineChart
-              isDashboard={true}
-              monthlyStats={monthlyStats}
-              chartField="totalHours"
               yAxisMin={0}
             />
           </Box>

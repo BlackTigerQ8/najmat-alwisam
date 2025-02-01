@@ -71,11 +71,11 @@ const DriversSalary = () => {
     return carDrivers.reduce((total, driver) => {
       return (
         total +
-        Number(driver.salaryMainOrders) +
-        Number(driver.salaryAdditionalOrders) -
-        Number(driver.talabatDeductionAmount) -
-        Number(driver.companyDeductionAmount) -
-        Number(driver.pettyCashDeductionAmount)
+        Number(driver?.salaryMainOrders) +
+        Number(driver?.salaryAdditionalOrders) -
+        Number(driver?.talabatDeductionAmount) -
+        Number(driver?.companyDeductionAmount) -
+        Number(driver?.pettyCashDeductionAmount)
       );
     }, 0);
   }, [driversSalaries]);

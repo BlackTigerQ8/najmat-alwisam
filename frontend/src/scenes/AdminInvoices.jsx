@@ -30,6 +30,9 @@ const AdminInvoices = () => {
   const employeeInvoiceStatus = useSelector(
     (state) => state.invoice.employeeInvoicesStatus
   );
+  const token =
+    useSelector((state) => state.drivers.token) ||
+    localStorage.getItem("token");
 
   const status =
     driverInvoiceStatus === "loading" || driverInvoiceStatus === "failed"
@@ -45,8 +48,10 @@ const AdminInvoices = () => {
   const userInvoices = useSelector((state) => state.invoice?.employeeInvoices);
 
   const combinedInvoices = useMemo(() => {
-    const combinedInvoices = [];
+    console.log("Driver Invoices:", invoices);
+    console.log("Employee Invoices:", userInvoices);
 
+    const combinedInvoices = [];
     let sequenceNumber = 1;
 
     for (const driverInvoice of invoices) {
@@ -98,9 +103,12 @@ const AdminInvoices = () => {
 
     return combinedInvoices;
   }, [invoices, userInvoices]);
-  const token =
-    useSelector((state) => state.drivers.token) ||
-    localStorage.getItem("token");
+
+  useEffect(() => {
+    dispatch(fetchDrivers(token));
+    dispatch(fetchInvoices(token));
+    dispatch(fetchEmployeeInvoices(token));
+  }, [dispatch, token]);
 
   const columns = [
     {
@@ -113,7 +121,7 @@ const AdminInvoices = () => {
       headerName: t("name"),
       flex: 1.75,
       cellClassName: "name-column--cell",
-      renderCell: ({ row: { firstName, lastName } }) => {
+      renderCell: ({ row: { firstName, lastName, type } }) => {
         return (
           <Box
             display="flex"
@@ -121,7 +129,8 @@ const AdminInvoices = () => {
             alignItems="center"
             borderRadius="4px"
           >
-            {firstName} {lastName}
+            {firstName} {lastName}{" "}
+            {type === "Employee" ? `(${t("employee")})` : ""}
           </Box>
         );
       },
@@ -275,8 +284,9 @@ const AdminInvoices = () => {
   };
 
   const handleViewFile = (values) => {
-    const fileUrl = values?.file
-      ? `${process.env.REACT_APP_API_URL}/${values?.file}`
+    const decodedPath = decodeURIComponent(values.file);
+    const fileUrl = decodedPath
+      ? `${process.env.REACT_APP_API_URL}/${decodedPath}`
       : null;
 
     if (fileUrl) {
