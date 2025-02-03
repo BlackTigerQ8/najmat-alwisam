@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import * as yup from "yup";
 import {
   Box,
@@ -8,6 +8,11 @@ import {
   InputLabel,
   Input,
   Typography,
+  Backdrop,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from "@mui/material";
 import { ErrorMessage, Formik } from "formik";
 import useMediaQuery from "@mui/material/useMediaQuery";
@@ -18,7 +23,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { pulsar } from "ldrs";
 import DeleteIcon from "@mui/icons-material/Delete";
 import RemoveRedEyeOutlinedIcon from "@mui/icons-material/RemoveRedEyeOutlined";
-import EditIcon from "@mui/icons-material/Edit";
+// import EditIcon from "@mui/icons-material/Edit";
 import {
   fetchAllCompanyFiles,
   addCompanyFiles,
@@ -45,10 +50,14 @@ const CompanyFiles = () => {
   const error = useSelector((state) => state.companyFiles.error);
   const companyFiles =
     useSelector((state) => state.companyFiles.companyFiles) || [];
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [openModal, setOpenModal] = useState(false);
+  const [fileToDelete, setFileToDelete] = useState(null);
 
   const token = localStorage.getItem("token");
 
   async function handleFormSubmit(values, { resetForm }) {
+    setIsSubmitting(true);
     try {
       const formData = new FormData();
       formData.append("uploadedFile", values.uploadedFile);
@@ -56,6 +65,8 @@ const CompanyFiles = () => {
       resetForm();
     } catch (error) {
       console.error("Error uploading file:", error);
+    } finally {
+      setIsSubmitting(false);
     }
   }
 
@@ -145,13 +156,76 @@ const CompanyFiles = () => {
     }
   };
 
-  const handleDelete = async (companyFileId) => {
+  const handleDelete = (companyFileId) => {
+    setFileToDelete(companyFileId);
+    setOpenModal(true);
+  };
+
+  const handleConfirmDelete = async () => {
     try {
-      dispatch(deleteCompanyFile(companyFileId));
+      await dispatch(deleteCompanyFile(fileToDelete));
     } catch (error) {
       console.error("Error deleting file:", error);
+    } finally {
+      setOpenModal(false);
+      setFileToDelete(null);
     }
   };
+
+  const handleCloseModal = () => {
+    setOpenModal(false);
+    setFileToDelete(null);
+  };
+
+  // Add ConfirmationModal component
+  const ConfirmationModal = () => (
+    <Dialog
+      open={openModal}
+      onClose={handleCloseModal}
+      PaperProps={{
+        style: {
+          backgroundColor: colors.primary[400],
+          border: `1px solid ${colors.primary[500]}`,
+          borderRadius: "4px",
+        },
+      }}
+    >
+      <DialogTitle>
+        <Typography variant="h4" color={colors.grey[100]}>
+          {t("confirmDelete")}
+        </Typography>
+      </DialogTitle>
+      <DialogContent>
+        <Typography color={colors.grey[100]}>
+          {t("confirmDeleteMessage")}
+        </Typography>
+      </DialogContent>
+      <DialogActions sx={{ padding: "20px" }}>
+        <Button
+          onClick={handleCloseModal}
+          variant="contained"
+          sx={{
+            backgroundColor: colors.grey[500],
+            "&:hover": { backgroundColor: colors.grey[400] },
+          }}
+        >
+          {t("cancel")}
+        </Button>
+        <Button
+          onClick={handleConfirmDelete}
+          variant="contained"
+          color="secondary"
+          sx={{
+            marginLeft: "10px",
+            backgroundColor: colors.greenAccent[500],
+            "&:hover": { backgroundColor: colors.greenAccent[400] },
+          }}
+        >
+          {t("confirm")}
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
 
   pulsar.register();
   if (status === "loading") {
@@ -191,6 +265,21 @@ const CompanyFiles = () => {
 
   return (
     <Box m="20px">
+      <Backdrop
+        sx={{
+          color: "#fff",
+          zIndex: (theme) => theme.zIndex.drawer + 1,
+          backgroundColor: "rgba(0, 0, 0, 0.7)",
+        }}
+        open={isSubmitting}
+      >
+        <l-pulsar
+          size="70"
+          speed="1.75"
+          color={colors.greenAccent[500]}
+        ></l-pulsar>
+      </Backdrop>
+      <ConfirmationModal />
       <Header title={t("companyFiles")} subtitle={t("companyFilesSubtitle")} />
       <Formik
         initialValues={initialValues}

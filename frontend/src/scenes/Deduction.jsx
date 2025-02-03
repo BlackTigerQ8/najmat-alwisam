@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Box,
   Button,
@@ -11,6 +11,8 @@ import {
   Input,
   Typography,
   useTheme,
+  Backdrop,
+  Alert,
 } from "@mui/material";
 import ClearIcon from "@mui/icons-material/Clear";
 import { ErrorMessage, Formik } from "formik";
@@ -55,6 +57,7 @@ const Deduction = () => {
   const status = useSelector((state) => state.drivers.status);
   const error = useSelector((state) => state.drivers.error);
   const { t } = useTranslation();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const userSchema = yup
     .object()
@@ -103,7 +106,8 @@ const Deduction = () => {
     dispatch(fetchUsers(token));
   }, [token]);
 
-  async function handleFormSubmit(values) {
+  async function handleFormSubmit(values, { resetForm }) {
+    setIsSubmitting(true);
     try {
       const formData = new FormData();
       formData.append("uploadedFile", values.uploadedFile);
@@ -122,6 +126,8 @@ const Deduction = () => {
         dispatch(createUserInvoice(formData));
       }
 
+      resetForm();
+
       // TODO: Uncomment this later
 
       // dispatch(createNotification(buildNotificationAlert({
@@ -132,6 +138,8 @@ const Deduction = () => {
       // })));
     } catch (error) {
       console.error("Row does not have a valid _id field:");
+    } finally {
+      setIsSubmitting(false);
     }
   }
 
@@ -166,89 +174,104 @@ const Deduction = () => {
           fontSize: "18px",
         }}
       >
-        Error: {error}
+        <Alert severity="error">Error: {error}</Alert>
       </div>
     );
   }
 
   return (
-    <Box m="20px">
-      <Header title={t("deductionTitle")} subtitle={t("deductionSubtitle")} />
-      <Formik
-        initialValues={initialValues}
-        validationSchema={userSchema}
-        onSubmit={handleFormSubmit}
+    <>
+      <Backdrop
+        sx={{
+          color: "#fff",
+          zIndex: (theme) => theme.zIndex.drawer + 1,
+          backgroundColor: "rgba(0, 0, 0, 0.7)",
+        }}
+        open={isSubmitting}
       >
-        {({
-          values,
-          errors,
-          touched,
-          handleBlur,
-          handleChange,
-          handleSubmit,
-          setFieldValue,
-        }) => (
-          <form onSubmit={handleSubmit}>
-            <Box
-              display="grid"
-              gap="30px"
-              gridTemplateColumns="repeat(4, minmax(0, 1fr))"
-              sx={{
-                "& > div": { gridColumn: isNonMobile ? undefined : "span 4" },
-              }}
-            >
-              <FormControl
-                fullWidth
+        <l-pulsar
+          size="70"
+          speed="1.75"
+          color={colors.greenAccent[500]}
+        ></l-pulsar>
+      </Backdrop>
+      <Box m="20px">
+        <Header title={t("deductionTitle")} subtitle={t("deductionSubtitle")} />
+        <Formik
+          initialValues={initialValues}
+          validationSchema={userSchema}
+          onSubmit={handleFormSubmit}
+        >
+          {({
+            values,
+            errors,
+            touched,
+            handleBlur,
+            handleChange,
+            handleSubmit,
+            setFieldValue,
+          }) => (
+            <form onSubmit={handleSubmit}>
+              <Box
+                display="grid"
+                gap="30px"
+                gridTemplateColumns="repeat(4, minmax(0, 1fr))"
                 sx={{
-                  gridColumn:
-                    userInfo.role !== "Admin" && userInfo.role !== "Manager"
-                      ? "span 4"
-                      : "span 2",
+                  "& > div": { gridColumn: isNonMobile ? undefined : "span 4" },
                 }}
               >
-                <InputLabel id="select-driver-label">
-                  {t("selectDriver")}
-                </InputLabel>
-                <Select
-                  labelId="select-driver-label"
-                  id="select-driver"
-                  value={values.selectedDriver}
-                  onChange={handleChange}
-                  onBlur={handleBlur}
-                  error={!!touched.selectedDriver && !!errors.selectedDriver}
-                  name="selectedDriver"
-                  label="Select Driver"
-                  disabled={values.selectedUser}
-                  MenuProps={{
-                    MenuListProps: { disablePadding: true },
-                    PaperProps: {
-                      style: {
-                        maxHeight: 500,
-                      },
-                    },
+                <FormControl
+                  fullWidth
+                  sx={{
+                    gridColumn:
+                      userInfo.role !== "Admin" && userInfo.role !== "Manager"
+                        ? "span 2"
+                        : "span 2",
                   }}
                 >
-                  {drivers.map((driver) => (
-                    <MenuItem key={driver._id} value={driver._id}>
-                      {driver.firstName} {driver.lastName}
-                    </MenuItem>
-                  ))}
-                </Select>
-                {values.selectedDriver && (
-                  <IconButton
-                    onClick={() => setFieldValue("selectedDriver", "")}
-                    sx={{ gridColumn: "span 1" }}
-                    style={{
-                      display: "flex",
-                      width: "30px",
-                      height: "30px",
+                  <InputLabel id="select-driver-label">
+                    {t("selectDriver")}
+                  </InputLabel>
+                  <Select
+                    labelId="select-driver-label"
+                    id="select-driver"
+                    value={values.selectedDriver}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                    error={!!touched.selectedDriver && !!errors.selectedDriver}
+                    name="selectedDriver"
+                    label="Select Driver"
+                    disabled={values.selectedUser}
+                    MenuProps={{
+                      MenuListProps: { disablePadding: true },
+                      PaperProps: {
+                        style: {
+                          maxHeight: 500,
+                        },
+                      },
                     }}
                   >
-                    <ClearIcon />
-                  </IconButton>
-                )}
-              </FormControl>
-              {(userInfo.role === "Admin" || userInfo.role === "Manager") && (
+                    {drivers.map((driver) => (
+                      <MenuItem key={driver._id} value={driver._id}>
+                        {driver.firstName} {driver.lastName}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                  {values.selectedDriver && (
+                    <IconButton
+                      onClick={() => setFieldValue("selectedDriver", "")}
+                      sx={{ gridColumn: "span 1" }}
+                      style={{
+                        display: "flex",
+                        width: "30px",
+                        height: "30px",
+                      }}
+                    >
+                      <ClearIcon />
+                    </IconButton>
+                  )}
+                </FormControl>
+
                 <FormControl fullWidth sx={{ gridColumn: "span 2" }}>
                   <InputLabel id="select-user-label">
                     {t("selectUser")}
@@ -271,97 +294,105 @@ const Deduction = () => {
                     ))}
                   </Select>
                 </FormControl>
-              )}
 
-              <TextField
-                fullWidth
-                variant="filled"
-                type=""
-                label={t("reasonOfDeduction")}
-                onBlur={handleBlur}
-                onChange={handleChange}
-                value={values.deductionReason}
-                name="deductionReason"
-                error={!!touched.deductionReason && !!errors.deductionReason}
-                helperText={touched.deductionReason && errors.deductionReason}
-                sx={{ gridColumn: "span 4" }}
-              />
-              <TextField
-                fullWidth
-                variant="filled"
-                type="number"
-                label={t("talabatDeductionAmountKD")}
-                onBlur={handleBlur}
-                onChange={handleChange}
-                value={values.talabatDeductionAmount}
-                name="talabatDeductionAmount"
-                error={
-                  !!touched.talabatDeductionAmount &&
-                  !!errors.talabatDeductionAmount
-                }
-                helperText={
-                  touched.talabatDeductionAmount &&
-                  errors.talabatDeductionAmount
-                }
-                sx={{ gridColumn: "span 2" }}
-                disabled={values.selectedUser}
-              />
-              <TextField
-                fullWidth
-                variant="filled"
-                type="number"
-                label={t("companyDeductionAmountKD")}
-                onBlur={handleBlur}
-                onChange={handleChange}
-                value={values.companyDeductionAmount}
-                name="companyDeductionAmount"
-                error={
-                  !!touched.companyDeductionAmount &&
-                  !!errors.companyDeductionAmount
-                }
-                helperText={
-                  touched.companyDeductionAmount &&
-                  errors.companyDeductionAmount
-                }
-                sx={{ gridColumn: "span 2" }}
-              />
-              <FormControl fullWidth sx={{ gridColumn: "span 2" }}>
-                <InputLabel shrink htmlFor="uploadedFile">
-                  {t("uploadFile")}
-                </InputLabel>
-                <Input
-                  id="uploadedFile"
-                  accept="application/pdf"
-                  crossOrigin="anonymous"
-                  type="file"
-                  name="uploadedFile"
+                <TextField
+                  fullWidth
+                  variant="filled"
+                  type=""
+                  label={t("reasonOfDeduction")}
                   onBlur={handleBlur}
-                  onChange={(event) => {
-                    // Setting file to Formik state
-                    setFieldValue("uploadedFile", event.currentTarget.files[0]);
-                  }}
-                  error={!!touched.uploadedFile && !!errors.uploadedFile}
-                  helperText={touched.uploadedFile && errors.uploadedFile}
+                  onChange={handleChange}
+                  value={values.deductionReason}
+                  name="deductionReason"
+                  error={!!touched.deductionReason && !!errors.deductionReason}
+                  helperText={touched.deductionReason && errors.deductionReason}
+                  sx={{ gridColumn: "span 4" }}
                 />
-                <ErrorMessage
-                  name="uploadedFile"
-                  render={(msg) => (
-                    <Typography variant="caption" color="error">
-                      {msg}
-                    </Typography>
-                  )}
+                <TextField
+                  fullWidth
+                  variant="filled"
+                  type="number"
+                  label={t("talabatDeductionAmountKD")}
+                  onBlur={handleBlur}
+                  onChange={handleChange}
+                  value={values.talabatDeductionAmount}
+                  name="talabatDeductionAmount"
+                  error={
+                    !!touched.talabatDeductionAmount &&
+                    !!errors.talabatDeductionAmount
+                  }
+                  helperText={
+                    touched.talabatDeductionAmount &&
+                    errors.talabatDeductionAmount
+                  }
+                  sx={{ gridColumn: "span 2" }}
+                  disabled={values.selectedUser}
                 />
-              </FormControl>
-            </Box>
-            <Box display="flex" justifyContent="end" mt="20px">
-              <Button type="submit" color="secondary" variant="contained">
-                {t("submit")}
-              </Button>
-            </Box>
-          </form>
-        )}
-      </Formik>
-    </Box>
+                <TextField
+                  fullWidth
+                  variant="filled"
+                  type="number"
+                  label={t("companyDeductionAmountKD")}
+                  onBlur={handleBlur}
+                  onChange={handleChange}
+                  value={values.companyDeductionAmount}
+                  name="companyDeductionAmount"
+                  error={
+                    !!touched.companyDeductionAmount &&
+                    !!errors.companyDeductionAmount
+                  }
+                  helperText={
+                    touched.companyDeductionAmount &&
+                    errors.companyDeductionAmount
+                  }
+                  sx={{ gridColumn: "span 2" }}
+                />
+                <FormControl fullWidth sx={{ gridColumn: "span 2" }}>
+                  <InputLabel shrink htmlFor="uploadedFile">
+                    {t("uploadFile")}
+                  </InputLabel>
+                  <Input
+                    id="uploadedFile"
+                    accept="application/pdf"
+                    crossOrigin="anonymous"
+                    type="file"
+                    name="uploadedFile"
+                    onBlur={handleBlur}
+                    onChange={(event) => {
+                      // Setting file to Formik state
+                      setFieldValue(
+                        "uploadedFile",
+                        event.currentTarget.files[0]
+                      );
+                    }}
+                    error={!!touched.uploadedFile && !!errors.uploadedFile}
+                    helperText={touched.uploadedFile && errors.uploadedFile}
+                  />
+                  <ErrorMessage
+                    name="uploadedFile"
+                    render={(msg) => (
+                      <Typography variant="caption" color="error">
+                        {msg}
+                      </Typography>
+                    )}
+                  />
+                </FormControl>
+              </Box>
+              <Box display="flex" justifyContent="end" mt="20px">
+                <Button
+                  type="submit"
+                  color="secondary"
+                  variant="contained"
+                  disabled={isSubmitting}
+                >
+                  {t("submit")}
+                </Button>
+              </Box>
+            </form>
+          )}
+        </Formik>
+      </Box>
+    </>
   );
 };
 

@@ -489,6 +489,78 @@ i18n
           totalOrdersThisMonth: "Total Orders This Month",
           totalCashThisMonth: "Total Cash This Month",
           totalHoursThisMonth: "Total Hours This Month",
+          /////////////
+          deliveryManagement: "Delivery Management System",
+          landingPageHero:
+            "Streamline your delivery operations with our comprehensive management system. Track drivers, manage orders, and optimize routes in real-time.",
+          getStarted: "Get Started",
+          keyFeatures: "Key Features",
+          efficientDelivery: "Efficient Delivery",
+          efficientDeliveryDesc:
+            "Optimize routes and manage deliveries efficiently with our advanced delivery management system.",
+          realTimeTracking: "Real-Time Tracking",
+          realTimeTrackingDesc:
+            "Track your drivers and deliveries in real-time with precise location updates and status monitoring.",
+          driverManagement: "Driver Management",
+          driverManagementDesc:
+            "Comprehensive driver management with profiles, schedules, and performance tracking.",
+          readyToStart: "Ready to optimize your delivery operations?",
+          startNow: "Start Now",
+          invoiceManagement: "Invoice Management",
+          invoiceManagementDesc:
+            "Efficiently manage and track all delivery invoices, payments, and financial records in one centralized system.",
+          uploadExcel: "Upload Excel",
+          confirmResetInvoices: "Are you sure you want to reset all invoices?",
+          confirmResetMessage:
+            "This action will reset all invoices and cannot be undone.",
+          confirmReset: "Confirm Reset",
+          confirmDeleteMessage: "Are you sure you want to delete this file?",
+          confirmDelete: "Confirm Delete",
+          confirm: "Confirm",
+          confirmRejectDeduction:
+            "Are you sure you want to reject this deduction?",
+          confirmApproveDeduction:
+            "Are you sure you want to approve this deduction?",
+          confirmDeactivate: "Are you sure you want to deactivate this driver?",
+          confirmDeactivateMessage:
+            "This action will deactivate the driver and cannot be undone.",
+          confirmDeleteDriver: "Are you sure you want to delete this driver?",
+          confirmDeleteDriverMessage:
+            "This action will delete the driver and cannot be undone.",
+          confirmReactivateMessage:
+            "Are you sure you want to reactivate this driver?",
+          confirmReactivate: "Confirm Reactivate",
+
+          // Driver Schema Validations
+          phoneAlreadyExists: "Phone number already exists in the system.",
+          firstNameRequired: "First name is required",
+          lastNameRequired: "Last name is required",
+          phoneRequired: "Phone number is required",
+          idNumberRequired: "ID number is required",
+          idExpiryDateRequired: "ID expiry date is required",
+          passportNumberRequired: "Passport number is required",
+          passportExpiryDateRequired: "Passport expiry date is required",
+          contractExpiryDateRequired: "Contract expiry date is required",
+          driverLicenseExpiryDateRequired:
+            "Driver license expiry date is required",
+          carPlateNumberRequired: "Car plate number is required",
+          carRegisterationExpiryDateRequired:
+            "Car registration expiry date is required",
+          gasCardRequired: "Gas card is required",
+          healthInsuranceExpiryDateRequired:
+            "Health insurance expiry date is required",
+          employeeCompanyNumberRequired: "Employee company number is required",
+          ibanRequired: "IBAN is required",
+          vehicleRequired: "Vehicle type is required",
+          contractTypeRequired: "Contract type is required",
+          talabatIdRequired: "Talabat ID is required",
+          mainSalaryRequired: "Main salary is required",
+          passportAlreadyExists:
+            "Passport number already exists in the system.",
+          identificationAlreadyExists:
+            "Identification number already exists in the system.",
+          emailAlreadyExists: "Email already exists in the system.",
+          passwordsNotMatch: "Passwords do not match",
         },
       },
       ar: {
@@ -955,6 +1027,67 @@ i18n
           totalOrdersThisMonth: "إجمالي الطلبات هذا الشهر",
           totalCashThisMonth: "إجمالي النقود هذا الشهر",
           totalHoursThisMonth: "إجمالي الساعات هذا الشهر",
+          /////////////
+          deliveryManagement: "نظام إدارة التوصيل",
+          landingPageHero:
+            "قم بتبسيط عمليات التوصيل الخاصة بك مع نظام الإدارة الشامل لدينا. تتبع السائقين وإدارة الطلبات وتحسين المسارات في الوقت الفعلي.",
+          getStarted: "ابدأ الآن",
+          keyFeatures: "الميزات الرئيسية",
+          efficientDelivery: "توصيل فعال",
+          efficientDeliveryDesc:
+            "تحسين المسارات وإدارة عمليات التوصيل بكفاءة مع نظام إدارة التوصيل المتقدم لدينا.",
+          realTimeTracking: "التتبع في الوقت الفعلي",
+          realTimeTrackingDesc:
+            "تتبع السائقين وعمليات التوصيل في الوقت الفعلي مع تحديثات دقيقة للموقع ومراقبة الحالة.",
+          driverManagement: "إدارة السائقين",
+          driverManagementDesc:
+            "إدارة شاملة للسائقين مع الملفات الشخصية والجداول الزمنية وتتبع الأداء.",
+          readyToStart: "هل أنت مستعد لتحسين عمليات التوصيل الخاصة بك؟",
+          startNow: "ابدأ الآن",
+          invoiceManagement: "إدارة الفواتير",
+          invoiceManagementDesc:
+            "إدارة وتتبع جميع فواتير التوصيل والمدفوعات والسجلات المالية بكفاءة في نظام مركزي واحد.",
+          uploadExcel: "Excel تحميل ملف",
+          confirmResetMessage: "هل أنت متاكد من إعادة تعيين الفواتير؟",
+          confirmReset: "تأكيد",
+          confirmDeleteMessage: "هل أنت متاكد من حذف هذا الملف؟",
+          confirmDelete: "تأكيد",
+          confirm: "تأكيد",
+          confirmApproveDeduction: "هل أنت متاكد من الموافقة على طلب الخصم؟",
+          confirmRejectDeduction: "هل أنت متاكد من رفض طلب الخصم؟",
+          confirmDeactivate: "تأكيد إيقاف تفعيل السائق",
+          confirmDeactivateMessage: "هل أنت متاكد من إيقاف تفعيل هذا السائق؟",
+          confirmDeleteDriver: "تأكيد حذف السائق",
+          confirmDeleteDriverMessage: "هل أنت متاكد من حذف هذا السائق؟",
+          confirmReactivate: "تأكيد إعادة تفعيل السائق",
+          confirmReactivateMessage: "هل أنت متاكد من إعادة تفعيل هذا السائق؟",
+
+          // Driver Schema Validations
+          phoneAlreadyExists: "رقم الهاتف موجود بالفعل في النظام",
+          firstNameRequired: "الاسم الأول مطلوب",
+          lastNameRequired: "اسم العائلة مطلوب",
+          phoneRequired: "رقم الهاتف مطلوب",
+          idNumberRequired: "رقم الهوية مطلوب",
+          idExpiryDateRequired: "تاريخ انتهاء الهوية مطلوب",
+          passportNumberRequired: "رقم جواز السفر مطلوب",
+          passportExpiryDateRequired: "تاريخ انتهاء جواز السفر مطلوب",
+          contractExpiryDateRequired: "تاريخ انتهاء العقد مطلوب",
+          driverLicenseExpiryDateRequired: "تاريخ انتهاء رخصة القيادة مطلوب",
+          carPlateNumberRequired: "رقم لوحة السيارة مطلوب",
+          carRegisterationExpiryDateRequired:
+            "تاريخ انتهاء تسجيل السيارة مطلوب",
+          gasCardRequired: "بطاقة الوقود مطلوبة",
+          healthInsuranceExpiryDateRequired: "تاريخ انتهاء التأمين الصحي مطلوب",
+          employeeCompanyNumberRequired: "رقم الموظف في الشركة مطلوب",
+          ibanRequired: "رقم الآيبان مطلوب",
+          vehicleRequired: "نوع المركبة مطلوب",
+          contractTypeRequired: "نوع العقد مطلوب",
+          talabatIdRequired: "رقم طلبات مطلوب",
+          mainSalaryRequired: "الراتب الأساسي مطلوب",
+          passportAlreadyExists: "رقم جواز السفر موجود بالفعل في النظام",
+          identificationAlreadyExists: "رقم الهوية موجود بالفعل في النظام",
+          emailAlreadyExists: "البريد الإلكتروني موجود بالفعل في النظام",
+          passwordsNotMatch: "كلمتا السر غير متطابقتين",
         },
       },
     },

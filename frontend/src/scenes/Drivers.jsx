@@ -1,5 +1,15 @@
-import React, { useEffect } from "react";
-import { Box, Button, useTheme } from "@mui/material";
+import React, { useEffect, useState } from "react";
+import {
+  Box,
+  Button,
+  useTheme,
+  Backdrop,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Typography,
+} from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import { tokens } from "../theme";
 import BlockOutlinedIcon from "@mui/icons-material/BlockOutlined";
@@ -28,6 +38,12 @@ const Drivers = () => {
     useSelector((state) => state.drivers.token) ||
     localStorage.getItem("token");
   const navigate = useNavigate();
+
+  const [openDeleteModal, setOpenDeleteModal] = useState(false);
+  const [openDeactivateModal, setOpenDeactivateModal] = useState(false);
+  const [driverToDelete, setDriverToDelete] = useState(null);
+  const [driverToDeactivate, setDriverToDeactivate] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const columns = [
     {
@@ -180,24 +196,164 @@ const Drivers = () => {
     navigate(`/driver-profile/${rowData._id}`);
   };
 
-  const handleDelete = async (driverId) => {
+  const handleDelete = (driverId) => {
+    setDriverToDelete(driverId);
+    setOpenDeleteModal(true);
+  };
+
+  const handleDeactivation = (driverId) => {
+    setDriverToDeactivate(driverId);
+    setOpenDeactivateModal(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    setIsSubmitting(true);
     try {
-      dispatch(deleteDriver(driverId));
+      await dispatch(deleteDriver(driverToDelete));
     } catch (error) {
       console.error("Error deleting driver:", error);
+    } finally {
+      setIsSubmitting(false);
+      setOpenDeleteModal(false);
+      setDriverToDelete(null);
     }
   };
 
-  const handleDeactivation = async (driverId) => {
+  const handleConfirmDeactivate = async () => {
+    setIsSubmitting(true);
     try {
-      dispatch(deactivateDriver({ driverId }));
+      await dispatch(deactivateDriver({ driverId: driverToDeactivate }));
     } catch (error) {
       console.error("Error deactivating driver:", error);
+    } finally {
+      setIsSubmitting(false);
+      setOpenDeactivateModal(false);
+      setDriverToDeactivate(null);
     }
   };
+
+  const handleCloseModals = () => {
+    setOpenDeleteModal(false);
+    setOpenDeactivateModal(false);
+    setDriverToDelete(null);
+    setDriverToDeactivate(null);
+  };
+
+  const ConfirmationModals = () => (
+    <>
+      <Dialog
+        open={openDeleteModal}
+        onClose={handleCloseModals}
+        PaperProps={{
+          style: {
+            backgroundColor: colors.primary[400],
+            border: `1px solid ${colors.primary[500]}`,
+            borderRadius: "4px",
+          },
+        }}
+      >
+        <DialogTitle>
+          <Typography variant="h4" color={colors.grey[100]}>
+            {t("confirmDeleteDriver")}
+          </Typography>
+        </DialogTitle>
+        <DialogContent>
+          <Typography color={colors.grey[100]}>
+            {t("confirmDeleteDriverMessage")}
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ padding: "20px" }}>
+          <Button
+            onClick={handleCloseModals}
+            variant="contained"
+            sx={{
+              backgroundColor: colors.grey[500],
+              "&:hover": { backgroundColor: colors.grey[400] },
+            }}
+          >
+            {t("cancel")}
+          </Button>
+          <Button
+            onClick={handleConfirmDelete}
+            variant="contained"
+            color="secondary"
+            sx={{
+              marginLeft: "10px",
+              backgroundColor: colors.greenAccent[500],
+              "&:hover": { backgroundColor: colors.greenAccent[400] },
+            }}
+          >
+            {t("confirm")}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={openDeactivateModal}
+        onClose={handleCloseModals}
+        PaperProps={{
+          style: {
+            backgroundColor: colors.primary[400],
+            border: `1px solid ${colors.primary[500]}`,
+            borderRadius: "4px",
+          },
+        }}
+      >
+        <DialogTitle>
+          <Typography variant="h4" color={colors.grey[100]}>
+            {t("confirmDeactivate")}
+          </Typography>
+        </DialogTitle>
+        <DialogContent>
+          <Typography color={colors.grey[100]}>
+            {t("confirmDeactivateMessage")}
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ padding: "20px" }}>
+          <Button
+            onClick={handleCloseModals}
+            variant="contained"
+            sx={{
+              backgroundColor: colors.grey[500],
+              "&:hover": { backgroundColor: colors.grey[400] },
+            }}
+          >
+            {t("cancel")}
+          </Button>
+          <Button
+            onClick={handleConfirmDeactivate}
+            variant="contained"
+            color="secondary"
+            sx={{
+              marginLeft: "10px",
+              backgroundColor: colors.greenAccent[500],
+              "&:hover": { backgroundColor: colors.greenAccent[400] },
+            }}
+          >
+            {t("confirm")}
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </>
+  );
 
   return (
     <Box m="20px">
+      <Backdrop
+        sx={{
+          color: "#fff",
+          zIndex: (theme) => theme.zIndex.drawer + 1,
+          backgroundColor: "rgba(0, 0, 0, 0.7)",
+        }}
+        open={isSubmitting}
+      >
+        <l-pulsar
+          size="70"
+          speed="1.75"
+          color={colors.greenAccent[500]}
+        ></l-pulsar>
+      </Backdrop>
+      <ConfirmationModals />
       <Header title={t("DRIVERS")} subtitle={t("manageDriverMembers")} />
       <Box
         mt="40px"

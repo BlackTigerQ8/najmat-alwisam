@@ -1,5 +1,16 @@
 import React, { useMemo, useEffect, useState, useCallback } from "react";
-import { Box, Button, useMediaQuery, useTheme } from "@mui/material";
+import {
+  Box,
+  Button,
+  useMediaQuery,
+  useTheme,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Typography,
+  Backdrop,
+} from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import { tokens } from "../theme";
 import Header from "../components/Header";
@@ -31,6 +42,8 @@ const InvoicesArchive = () => {
     localStorage.getItem("token");
 
   const invoices = useSelector((state) => state.invoice?.driverInvoices || []);
+  const [openModal, setOpenModal] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const getInvoiceData = useCallback(
     (driverId) => {
@@ -83,8 +96,17 @@ const InvoicesArchive = () => {
   const [editRowsModel, setEditRowsModel] = useState({});
 
   const resetInvoices = useCallback(() => {
+    setOpenModal(true);
+  }, []);
+
+  const handleConfirmReset = () => {
     dispatch(resetDriverInvoices());
-  }, [dispatch]);
+    setOpenModal(false);
+  };
+
+  const handleCloseModal = () => {
+    setOpenModal(false);
+  };
 
   const columns = [
     {
@@ -230,6 +252,7 @@ const InvoicesArchive = () => {
   }
 
   const handleUpdate = (row) => {
+    setIsSubmitting(true);
     try {
       const { cash = 0, mainOrder = 0, additionalOrder = 0, hour = 0 } = row;
       const formData = new FormData();
@@ -242,6 +265,8 @@ const InvoicesArchive = () => {
       dispatch(createDriverInvoice(formData));
     } catch (error) {
       console.error("Row does not have a valid _id field:", row);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -253,8 +278,73 @@ const InvoicesArchive = () => {
     }
   };
 
+  // Add this modal component before the return statement
+  const ConfirmationModal = () => (
+    <Dialog
+      open={openModal}
+      onClose={handleCloseModal}
+      PaperProps={{
+        style: {
+          backgroundColor: colors.primary[400],
+          border: `1px solid ${colors.primary[500]}`,
+          borderRadius: "4px",
+        },
+      }}
+    >
+      <DialogTitle>
+        <Typography variant="h4" color={colors.grey[100]}>
+          {t("confirmReset")}
+        </Typography>
+      </DialogTitle>
+      <DialogContent>
+        <Typography color={colors.grey[100]}>
+          {t("confirmResetMessage")}
+        </Typography>
+      </DialogContent>
+      <DialogActions sx={{ padding: "20px" }}>
+        <Button
+          onClick={handleCloseModal}
+          variant="contained"
+          sx={{
+            backgroundColor: colors.grey[500],
+            "&:hover": { backgroundColor: colors.grey[400] },
+          }}
+        >
+          {t("cancel")}
+        </Button>
+        <Button
+          onClick={handleConfirmReset}
+          variant="contained"
+          color="secondary"
+          sx={{
+            marginLeft: "10px",
+            backgroundColor: colors.greenAccent[500],
+            "&:hover": { backgroundColor: colors.greenAccent[400] },
+          }}
+        >
+          {t("confirm")}
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
+
   return (
     <Box m="20px">
+      <Backdrop
+        sx={{
+          color: "#fff",
+          zIndex: (theme) => theme.zIndex.drawer + 1,
+          backgroundColor: "rgba(0, 0, 0, 0.7)",
+        }}
+        open={isSubmitting}
+      >
+        <l-pulsar
+          size="70"
+          speed="1.75"
+          color={colors.greenAccent[500]}
+        ></l-pulsar>
+      </Backdrop>
+      <ConfirmationModal />
       <Header title={t("invoicesTitle")} subtitle={t("invoicesSubtitle")} />
       <Box
         display="flex"

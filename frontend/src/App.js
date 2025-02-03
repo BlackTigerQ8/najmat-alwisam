@@ -59,9 +59,9 @@ import Income from "./scenes/Income";
 import InvoicesArchive from "./scenes/InvoiceArchive";
 import CompanyFiles from "./scenes/CompanyFiles";
 import DeactivatedDrivers from "./scenes/DeactivatedDrivers";
-
 import ArchiveForm from "./scenes/ArchiveForm";
 import SearchArchive from "./scenes/SearchArchive";
+import LandingPage from "./scenes/global/LandingPage";
 
 const lngs = {
   en: { nativeName: "English" },
@@ -287,6 +287,7 @@ function App() {
                     />
                   }
                 />
+                <Route path="/" element={<LandingPage />} />
               </Routes>
             </main>
             <ToastContainer />

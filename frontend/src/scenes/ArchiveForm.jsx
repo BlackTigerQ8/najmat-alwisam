@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   Box,
   Button,
@@ -10,6 +10,7 @@ import {
   Input,
   Typography,
   useTheme,
+  Backdrop,
 } from "@mui/material";
 
 import { ErrorMessage, Formik } from "formik";
@@ -41,6 +42,7 @@ const ArchiveForm = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const { t } = useTranslation();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const userSchema = yup.object().shape({
     fullName: yup.string().required(t("fullNameIsRequired")),
@@ -59,6 +61,7 @@ const ArchiveForm = () => {
   });
 
   const handleFormSubmit = async (values) => {
+    setIsSubmitting(true);
     try {
       const formData = new FormData();
       Object.keys(values).forEach((key) => {
@@ -67,6 +70,8 @@ const ArchiveForm = () => {
       await dispatch(addArchive(formData));
     } catch (error) {
       console.error("Error adding archive:", error.message);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -92,6 +97,20 @@ const ArchiveForm = () => {
 
   return (
     <Box m="20px">
+      <Backdrop
+        sx={{
+          color: "#fff",
+          zIndex: (theme) => theme.zIndex.drawer + 1,
+          backgroundColor: "rgba(0, 0, 0, 0.7)",
+        }}
+        open={isSubmitting}
+      >
+        <l-pulsar
+          size="70"
+          speed="1.75"
+          color={colors.greenAccent[500]}
+        ></l-pulsar>
+      </Backdrop>
       <Header
         title={t("archiveFormTitle")}
         subtitle={t("archiveFormSubtitle")}

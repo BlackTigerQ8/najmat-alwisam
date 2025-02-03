@@ -1,5 +1,16 @@
-import React, { useEffect } from "react";
-import { Alert, Box, Button, useTheme } from "@mui/material";
+import React, { useEffect, useState } from "react";
+import {
+  Alert,
+  Box,
+  Button,
+  useTheme,
+  Backdrop,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Typography,
+} from "@mui/material";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import Header from "../components/Header";
 import { useDispatch, useSelector } from "react-redux";
@@ -21,6 +32,9 @@ const SearchArchive = () => {
   const colors = tokens(theme.palette.mode);
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const [openModal, setOpenModal] = useState(false);
+  const [archiveToDelete, setArchiveToDelete] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     dispatch(fetchArchives());
@@ -120,13 +134,78 @@ const SearchArchive = () => {
     }
   };
 
-  const handleDelete = async (archive) => {
+  const handleDelete = (archiveId) => {
+    setArchiveToDelete(archiveId);
+    setOpenModal(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    setIsSubmitting(true);
     try {
-      dispatch(deleteArchive(archive));
+      await dispatch(deleteArchive(archiveToDelete));
     } catch (error) {
-      console.error("Error deleting file:", error);
+      console.error("Error deleting archive:", error);
+    } finally {
+      setIsSubmitting(false);
+      setOpenModal(false);
+      setArchiveToDelete(null);
     }
   };
+
+  const handleCloseModal = () => {
+    setOpenModal(false);
+    setArchiveToDelete(null);
+  };
+
+  // Add ConfirmationModal component
+  const ConfirmationModal = () => (
+    <Dialog
+      open={openModal}
+      onClose={handleCloseModal}
+      PaperProps={{
+        style: {
+          backgroundColor: colors.primary[400],
+          border: `1px solid ${colors.primary[500]}`,
+          borderRadius: "4px",
+        },
+      }}
+    >
+      <DialogTitle>
+        <Typography variant="h4" color={colors.grey[100]}>
+          {t("confirmDelete")}
+        </Typography>
+      </DialogTitle>
+      <DialogContent>
+        <Typography color={colors.grey[100]}>
+          {t("confirmDeleteMessage")}
+        </Typography>
+      </DialogContent>
+      <DialogActions sx={{ padding: "20px" }}>
+        <Button
+          onClick={handleCloseModal}
+          variant="contained"
+          sx={{
+            backgroundColor: colors.grey[500],
+            "&:hover": { backgroundColor: colors.grey[400] },
+          }}
+        >
+          {t("cancel")}
+        </Button>
+        <Button
+          onClick={handleConfirmDelete}
+          variant="contained"
+          color="secondary"
+          sx={{
+            marginLeft: "10px",
+            backgroundColor: colors.greenAccent[500],
+            "&:hover": { backgroundColor: colors.greenAccent[400] },
+          }}
+        >
+          {t("confirm")}
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
 
   pulsar.register();
   if (status === "loading") {
@@ -154,6 +233,21 @@ const SearchArchive = () => {
 
   return (
     <Box m="20px">
+      <Backdrop
+        sx={{
+          color: "#fff",
+          zIndex: (theme) => theme.zIndex.drawer + 1,
+          backgroundColor: "rgba(0, 0, 0, 0.7)",
+        }}
+        open={isSubmitting}
+      >
+        <l-pulsar
+          size="70"
+          speed="1.75"
+          color={colors.greenAccent[500]}
+        ></l-pulsar>
+      </Backdrop>
+      <ConfirmationModal />
       <Header
         title={t("searchArchiveTitle")}
         subtitle={t("searchArchiveSubtitle")}

@@ -7,6 +7,7 @@ import { DataGrid } from "@mui/x-data-grid";
 import Header from "../components/Header";
 import { tokens } from "../theme";
 import { useSelector, useDispatch } from "react-redux";
+import * as XLSX from "xlsx";
 import { pulsar } from "ldrs";
 import { fetchAllSpendTypes, addSpendType } from "../redux/spendTypeSlice";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -33,6 +34,38 @@ const SpendType = () => {
   const spendTypes = useSelector((state) => state.spendType.spendTypes);
 
   const token = localStorage.getItem("token");
+
+  const handleFileUpload = async (event) => {
+    const file = event.target.files[0];
+    const reader = new FileReader();
+
+    reader.onload = async (e) => {
+      try {
+        const workbook = XLSX.read(e.target.result, { type: "binary" });
+        const sheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[sheetName];
+        const data = XLSX.utils.sheet_to_json(worksheet);
+
+        // Validate that each row has a spendType column
+        const spendTypes = data
+          .map((row) => ({
+            name: row.spendType || row.SpendType, // Check for both cases
+          }))
+          .filter((item) => item.name); // Filter out empty names
+
+        // Dispatch addSpendType for each valid entry
+        for (const spendType of spendTypes) {
+          await dispatch(addSpendType(spendType));
+        }
+      } catch (error) {
+        console.error("Error processing Excel file:", error);
+      }
+    };
+
+    if (file) {
+      reader.readAsBinaryString(file);
+    }
+  };
 
   async function handleFormSubmit(values) {
     try {
@@ -159,10 +192,37 @@ const SpendType = () => {
                 helperText={touched.name && errors.name}
                 sx={{ gridColumn: "span 1" }}
               />
+              <Box sx={{ gridColumn: "span 1" }}>
+                <Button
+                  type="submit"
+                  color="secondary"
+                  variant="contained"
+                  sx={{ height: "100%", width: "100%" }}
+                >
+                  {t("addNewSpendType")}
+                </Button>
+              </Box>
 
-              <Button type="submit" color="secondary" variant="contained">
-                {t("addNewSpendType")}
-              </Button>
+              {/* Add the file upload input */}
+              <Box sx={{ gridColumn: "span 1" }}>
+                <input
+                  accept=".xlsx, .xls"
+                  style={{ display: "none" }}
+                  id="excel-upload"
+                  type="file"
+                  onChange={handleFileUpload}
+                />
+                <label htmlFor="excel-upload" style={{ height: "100%" }}>
+                  <Button
+                    variant="contained"
+                    component="span"
+                    color="secondary"
+                    sx={{ height: "100%", width: "100%" }}
+                  >
+                    {t("uploadExcel")}
+                  </Button>
+                </label>
+              </Box>
             </Box>
           </form>
         )}

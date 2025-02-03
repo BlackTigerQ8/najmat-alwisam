@@ -191,7 +191,7 @@ const PettyCash = () => {
       field: "sequence",
       headerName: "NO.",
       editable: false,
-      flex: 0.5,
+      flex: 0.2,
     },
     {
       field: "requestApplicant",
@@ -236,7 +236,7 @@ const PettyCash = () => {
     {
       field: "serialNumber",
       headerName: t("serialNumber"),
-      flex: 1,
+      flex: 0.8,
       editable: true,
     },
 
@@ -261,7 +261,7 @@ const PettyCash = () => {
     {
       field: "cashAmount",
       headerName: t("cashAmount"),
-      flex: 1,
+      flex: 0.5,
       editable: true,
       type: "number",
       valueFormatter: (params) => Number(params.value).toFixed(3),
@@ -406,7 +406,7 @@ const PettyCash = () => {
     {
       field: "actions",
       headerName: t("actions"),
-      flex: 1,
+      flex: 1.5,
       sortable: false,
       filterable: false,
       renderCell: (params) => {

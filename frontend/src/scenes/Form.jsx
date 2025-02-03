@@ -10,6 +10,7 @@ import {
   Input,
   Typography,
   useTheme,
+  Backdrop,
 } from "@mui/material";
 
 import { ErrorMessage, Formik } from "formik";
@@ -18,6 +19,12 @@ import useMediaQuery from "@mui/material/useMediaQuery";
 import Header from "../components/Header";
 import { getUserRoleFromToken } from "./global/getUserRoleFromToken";
 import { registerUser } from "../redux/userSlice";
+import {
+  checkPhoneExists,
+  checkEmailExists,
+  checkIdentificationExists,
+  checkPassportExists,
+} from "../redux/usersSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { tokens } from "../theme";
@@ -83,45 +90,64 @@ const Form = () => {
   const userRole =
     useSelector((state) => state.user.userRole) || getUserRoleFromToken();
   const savedToken = localStorage.getItem("token");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     const storedUserRole = localStorage.getItem("userRole", userRole);
     // const savedUser = JSON.parse(localStorage.getItem("userInfo"));
   }, []);
 
-  const userSchema = yup.object().shape({
-    firstName: yup.string().required(t("firstNameIsRequired")),
-    lastName: yup.string().required(t("lastNameIsRequired")),
-    email: yup.string().email(t("invalidEmail")).required(t("emailIsRequired")),
+  const validationSchema = yup.object().shape({
+    firstName: yup.string().required(t("required")),
+    lastName: yup.string().required(t("required")),
     phone: yup
+      .number()
+      .required(t("required"))
+      .test("unique", t("phoneAlreadyExists"), async function (value) {
+        if (!value) return true;
+        const result = await dispatch(checkPhoneExists(value));
+        return !result.payload;
+      }),
+    email: yup
       .string()
-      .matches(phoneRegExp, t("invalidPhoneNumber"))
-      .required(t("phoneIsRequired")),
-    identification: yup.string().required(t("identificationIsRequired")),
-    passport: yup.string().required(t("passportIsRequired")),
-    contractExpiryDate: yup
+      .email(t("invalidEmail"))
+      .required(t("required"))
+      .test("unique", t("emailAlreadyExists"), async function (value) {
+        if (!value) return true;
+        const result = await dispatch(checkEmailExists(value));
+        return !result.payload;
+      }),
+    identification: yup
+      .number()
+      .required(t("required"))
+      .test("unique", t("identificationAlreadyExists"), async function (value) {
+        if (!value) return true;
+        const result = await dispatch(checkIdentificationExists(value));
+        return !result.payload;
+      }),
+    passport: yup
       .string()
-      .required(t("contractExpiryDateIsRequired")),
-    role: yup.string().required(t("roleIsRequired")),
-    mainSalary: yup.number().required(t("mainSalaryIsRequired")),
+      .required(t("required"))
+      .test("unique", t("passportAlreadyExists"), async function (value) {
+        if (!value) return true;
+        const result = await dispatch(checkPassportExists(value));
+        return !result.payload;
+      }),
+    role: yup.string().required(t("required")),
+    mainSalary: yup.number().required(t("required")),
+    contractExpiryDate: yup.date().required(t("required")),
     password: yup
       .string()
-      .min(6, t("passwordMinLength"))
-      .required(t("passwordIsRequired")),
+      .required(t("required"))
+      .min(6, t("passwordMinLength")),
     confirmPassword: yup
       .string()
-      .oneOf([yup.ref("password"), null], t("passwordsMustMatch"))
-      .required(t("confirmPasswordIsRequired")),
-    uploadedFile: yup
-      .mixed()
-      .required(t("fileIsRequired"))
-      .test("fileType", t("onlyPDFAllowed"), (value) => {
-        if (!value) return true;
-        return value.type === "application/pdf";
-      }),
+      .required(t("required"))
+      .oneOf([yup.ref("password")], t("passwordsNotMatch")),
   });
 
   const handleFormSubmit = async (values) => {
+    setIsSubmitting(true);
     try {
       const formData = new FormData();
 
@@ -142,6 +168,8 @@ const Form = () => {
       navigate("/team");
     } catch (error) {
       console.error("Error registering user:", error.message);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -167,12 +195,26 @@ const Form = () => {
 
   return (
     <Box m="20px">
+      <Backdrop
+        sx={{
+          color: "#fff",
+          zIndex: (theme) => theme.zIndex.drawer + 1,
+          backgroundColor: "rgba(0, 0, 0, 0.7)",
+        }}
+        open={isSubmitting}
+      >
+        <l-pulsar
+          size="70"
+          speed="1.75"
+          color={colors.greenAccent[500]}
+        ></l-pulsar>
+      </Backdrop>
       <Header title={t("createUserTitle")} subtitle={t("createUserSubtitle")} />
 
       <Formik
         onSubmit={handleFormSubmit}
         initialValues={initialValues}
-        validationSchema={userSchema}
+        validationSchema={validationSchema}
       >
         {({
           values,

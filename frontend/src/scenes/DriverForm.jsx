@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   Box,
   Button,
@@ -10,6 +10,7 @@ import {
   Input,
   Typography,
   useTheme,
+  Backdrop,
 } from "@mui/material";
 
 import { ErrorMessage, Formik } from "formik";
@@ -17,7 +18,7 @@ import * as yup from "yup";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import Header from "../components/Header";
 import { useDispatch, useSelector } from "react-redux";
-import { registerDriver } from "../redux/driversSlice";
+import { registerDriver, checkPhoneExists } from "../redux/driversSlice";
 import { tokens } from "../theme";
 import { pulsar } from "ldrs";
 import { useTranslation } from "react-i18next";
@@ -55,43 +56,8 @@ const initialValues = {
   file: "",
 };
 
-const phoneRegExp =
-  /^((\+[1-9]{1,4}[ -]?)|(\([0-9]{2,3}\)[ -]?)|([0-9]{2,4})[ -]?)*?[0-9]{3,4}[ -]?[0-9]{3,4}$/;
-
-const driverSchema = yup.object().shape({
-  firstName: yup.string().required("required"),
-  lastName: yup.string().required("required"),
-  email: yup.string().email("Invalid email!"),
-  phone: yup
-    .string()
-    .matches(phoneRegExp, "Phone number is not valid!")
-    .required("required"),
-  idNumber: yup.number().required("required"),
-  idExpiryDate: yup.string().required("required"),
-  passportNumber: yup.string().required("required"),
-  passportExpiryDate: yup.string().required("required"),
-  contractExpiryDate: yup.string().required("required"),
-  vehicle: yup.string().required("required"),
-  driverLicenseExpiryDate: yup.string().required("required"),
-  carPlateNumber: yup.string().required("required"),
-  carRegisterationExpiryDate: yup.string().required("required"),
-  workPass: yup.string(),
-  contractType: yup.string().required("required"),
-  talabatId: yup.string().required("required"),
-  mainSalary: yup.number().required("required"),
-  gasCard: yup.number().required("required"),
-  healthInsuranceExpiryDate: yup.string().required("required"),
-  iban: yup.string().required("required"),
-  carType: yup.string(),
-  employeeCompanyNumber: yup.string().required("required"),
-  uploadedFile: yup
-    .mixed()
-    .required("required")
-    .test("fileType", "Only PDF files are allowed", (value) => {
-      if (!value) return true;
-      return value && value.type === "application/pdf";
-    }),
-});
+// const phoneRegExp =
+//   /^((\+[1-9]{1,4}[ -]?)|(\([0-9]{2,3}\)[ -]?)|([0-9]{2,4})[ -]?)*?[0-9]{3,4}[ -]?[0-9]{3,4}$/;
 
 const DriverForm = () => {
   const isNonMobile = useMediaQuery("(min-width: 600px)");
@@ -100,8 +66,51 @@ const DriverForm = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const { t } = useTranslation();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = async (values) => {
+  const validationSchema = yup.object().shape({
+    firstName: yup.string().required(t("firstNameRequired")),
+    lastName: yup.string().required(t("lastNameRequired")),
+    email: yup.string().email(t("invalidEmail")),
+    phone: yup
+      .number()
+      .required(t("phoneRequired"))
+      .test("unique", t("phoneAlreadyExists"), async function (value) {
+        if (!value) return true;
+        const result = await dispatch(checkPhoneExists(value));
+        return !result.payload; // Return true if phone doesn't exist
+      }),
+    idNumber: yup.number().required(t("idNumberRequired")),
+    idExpiryDate: yup.date().required(t("idExpiryDateRequired")),
+    passportNumber: yup.string().required(t("passportNumberRequired")),
+    passportExpiryDate: yup.date().required(t("passportExpiryDateRequired")),
+    contractExpiryDate: yup.date().required(t("contractExpiryDateRequired")),
+    driverLicenseExpiryDate: yup
+      .date()
+      .required(t("driverLicenseExpiryDateRequired")),
+    carPlateNumber: yup.string().required(t("carPlateNumberRequired")),
+    carRegisterationExpiryDate: yup
+      .date()
+      .required(t("carRegisterationExpiryDateRequired")),
+    workPass: yup.string(),
+    gasCard: yup.number().required(t("gasCardRequired")),
+    healthInsuranceExpiryDate: yup
+      .date()
+      .required(t("healthInsuranceExpiryDateRequired")),
+    carType: yup.string(),
+    employeeCompanyNumber: yup
+      .string()
+      .required(t("employeeCompanyNumberRequired")),
+    iban: yup.string().required(t("ibanRequired")),
+    vehicle: yup.string().required(t("vehicleRequired")),
+    contractType: yup.string().required(t("contractTypeRequired")),
+    talabatId: yup.string().required(t("talabatIdRequired")),
+    mainSalary: yup.number().required(t("mainSalaryRequired")),
+    uploadedFile: yup.mixed().required(t("fileRequired")),
+  });
+
+  const handleSubmit = async (values, { resetForm }) => {
+    setIsSubmitting(true);
     const formData = new FormData();
     try {
       Object.keys(values).forEach((key) => {
@@ -113,8 +122,11 @@ const DriverForm = () => {
       formData.append("uploadedFile", values.uploadedFile);
 
       await dispatch(registerDriver(formData));
+      resetForm();
     } catch (error) {
       console.error("Error registering driver:", error.message);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -156,12 +168,26 @@ const DriverForm = () => {
 
   return (
     <Box m="20px">
+      <Backdrop
+        sx={{
+          color: "#fff",
+          zIndex: (theme) => theme.zIndex.drawer + 1,
+          backgroundColor: "rgba(0, 0, 0, 0.7)",
+        }}
+        open={isSubmitting}
+      >
+        <l-pulsar
+          size="70"
+          speed="1.75"
+          color={colors.greenAccent[500]}
+        ></l-pulsar>
+      </Backdrop>
       <Header title={t("driverFormTitle")} subtitle={t("driverFormSubtitle")} />
 
       <Formik
         onSubmit={handleSubmit}
         initialValues={initialValues}
-        validationSchema={driverSchema}
+        validationSchema={validationSchema}
       >
         {({
           values,

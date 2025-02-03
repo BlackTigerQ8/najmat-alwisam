@@ -56,6 +56,82 @@ export const fetchSalaries = createAsyncThunk(
   }
 );
 
+export const checkPhoneExists = createAsyncThunk(
+  "users/checkPhoneExists",
+  async (phone) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.get(`${API_URL}/users`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const users = response.data.data.users;
+      return users.some((user) => user.phone === phone);
+    } catch (error) {
+      console.error("Error checking phone:", error);
+      return false;
+    }
+  }
+);
+
+export const checkEmailExists = createAsyncThunk(
+  "users/checkEmailExists",
+  async (email) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.get(`${API_URL}/users`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const users = response.data.data.users;
+      return users.some((user) => user.email === email);
+    } catch (error) {
+      console.error("Error checking email:", error);
+      return false;
+    }
+  }
+);
+
+export const checkIdentificationExists = createAsyncThunk(
+  "users/checkIdentificationExists",
+  async (identification) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.get(`${API_URL}/users`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const users = response.data.data.users;
+      return users.some((user) => user.identification === identification);
+    } catch (error) {
+      console.error("Error checking identification:", error);
+      return false;
+    }
+  }
+);
+
+export const checkPassportExists = createAsyncThunk(
+  "users/checkPassportExists",
+  async (passport) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.get(`${API_URL}/users`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const users = response.data.data.users;
+      return users.some((user) => user.passport === passport);
+    } catch (error) {
+      console.error("Error checking passport:", error);
+      return false;
+    }
+  }
+);
+
 export const fetchUsers = createAsyncThunk("user/fetchUsers", async (token) => {
   try {
     //const token = localStorage.getItem("token");

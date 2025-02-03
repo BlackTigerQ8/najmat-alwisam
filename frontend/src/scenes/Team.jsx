@@ -1,5 +1,15 @@
 import React, { useEffect, useState } from "react";
-import { Typography, Box, Button, useTheme } from "@mui/material";
+import {
+  Typography,
+  Box,
+  Button,
+  useTheme,
+  Backdrop,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+} from "@mui/material";
 import { DataGrid, GridToolbar } from "@mui/x-data-grid";
 import { tokens } from "../theme";
 // import { mockDataTeam } from "../data/mockData";
@@ -31,6 +41,10 @@ const Team = () => {
 
   const token =
     useSelector((state) => state.user.token) || localStorage.getItem("token");
+
+  const [openModal, setOpenModal] = useState(false);
+  const [userToDelete, setUserToDelete] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const columns = [
     {
@@ -179,16 +193,95 @@ const Team = () => {
     navigate(`/user-profile/${rowData._id}`);
   };
 
-  const handleDelete = async (userId) => {
+  const handleDelete = (userId) => {
+    setUserToDelete(userId);
+    setOpenModal(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    setIsSubmitting(true);
     try {
-      dispatch(deleteUser(userId));
+      await dispatch(deleteUser(userToDelete));
     } catch (error) {
       console.error("Error deleting user:", error);
+    } finally {
+      setIsSubmitting(false);
+      setOpenModal(false);
+      setUserToDelete(null);
     }
   };
 
+  const handleCloseModal = () => {
+    setOpenModal(false);
+    setUserToDelete(null);
+  };
+
+  const ConfirmationModal = () => (
+    <Dialog
+      open={openModal}
+      onClose={handleCloseModal}
+      PaperProps={{
+        style: {
+          backgroundColor: colors.primary[400],
+          border: `1px solid ${colors.primary[500]}`,
+          borderRadius: "4px",
+        },
+      }}
+    >
+      <DialogTitle>
+        <Typography variant="h4" color={colors.grey[100]}>
+          {t("confirmDelete")}
+        </Typography>
+      </DialogTitle>
+      <DialogContent>
+        <Typography color={colors.grey[100]}>
+          {t("confirmDeleteMessage")}
+        </Typography>
+      </DialogContent>
+      <DialogActions sx={{ padding: "20px" }}>
+        <Button
+          onClick={handleCloseModal}
+          variant="contained"
+          sx={{
+            backgroundColor: colors.grey[500],
+            "&:hover": { backgroundColor: colors.grey[400] },
+          }}
+        >
+          {t("cancel")}
+        </Button>
+        <Button
+          onClick={handleConfirmDelete}
+          variant="contained"
+          color="secondary"
+          sx={{
+            marginLeft: "10px",
+            backgroundColor: colors.greenAccent[500],
+            "&:hover": { backgroundColor: colors.greenAccent[400] },
+          }}
+        >
+          {t("confirm")}
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
+
   return (
     <Box m="20px">
+      <Backdrop
+        sx={{
+          color: "#fff",
+          zIndex: (theme) => theme.zIndex.drawer + 1,
+          backgroundColor: "rgba(0, 0, 0, 0.7)",
+        }}
+        open={isSubmitting}
+      >
+        <l-pulsar
+          size="70"
+          speed="1.75"
+          color={colors.greenAccent[500]}
+        ></l-pulsar>
+      </Backdrop>
+      <ConfirmationModal />
       <Header title={t("TEAM")} subtitle={t("manageTeamMembers")} />
       <Box
         mt="40px"

@@ -32,6 +32,7 @@ const userSchema = new mongoose.Schema({
   },
   identification: {
     type: Number,
+    unique: true,
     required: [true, "Please provide a valid ID"],
   },
   role: {
@@ -42,6 +43,7 @@ const userSchema = new mongoose.Schema({
   mainSalary: { type: Number, default: 0 },
   passport: {
     type: String,
+    unique: true,
     required: [true, "Passport number is required"],
   },
   contractExpiryDate: {

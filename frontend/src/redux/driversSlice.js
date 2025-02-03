@@ -57,6 +57,25 @@ export const registerDriver = createAsyncThunk(
   }
 );
 
+export const checkPhoneExists = createAsyncThunk(
+  "drivers/checkPhoneExists",
+  async (phone) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.get(`${API_URL}/drivers`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const drivers = response.data.data.drivers;
+      return drivers.some((driver) => driver.phone === phone);
+    } catch (error) {
+      console.error("Error checking phone:", error);
+      return false;
+    }
+  }
+);
+
 export const fetchDrivers = createAsyncThunk(
   "driver/fetchDrivers",
   async (token) => {
@@ -262,6 +281,18 @@ const driversSlice = createSlice({
         state.status = "failed";
         state.error = action.error.message;
         dispatchToast(i18next.t("registerDriverRejected"), "error");
+      });
+    // check phone exists
+    builder
+      .addCase(checkPhoneExists.pending, (state) => {
+        state.status = "loading";
+      })
+      .addCase(checkPhoneExists.fulfilled, (state, action) => {
+        state.status = "succeeded";
+      })
+      .addCase(checkPhoneExists.rejected, (state, action) => {
+        state.status = "failed";
+        state.error = action.error.message;
       });
     // Fetch drivers
     builder

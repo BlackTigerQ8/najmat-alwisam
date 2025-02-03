@@ -1,5 +1,6 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
+  Backdrop,
   Box,
   Button,
   FormControl,
@@ -50,6 +51,7 @@ const Contact = () => {
   const token =
     useSelector((state) => state.drivers.token) ||
     localStorage.getItem("token");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     dispatch(fetchUsers(token));
@@ -76,6 +78,7 @@ const Contact = () => {
   }
 
   const handleSubmit = async (values, { resetForm }) => {
+    setIsSubmitting(true);
     try {
       await dispatch(
         sendMessage({
@@ -89,11 +92,27 @@ const Contact = () => {
       console.log("Messages sent successfully!");
     } catch (error) {
       console.error("Error sending messages:", error);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   return (
     <Box m="20px">
+      <Backdrop
+        sx={{
+          color: "#fff",
+          zIndex: (theme) => theme.zIndex.drawer + 1,
+          backgroundColor: "rgba(0, 0, 0, 0.7)",
+        }}
+        open={isSubmitting}
+      >
+        <l-pulsar
+          size="70"
+          speed="1.75"
+          color={colors.greenAccent[500]}
+        ></l-pulsar>
+      </Backdrop>
       <Header title={t("contactTitle")} subtitle={t("contactSubtitle")} />
       <Box
         mt="40px"

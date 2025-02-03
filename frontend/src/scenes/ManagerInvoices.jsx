@@ -1,5 +1,15 @@
-import React, { useEffect, useMemo } from "react";
-import { Box, Button, useTheme } from "@mui/material";
+import React, { useEffect, useMemo, useState } from "react";
+import {
+  Box,
+  Button,
+  useTheme,
+  Backdrop,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Typography,
+} from "@mui/material";
 import Header from "../components/Header";
 import { DataGrid } from "@mui/x-data-grid";
 import { tokens } from "../theme";
@@ -27,6 +37,11 @@ const ManagerInvoices = () => {
   const employeeInvoiceStatus = useSelector(
     (state) => state.invoice.employeeInvoicesStatus
   );
+
+  const [openApproveModal, setOpenApproveModal] = useState(false);
+  const [openRejectModal, setOpenRejectModal] = useState(false);
+  const [selectedInvoice, setSelectedInvoice] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const status =
     driverInvoiceStatus === "loading" || driverInvoiceStatus === "failed"
@@ -187,7 +202,7 @@ const ManagerInvoices = () => {
               size="small"
               style={{ marginRight: 8 }}
               onClick={() =>
-                handleUpdate({
+                handleUpdateClick({
                   id: params.row.id,
                   status: "managerRejected",
                   type: params.row.type,
@@ -200,7 +215,7 @@ const ManagerInvoices = () => {
               color="secondary"
               size="small"
               onClick={() =>
-                handleUpdate({
+                handleUpdateClick({
                   id: params.row.id,
                   status: "pendingAdminReview",
                   type: params.row.type,
@@ -258,19 +273,166 @@ const ManagerInvoices = () => {
     );
   }
 
-  const handleUpdate = ({ id, status, type }) => {
-    try {
-      if (type === "driver") {
-        return dispatch(updateDriverInvoice({ values: { id, status } }));
-      }
-
-      if (type === "user") {
-        return dispatch(updateEmployeeInvoice({ values: { id, status } }));
-      }
-    } catch (error) {
-      console.error("Row does not have a valid _id field:");
+  const handleUpdateClick = (params) => {
+    setSelectedInvoice(params);
+    if (params.status === "pendingAdminReview") {
+      setOpenApproveModal(true);
+    } else if (params.status === "managerRejected") {
+      setOpenRejectModal(true);
     }
   };
+
+  const handleConfirmUpdate = async () => {
+    if (!selectedInvoice) return;
+
+    setIsSubmitting(true);
+    try {
+      if (selectedInvoice.type === "driver") {
+        await dispatch(
+          updateDriverInvoice({
+            values: {
+              id: selectedInvoice.id,
+              status: selectedInvoice.status,
+            },
+          })
+        );
+      } else if (selectedInvoice.type === "user") {
+        await dispatch(
+          updateEmployeeInvoice({
+            values: {
+              id: selectedInvoice.id,
+              status: selectedInvoice.status,
+            },
+          })
+        );
+      }
+    } catch (error) {
+      console.error("Error updating invoice:", error);
+    } finally {
+      setIsSubmitting(false);
+      setOpenApproveModal(false);
+      setOpenRejectModal(false);
+      setSelectedInvoice(null);
+    }
+  };
+
+  const handleCloseModals = () => {
+    setOpenApproveModal(false);
+    setOpenRejectModal(false);
+    setSelectedInvoice(null);
+  };
+
+  const ConfirmationModals = () => (
+    <>
+      <Dialog
+        open={openApproveModal}
+        onClose={handleCloseModals}
+        PaperProps={{
+          style: {
+            backgroundColor: colors.primary[400],
+            border: `1px solid ${colors.primary[500]}`,
+            borderRadius: "4px",
+          },
+        }}
+      >
+        <DialogTitle>
+          <Typography variant="h4" color={colors.grey[100]}>
+            {t("confirm")}
+          </Typography>
+        </DialogTitle>
+        <DialogContent>
+          <Typography color={colors.grey[100]}>
+            {t("confirmApproveDeduction")}
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ padding: "20px" }}>
+          <Button
+            onClick={handleCloseModals}
+            variant="contained"
+            sx={{
+              backgroundColor: colors.grey[500],
+              "&:hover": { backgroundColor: colors.grey[400] },
+            }}
+          >
+            {t("cancel")}
+          </Button>
+          <Button
+            onClick={handleConfirmUpdate}
+            variant="contained"
+            color="secondary"
+            sx={{
+              marginLeft: "10px",
+              backgroundColor: colors.greenAccent[500],
+              "&:hover": { backgroundColor: colors.greenAccent[400] },
+            }}
+          >
+            {t("confirm")}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={openRejectModal}
+        onClose={handleCloseModals}
+        PaperProps={{
+          style: {
+            backgroundColor: colors.primary[400],
+            border: `1px solid ${colors.primary[500]}`,
+            borderRadius: "4px",
+          },
+        }}
+      >
+        <DialogTitle>
+          <Typography variant="h4" color={colors.grey[100]}>
+            {t("confirm")}
+          </Typography>
+        </DialogTitle>
+        <DialogContent>
+          <Typography color={colors.grey[100]}>
+            {t("confirmRejectDeduction")}
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ padding: "20px" }}>
+          <Button
+            onClick={handleCloseModals}
+            variant="contained"
+            sx={{
+              backgroundColor: colors.grey[500],
+              "&:hover": { backgroundColor: colors.grey[400] },
+            }}
+          >
+            {t("cancel")}
+          </Button>
+          <Button
+            onClick={handleConfirmUpdate}
+            variant="contained"
+            color="secondary"
+            sx={{
+              marginLeft: "10px",
+              backgroundColor: colors.greenAccent[500],
+              "&:hover": { backgroundColor: colors.greenAccent[400] },
+            }}
+          >
+            {t("confirm")}
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </>
+  );
+
+  // const handleUpdate = ({ id, status, type }) => {
+  //   try {
+  //     if (type === "driver") {
+  //       return dispatch(updateDriverInvoice({ values: { id, status } }));
+  //     }
+
+  //     if (type === "user") {
+  //       return dispatch(updateEmployeeInvoice({ values: { id, status } }));
+  //     }
+  //   } catch (error) {
+  //     console.error("Row does not have a valid _id field:");
+  //   }
+  // };
 
   const handleViewFile = (values) => {
     const decodedPath = decodeURIComponent(values.file);
@@ -285,6 +447,21 @@ const ManagerInvoices = () => {
 
   return (
     <Box m="20px">
+      <Backdrop
+        sx={{
+          color: "#fff",
+          zIndex: (theme) => theme.zIndex.drawer + 1,
+          backgroundColor: "rgba(0, 0, 0, 0.7)",
+        }}
+        open={isSubmitting}
+      >
+        <l-pulsar
+          size="70"
+          speed="1.75"
+          color={colors.greenAccent[500]}
+        ></l-pulsar>
+      </Backdrop>
+      <ConfirmationModals />
       <Header
         title={t("deductionInvoicesTitle")}
         subtitle={t("deductionInvoicesSubtitle")}
