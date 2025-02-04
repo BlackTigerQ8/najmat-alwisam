@@ -13,7 +13,8 @@ import {
 import Header from "../components/Header";
 import { DataGrid } from "@mui/x-data-grid";
 import { tokens } from "../theme";
-import UpdateIcon from "@mui/icons-material/Update";
+// import UpdateIcon from "@mui/icons-material/Update";
+import SaveIcon from "@mui/icons-material/Save";
 import { pulsar } from "ldrs";
 import { useSelector, useDispatch } from "react-redux";
 import { fetchSalaries, updateAdditionalSalary } from "../redux/usersSlice";
@@ -38,6 +39,8 @@ const EmployeesSalary = () => {
   const [endMonth, setEndMonth] = useState(new Date().getMonth());
   const [endYear, setEndYear] = useState(new Date().getFullYear());
   const componentRef = useRef();
+  const [rowModifications, setRowModifications] = useState({});
+  const [editedRows, setEditedRows] = useState({});
 
   const handlePrint = useReactToPrint({
     content: () => componentRef.current,
@@ -100,6 +103,39 @@ const EmployeesSalary = () => {
     }, 0);
   };
 
+  const processRowUpdate = (newRow, oldRow) => {
+    const id = newRow._id;
+    const changes = {};
+
+    Object.keys(newRow).forEach((field) => {
+      if (newRow[field] !== oldRow[field]) {
+        changes[field] = newRow[field];
+      }
+    });
+
+    if (Object.keys(changes).length > 0) {
+      setRowModifications((prev) => ({
+        ...prev,
+        [id]: {
+          ...(prev[id] || {}),
+          ...changes,
+        },
+      }));
+
+      setEditedRows((prev) => ({
+        ...prev,
+        [id]: true,
+      }));
+    }
+
+    return newRow;
+  };
+
+  // Add error handler
+  const handleProcessRowUpdateError = (error) => {
+    console.error(error);
+  };
+
   const sumRow = {
     _id: "sum-row",
     sequenceNumber: "",
@@ -157,6 +193,7 @@ const EmployeesSalary = () => {
       flex: 0.75,
       type: Number,
       editable: false,
+      valueFormatter: (params) => Number(params.value || 0).toFixed(3),
     },
     {
       field: "additionalSalary",
@@ -164,6 +201,7 @@ const EmployeesSalary = () => {
       flex: 1,
       editable: true,
       type: Number,
+      valueFormatter: (params) => Number(params.value || 0).toFixed(3),
     },
     {
       field: "companyDeductionAmount",
@@ -171,6 +209,7 @@ const EmployeesSalary = () => {
       flex: 1,
       //editable: true, //Intentionally commented this as deductions should be done through deduction form only
       type: Number,
+      valueFormatter: (params) => Number(params.value || 0).toFixed(3),
     },
     {
       field: "totalSalary",
@@ -219,17 +258,24 @@ const EmployeesSalary = () => {
       filterable: false,
       renderCell: (params) => {
         const isSumRow = params.row._id === "sum-row";
+        const rowId = params.row._id;
+        const hasChanges = Boolean(
+          editedRows[rowId] &&
+            Object.keys(rowModifications[rowId] || {}).length > 0
+        );
         return (
-          <Box display="flex" justifyContent="center">
-            {isSumRow ? null : (
+          <Box display="flex" gap={1}>
+            {!isSumRow && (
               <Button
+                color="secondary"
                 variant="contained"
-                color="primary"
                 size="small"
-                style={{ marginRight: 8 }}
+                startIcon={<SaveIcon />}
                 onClick={() => handleUpdate(params.row)}
-                startIcon={<UpdateIcon />}
-              ></Button>
+                disabled={!hasChanges}
+              >
+                {t("save")}
+              </Button>
             )}
           </Box>
         );
@@ -288,15 +334,44 @@ const EmployeesSalary = () => {
 
   const handleUpdate = (row) => {
     try {
-      const { additionalSalary, remarks } = row;
+      const modifications = rowModifications[row._id];
+
+      if (!modifications || Object.keys(modifications).length === 0) {
+        return;
+      }
+
+      // Get all the necessary values for the update
+      const updateData = {
+        additionalSalary:
+          modifications.additionalSalary ?? row.additionalSalary,
+        remarks: modifications.remarks ?? row.remarks,
+        // Include any other fields that should be part of the update
+        mainSalary: row.mainSalary,
+        companyDeductionAmount: row.companyDeductionAmount,
+      };
+
+      // Dispatch the update with all values
       dispatch(
         updateAdditionalSalary({
           userId: row._id,
-          values: { additionalSalary, remarks },
+          values: updateData,
         })
       );
+
+      // Clear modifications for this row
+      setRowModifications((prev) => {
+        const newState = { ...prev };
+        delete newState[row._id];
+        return newState;
+      });
+
+      setEditedRows((prev) => {
+        const newState = { ...prev };
+        delete newState[row._id];
+        return newState;
+      });
     } catch (error) {
-      console.error("Row does not have a valid _id field:", row);
+      console.error("Error updating row:", error);
     }
   };
 
@@ -399,6 +474,10 @@ const EmployeesSalary = () => {
           columns={columns}
           getRowId={(row) => row._id}
           className={styles.grid}
+          editMode="cell"
+          processRowUpdate={processRowUpdate}
+          onProcessRowUpdateError={handleProcessRowUpdateError}
+          experimentalFeatures={{ newEditingApi: true }}
           getRowClassName={(params) =>
             params.row._id === "sum-row" ? `sum-row-highlight` : ""
           }

@@ -9,6 +9,9 @@ const {
   filterArchivedInvoices,
   resetDriverInvoices,
   getDriverStatsByMonth,
+  restoreInvoices,
+  cleanupOrphanedInvoices,
+  // clearRecentInvoices,
 } = require("../controllers/driverController");
 const { protect, restrictTo } = require("../middleware/authMiddleware");
 const { driverInvoicesUpload } = require("./uploadRoutes");
@@ -72,5 +75,26 @@ router.get(
   restrictTo("Admin", "Manager"),
   getDriverStatsByMonth
 );
+
+router.put(
+  "/restore",
+  protect,
+  restrictTo("Admin", "Employee", "Manager"),
+  restoreInvoices
+);
+
+router.delete(
+  "/cleanup-orphaned",
+  protect,
+  restrictTo("Admin"),
+  cleanupOrphanedInvoices
+);
+
+// router.delete(
+//   "/today/:driverId",
+//   protect,
+//   restrictTo("Admin"),
+//   clearRecentInvoices
+// );
 
 module.exports = router;

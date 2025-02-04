@@ -15,6 +15,7 @@ import { DataGrid } from "@mui/x-data-grid";
 import { tokens } from "../theme";
 import Header from "../components/Header";
 import UpdateIcon from "@mui/icons-material/Update";
+import SaveIcon from "@mui/icons-material/Save";
 import { useSelector, useDispatch } from "react-redux";
 import { fetchDrivers } from "../redux/driversSlice";
 import { pulsar } from "ldrs";
@@ -24,8 +25,10 @@ import {
   fetchEmployeeInvoices,
   resetDriverInvoices,
   resetSingleDriverInvoice,
+  restoreDriverInvoices,
 } from "../redux/invoiceSlice";
 import DeleteIcon from "@mui/icons-material/Delete";
+import RestoreIcon from "@mui/icons-material/Restore";
 import { useTranslation } from "react-i18next";
 
 const InvoicesArchive = () => {
@@ -43,7 +46,10 @@ const InvoicesArchive = () => {
 
   const invoices = useSelector((state) => state.invoice?.driverInvoices || []);
   const [openModal, setOpenModal] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [openRestoreModal, setOpenRestoreModal] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [rowModifications, setRowModifications] = useState({});
+  const [editedRows, setEditedRows] = useState({});
 
   const getInvoiceData = useCallback(
     (driverId) => {
@@ -99,13 +105,52 @@ const InvoicesArchive = () => {
     setOpenModal(true);
   }, []);
 
-  const handleConfirmReset = () => {
-    dispatch(resetDriverInvoices());
-    setOpenModal(false);
+  const handleConfirmReset = async () => {
+    try {
+      setIsLoading(true);
+      setOpenModal(false);
+      await dispatch(resetDriverInvoices()).unwrap();
+    } catch (error) {
+      console.error("Error resetting invoices:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleCloseModal = () => {
     setOpenModal(false);
+  };
+
+  const handleRestore = useCallback(() => {
+    setOpenRestoreModal(true);
+  }, []);
+
+  const handleConfirmRestore = () => {
+    setIsLoading(true);
+    setOpenRestoreModal(false);
+    const now = new Date();
+    const startDate = new Date(now.getFullYear(), now.getMonth(), 1)
+      .toISOString()
+      .split("T")[0];
+    const endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0)
+      .toISOString()
+      .split("T")[0];
+
+    dispatch(restoreDriverInvoices({ startDate, endDate }))
+      .unwrap()
+      .then(() => {
+        setOpenRestoreModal(false);
+      })
+      .catch((error) => {
+        console.error("Error restoring invoices:", error);
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
+  };
+
+  const handleCloseRestoreModal = () => {
+    setOpenRestoreModal(false);
   };
 
   const columns = [
@@ -178,22 +223,27 @@ const InvoicesArchive = () => {
     {
       field: "actions",
       headerName: t("actions"),
-      width: 150,
-      headerAlign: "center",
-      align: "center",
+      flex: 1.5,
       sortable: false,
       filterable: false,
       renderCell: (params) => {
+        const rowId = params.row._id;
+        const hasChanges = Boolean(
+          editedRows[rowId] && rowModifications[rowId]
+        );
+
         return (
-          <Box display="flex" justifyContent="center">
+          <Box display="flex" gap={1}>
             <Button
+              color="secondary"
               variant="contained"
-              color="primary"
               size="small"
-              style={{ marginRight: 8 }}
+              startIcon={<SaveIcon />}
               onClick={() => handleUpdate(params.row)}
-              startIcon={<UpdateIcon />}
-            ></Button>
+              disabled={!hasChanges}
+            >
+              {t("save")}
+            </Button>
             <Button
               variant="contained"
               color="secondary"
@@ -251,22 +301,83 @@ const InvoicesArchive = () => {
     );
   }
 
+  const processRowUpdate = (newRow, oldRow) => {
+    const id = newRow._id;
+    const changes = {};
+
+    Object.keys(newRow).forEach((field) => {
+      if (newRow[field] !== oldRow[field]) {
+        changes[field] = newRow[field];
+      }
+    });
+
+    if (Object.keys(changes).length > 0) {
+      setRowModifications((prev) => ({
+        ...prev,
+        [id]: {
+          ...(prev[id] || {}),
+          ...changes,
+        },
+      }));
+
+      setEditedRows((prev) => ({
+        ...prev,
+        [id]: true,
+      }));
+    }
+
+    return newRow;
+  };
+
+  // Add error handler
+  const handleProcessRowUpdateError = (error) => {
+    console.error(error);
+  };
+
   const handleUpdate = (row) => {
-    setIsSubmitting(true);
+    setIsLoading(true);
     try {
-      const { cash = 0, mainOrder = 0, additionalOrder = 0, hour = 0 } = row;
+      const modifications = rowModifications[row._id];
+
+      if (!modifications || Object.keys(modifications).length === 0) {
+        return;
+      }
+
       const formData = new FormData();
-      formData.append("cash", cash);
-      formData.append("mainOrder", mainOrder);
-      formData.append("additionalOrder", additionalOrder);
-      formData.append("hour", hour);
+
+      // Only append modified fields
+      if ("cash" in modifications) {
+        formData.append("cash", modifications.cash || 0);
+      }
+      if ("mainOrder" in modifications) {
+        formData.append("mainOrder", modifications.mainOrder || 0);
+      }
+      if ("additionalOrder" in modifications) {
+        formData.append("additionalOrder", modifications.additionalOrder || 0);
+      }
+      if ("hour" in modifications) {
+        formData.append("hour", modifications.hour || 0);
+      }
       formData.append("driverId", row._id);
 
       dispatch(createDriverInvoice(formData));
+
+      // Clear modifications for this row
+      setRowModifications((prev) => {
+        const newState = { ...prev };
+        delete newState[row._id];
+        return newState;
+      });
+
+      setEditedRows((prev) => {
+        const newState = { ...prev };
+        delete newState[row._id];
+        return newState;
+      });
     } catch (error) {
-      console.error("Row does not have a valid _id field:", row);
+      console.error("Error updating row:", error);
     } finally {
-      setIsSubmitting(false);
+      setIsLoading(false);
     }
   };
 
@@ -328,15 +439,65 @@ const InvoicesArchive = () => {
     </Dialog>
   );
 
+  const RestoreConfirmationModal = () => (
+    <Dialog
+      open={openRestoreModal}
+      onClose={handleCloseRestoreModal}
+      PaperProps={{
+        style: {
+          backgroundColor: colors.primary[400],
+          border: `1px solid ${colors.primary[500]}`,
+          borderRadius: "4px",
+        },
+      }}
+    >
+      <DialogTitle>
+        <Typography variant="h4" color={colors.grey[100]}>
+          {t("confirmRestore")}
+        </Typography>
+      </DialogTitle>
+      <DialogContent>
+        <Typography color={colors.grey[100]}>
+          {t("confirmRestoreMessage")}
+        </Typography>
+      </DialogContent>
+      <DialogActions sx={{ padding: "20px" }}>
+        <Button
+          onClick={handleCloseRestoreModal}
+          variant="contained"
+          sx={{
+            backgroundColor: colors.grey[500],
+            "&:hover": { backgroundColor: colors.grey[400] },
+          }}
+        >
+          {t("cancel")}
+        </Button>
+        <Button
+          onClick={handleConfirmRestore}
+          variant="contained"
+          color="secondary"
+          sx={{
+            marginLeft: "10px",
+            backgroundColor: colors.greenAccent[500],
+            "&:hover": { backgroundColor: colors.greenAccent[400] },
+          }}
+        >
+          {t("confirm")}
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
+
   return (
     <Box m="20px">
+      <RestoreConfirmationModal />
       <Backdrop
         sx={{
           color: "#fff",
           zIndex: (theme) => theme.zIndex.drawer + 1,
           backgroundColor: "rgba(0, 0, 0, 0.7)",
         }}
-        open={isSubmitting}
+        open={isLoading}
       >
         <l-pulsar
           size="70"
@@ -355,6 +516,15 @@ const InvoicesArchive = () => {
       >
         <Button onClick={resetInvoices} color="secondary" variant="contained">
           {t("reset")}
+        </Button>
+        <Button
+          onClick={handleRestore}
+          color="secondary"
+          variant="contained"
+          startIcon={<RestoreIcon />}
+          sx={{ marginLeft: "10px" }}
+        >
+          {t("restore")}
         </Button>
       </Box>
       <Box
@@ -394,8 +564,10 @@ const InvoicesArchive = () => {
           rows={Array.isArray(driverWithInvoices) ? driverWithInvoices : []}
           columns={columns}
           getRowId={(row) => row._id}
-          editRowsModel={editRowsModel}
-          onEditRowsModelChange={(newModel) => setEditRowsModel(newModel)}
+          editMode="cell"
+          processRowUpdate={processRowUpdate}
+          onProcessRowUpdateError={handleProcessRowUpdateError}
+          experimentalFeatures={{ newEditingApi: true }}
         />
       </Box>
     </Box>

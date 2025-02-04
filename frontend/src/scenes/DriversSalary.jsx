@@ -13,7 +13,8 @@ import {
 import { DataGrid } from "@mui/x-data-grid";
 import { tokens } from "../theme";
 import Header from "../components/Header";
-import UpdateIcon from "@mui/icons-material/Update";
+// import UpdateIcon from "@mui/icons-material/Update";
+import SaveIcon from "@mui/icons-material/Save";
 import { useSelector, useDispatch } from "react-redux";
 import { overrideDriverSalary, fetchSalaries } from "../redux/driversSlice";
 import { pulsar } from "ldrs";
@@ -39,6 +40,9 @@ const DriversSalary = () => {
   const [endMonth, setEndMonth] = useState(new Date().getMonth());
   const [endYear, setEndYear] = useState(new Date().getFullYear());
   const componentRef = useRef();
+  const [editRowsModel, setEditRowsModel] = useState({});
+  const [rowModifications, setRowModifications] = useState({});
+  const [editedRows, setEditedRows] = useState({});
 
   const handlePrint = useReactToPrint({
     content: () => componentRef.current,
@@ -60,8 +64,6 @@ const DriversSalary = () => {
   const handleEndYearChange = (event) => {
     setEndYear(event.target.value);
   };
-
-  const [editRowsModel, setEditRowsModel] = useState({});
 
   const netCarDriversSalary = useMemo(() => {
     const carDrivers = driversSalaries.filter(
@@ -121,6 +123,81 @@ const DriversSalary = () => {
   const totalNetSalary = useMemo(() => {
     return totalMonthlySalary - totalMonthlyDeduction;
   }, [totalMonthlySalary, totalMonthlyDeduction]);
+
+  const processRowUpdate = (newRow, oldRow) => {
+    const id = newRow._id;
+    const changes = {};
+
+    Object.keys(newRow).forEach((field) => {
+      if (newRow[field] !== oldRow[field]) {
+        changes[field] = newRow[field];
+      }
+    });
+
+    if (Object.keys(changes).length > 0) {
+      setRowModifications((prev) => ({
+        ...prev,
+        [id]: {
+          ...(prev[id] || {}),
+          ...changes,
+        },
+      }));
+
+      setEditedRows((prev) => ({
+        ...prev,
+        [id]: true,
+      }));
+    }
+
+    return newRow;
+  };
+
+  // Add this error handler
+  const handleProcessRowUpdateError = (error) => {
+    console.error(error);
+  };
+
+  const handleUpdate = (row) => {
+    try {
+      const modifications = rowModifications[row._id];
+
+      if (!modifications || Object.keys(modifications).length === 0) {
+        return;
+      }
+
+      dispatch(
+        overrideDriverSalary({
+          values: {
+            driverId: row._id,
+            mainOrder: modifications.mainOrder ?? row.mainOrder,
+            additionalOrder:
+              modifications.additionalOrder ?? row.additionalOrder,
+            talabatDeductionAmount:
+              modifications.talabatDeductionAmount ??
+              row.talabatDeductionAmount,
+            companyDeductionAmount:
+              modifications.companyDeductionAmount ??
+              row.companyDeductionAmount,
+          },
+        })
+      );
+
+      // Clear modifications for this row
+      setRowModifications((prev) => {
+        const newState = { ...prev };
+        delete newState[row._id];
+        return newState;
+      });
+
+      setEditedRows((prev) => {
+        const newState = { ...prev };
+        delete newState[row._id];
+        return newState;
+      });
+    } catch (error) {
+      console.error("Error updating row:", error);
+    }
+  };
 
   const columns = [
     {
@@ -276,24 +353,31 @@ const DriversSalary = () => {
     {
       field: "actions",
       headerName: t("actions"),
-      width: 150,
+      width: 100,
       headerAlign: "center",
       align: "center",
       sortable: false,
       filterable: false,
       renderCell: (params) => {
         const isSumRow = params.row._id === "sum-row";
+        const rowId = params.row._id;
+        const hasChanges = Boolean(
+          editedRows[rowId] &&
+            Object.keys(rowModifications[rowId] || {}).length > 0
+        );
         return (
-          <Box display="flex" justifyContent="center">
-            {isSumRow ? null : (
+          <Box display="flex" gap={1}>
+            {!isSumRow && (
               <Button
+                color="secondary"
                 variant="contained"
-                color="primary"
                 size="small"
-                style={{ marginRight: 8 }}
+                startIcon={<SaveIcon />}
                 onClick={() => handleUpdate(params.row)}
-                startIcon={<UpdateIcon />}
-              ></Button>
+                disabled={!hasChanges}
+              >
+                {t("save")}
+              </Button>
             )}
           </Box>
         );
@@ -370,30 +454,6 @@ const DriversSalary = () => {
       </div>
     );
   }
-
-  const handleUpdate = (row) => {
-    try {
-      const {
-        mainOrder,
-        additionalOrder,
-        talabatDeductionAmount,
-        companyDeductionAmount,
-      } = row;
-      dispatch(
-        overrideDriverSalary({
-          values: {
-            driverId: row._id,
-            mainOrder,
-            additionalOrder,
-            talabatDeductionAmount,
-            companyDeductionAmount,
-          },
-        })
-      );
-    } catch (error) {
-      console.error("Row does not have a valid _id field:", row);
-    }
-  };
 
   const onSearchSubmit = async () => [
     dispatch(
@@ -506,6 +566,10 @@ const DriversSalary = () => {
           editRowsModel={editRowsModel}
           onEditRowsModelChange={(newModel) => setEditRowsModel(newModel)}
           className={styles.grid}
+          editMode="cell"
+          processRowUpdate={processRowUpdate}
+          onProcessRowUpdateError={handleProcessRowUpdateError}
+          experimentalFeatures={{ newEditingApi: true }}
           getRowClassName={(params) =>
             params.row._id === "sum-row" ? `sum-row-highlight` : ""
           }

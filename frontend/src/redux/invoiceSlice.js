@@ -62,21 +62,26 @@ export const fetchArchivedInvoices = createAsyncThunk(
 
 export const searchArchivedInvoices = createAsyncThunk(
   "invoice/searchArchivedInvoices",
-  async (values) => {
+  async (searchParams) => {
     try {
       const token = localStorage.getItem("token");
+      console.log("Search Params in Thunk:", searchParams); // Debug log
+
       const response = await axios.post(
         `${API_URL}/driver-invoice/archived/search`,
-        values,
+        searchParams,
         {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         }
       );
+
+      console.log("Search Response in Thunk:", response.data); // Debug log
       return response.data;
     } catch (error) {
-      throw new Error(error.response.data.message || error.message);
+      console.error("Search Error in Thunk:", error); // Debug log
+      throw new Error(error.response?.data?.message || error.message);
     }
   }
 );
@@ -223,10 +228,39 @@ export const fetchDriverStatsByMonth = createAsyncThunk(
   }
 );
 
+export const restoreDriverInvoices = createAsyncThunk(
+  "invoice/restoreDriverInvoices",
+  async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.put(
+        `${API_URL}/driver-invoice/restore`,
+        {}, // No need to send dates anymore
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      console.log("Restore response:", response.data);
+      return response.data;
+    } catch (error) {
+      console.error("Restore error:", error);
+      throw new Error(error.response?.data?.message || error.message);
+    }
+  }
+);
+
 const driverInvoiceSlice = createSlice({
   name: "invoice",
   initialState,
-  reducers: {},
+  reducers: {
+    clearSearchResults: (state) => {
+      state.archivedDriverInvoices = [];
+      state.status = "idle";
+    },
+  },
   extraReducers(builder) {
     // Fetch drivers
     builder
@@ -259,7 +293,10 @@ const driverInvoiceSlice = createSlice({
       })
       .addCase(searchArchivedInvoices.fulfilled, (state, action) => {
         state.status = "succeeded";
-        state.archivedDriverInvoices = action.payload.data.driverInvoices;
+        // Make sure we're getting the correct data structure
+        const invoices = action.payload.data?.driverInvoices || [];
+        console.log("Setting archived invoices in Redux:", invoices);
+        state.archivedDriverInvoices = invoices;
         state.error = null;
       })
       .addCase(searchArchivedInvoices.rejected, (state, action) => {
@@ -379,6 +416,21 @@ const driverInvoiceSlice = createSlice({
       .addCase(fetchDriverStatsByMonth.rejected, (state, action) => {
         state.monthlyStatsStatus = "failed";
         state.monthlyStatsError = action.error.message;
+      });
+    builder
+      .addCase(restoreDriverInvoices.pending, (state) => {
+        state.status = "loading";
+      })
+      .addCase(restoreDriverInvoices.fulfilled, (state, action) => {
+        state.status = "succeeded";
+        // Update the driverInvoices with the returned data
+        state.driverInvoices = action.payload.data.driverInvoices;
+        dispatchToast(i18next.t("restoreInvoicesFulfilled"), "success");
+      })
+      .addCase(restoreDriverInvoices.rejected, (state, action) => {
+        state.status = "failed";
+        state.error = action.error.message;
+        dispatchToast(i18next.t("restoreInvoicesRejected"), "error");
       });
   },
 });

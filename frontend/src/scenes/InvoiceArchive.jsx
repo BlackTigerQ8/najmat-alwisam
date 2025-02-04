@@ -9,9 +9,12 @@ import {
   FormControl,
   TextField,
   IconButton,
+  Modal,
+  Typography,
 } from "@mui/material";
 import ClearIcon from "@mui/icons-material/Clear";
-import { DataGrid } from "@mui/x-data-grid";
+import InfoIcon from "@mui/icons-material/Info";
+import { DataGrid, useGridApiContext } from "@mui/x-data-grid";
 import { tokens } from "../theme";
 import Header from "../components/Header";
 import { useSelector, useDispatch } from "react-redux";
@@ -51,132 +54,240 @@ const Invoices = () => {
     useSelector((state) => state.drivers.token) ||
     localStorage.getItem("token");
 
-  const invoices = useSelector(
-    (state) => state.invoice?.archivedDriverInvoices || []
+  // const invoices = useSelector(
+  //   (state) => state.invoice?.archivedDriverInvoices || []
+  // );
+  const archivedInvoices = useSelector(
+    (state) => state.invoice.archivedDriverInvoices || []
   );
-
-  const [selectedDriverIds, setSelectedDriverIds] = useState([]);
-
-  const getInvoiceData = useCallback(
-    (driverId) => {
-      const driverInvoices = invoices.filter(
-        (invoice) => invoice.driver._id === driverId
-      );
-
-      return driverInvoices.reduce((result, invoice) => {
-        result.mainOrder = invoice.mainOrder + (result.mainOrder || 0);
-        result.additionalOrder =
-          invoice.additionalOrder + (result.additionalOrder || 0);
-        result.hour = invoice.hour + (result.hour || 0);
-        result.cash = invoice.cash + (result.cash || 0);
-        result.additionalSalary =
-          invoice.additionalSalary + (result.additionalSalary || 0);
-        result.deductionAmount =
-          (invoice.deductionAmount || 0) + (result.deductionAmount || 0);
-        if (
-          invoice.mainOrder ||
-          invoice.additionalOrder ||
-          invoice.hour ||
-          invoice.cash
-        ) {
-          result.invoiceDate = invoice.invoiceDate;
-        }
-
-        return result;
-      }, {});
-    },
-    [invoices]
-  );
-
-  const driverWithInvoices = useMemo(() => {
-    const invoices = drivers.map((driver) => {
-      const { cash, hour, mainOrder, additionalOrder, invoiceDate } =
-        getInvoiceData(driver._id);
-
-      return {
-        ...driver,
-        cash: cash ? cash.toFixed(2) : cash,
-        hour,
-        mainOrder,
-        additionalOrder,
-        invoiceDate,
-      };
-    });
-
-    if (!selectedDriverIds.length) return invoices;
-
-    return invoices.filter((invoice) =>
-      selectedDriverIds.includes(invoice._id)
-    );
-  }, [drivers, getInvoiceData, selectedDriverIds]);
 
   const [editRowsModel, setEditRowsModel] = useState({});
+  const [selectedDriver, setSelectedDriver] = useState(null);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [isSearchActive, setIsSearchActive] = useState(false);
+  const [searchParams, setSearchParams] = useState({
+    startDate: "",
+    endDate: "",
+    driverIds: [],
+  });
 
-  const columns = [
-    {
-      field: "sequenceNumber",
-      headerName: "NO.",
-    },
-    {
-      field: "name",
-      headerName: t("name"),
-      flex: 0.75,
-      cellClassName: "name-column--cell",
-      renderCell: ({ row: { firstName, lastName } }) => {
-        return (
-          <Box display="flex" justifyContent="center" borderRadius="4px">
-            {firstName} {lastName}
-          </Box>
-        );
+  const processedData = useMemo(() => {
+    console.log("Raw archived invoices:", archivedInvoices);
+    console.log("Search state:", { isSearchActive, searchParams });
+
+    if (!Array.isArray(archivedInvoices) || archivedInvoices.length === 0) {
+      return [];
+    }
+
+    // If search is active, group the data by driver
+    if (isSearchActive) {
+      // First, ensure we have the correct data structure
+      const validInvoices = archivedInvoices.filter(
+        (invoice) => invoice && invoice.driver && invoice.driver._id
+      );
+
+      // Group by driver
+      const groupedData = validInvoices.reduce((acc, invoice) => {
+        const driverId = invoice.driver._id;
+
+        if (!acc[driverId]) {
+          acc[driverId] = {
+            _id: driverId,
+            firstName: invoice.driver.firstName,
+            lastName: invoice.driver.lastName,
+            mainOrder: 0,
+            additionalOrder: 0,
+            hour: 0,
+            cash: 0,
+            details: [],
+            hasMultipleEntries: true,
+            isGrouped: true,
+          };
+        }
+
+        // Convert string values to numbers and add them up
+        acc[driverId].mainOrder += Number(invoice.mainOrder) || 0;
+        acc[driverId].additionalOrder += Number(invoice.additionalOrder) || 0;
+        acc[driverId].hour += Number(invoice.hour) || 0;
+        acc[driverId].cash += Number(invoice.cash) || 0;
+        acc[driverId].details.push({
+          ...invoice,
+          mainOrder: Number(invoice.mainOrder) || 0,
+          additionalOrder: Number(invoice.additionalOrder) || 0,
+          hour: Number(invoice.hour) || 0,
+          cash: Number(invoice.cash) || 0,
+        });
+
+        return acc;
+      }, {});
+
+      // Convert to array
+      const result = Object.values(groupedData).map((driver) => ({
+        ...driver,
+        // Ensure all numeric values are properly converted
+        mainOrder: Number(driver.mainOrder),
+        additionalOrder: Number(driver.additionalOrder),
+        hour: Number(driver.hour),
+        cash: Number(driver.cash),
+      }));
+
+      console.log("Final processed search results:", result);
+      return result;
+    }
+
+    // For non-search view, show individual invoices
+    const result = archivedInvoices.map((invoice) => ({
+      _id: invoice._id,
+      driverId: invoice.driver?._id,
+      firstName: invoice.driver?.firstName || "",
+      lastName: invoice.driver?.lastName || "",
+      mainOrder: Number(invoice.mainOrder) || 0,
+      additionalOrder: Number(invoice.additionalOrder) || 0,
+      hour: Number(invoice.hour) || 0,
+      cash: Number(invoice.cash) || 0,
+      invoiceDate: invoice.invoiceDate,
+      isGrouped: false,
+      details: [invoice],
+    }));
+
+    console.log("Final processed regular results:", result);
+    return result;
+  }, [archivedInvoices, isSearchActive, searchParams]);
+
+  // Add this useEffect to debug the processed data
+  useEffect(() => {
+    console.log("Final processed data:", processedData);
+  }, [processedData]);
+
+  const columns = useMemo(
+    () => [
+      {
+        field: "sequenceNumber",
+        headerName: "NO.",
+        width: 70,
+        renderCell: (params) => {
+          // Get all rows and find the index of current row
+          const allRows = params.api.getRowModels();
+          const rowIds = Array.from(allRows.keys());
+          const index = rowIds.indexOf(params.id);
+          return index + 1;
+        },
       },
-    },
-
-    {
-      field: "phone",
-      headerName: t("phone"),
-      justifyContent: "center",
-    },
-    {
-      field: "idNumber",
-      headerName: t("idNumber"),
-      type: Number,
-      headerAlign: "left",
-      align: "left",
-    },
-    {
-      field: "cash",
-      headerName: t("cash"),
-      type: Number,
-    },
-    {
-      field: "hour",
-      headerName: t("hours"),
-    },
-    {
-      field: "mainOrder",
-      headerName: t("mainOrders"),
-    },
-    {
-      field: "additionalOrder",
-      headerName: t("additionalOrders"),
-      flex: 0.2,
-    },
-    {
-      field: "invoiceDate",
-      headerName: t("date"),
-      headerAlign: "center",
-      align: "center",
-      valueFormatter: (params) => {
-        if (!params.value) return "";
-
-        const date = new Date(params.value);
-        const formattedDate = `${date.getDate()}/${
-          date.getMonth() + 1
-        }/${date.getFullYear()}`;
-        return formattedDate;
+      {
+        field: "name",
+        headerName: t("name"),
+        flex: 0.75,
+        cellClassName: "name-column--cell",
+        renderCell: ({ row: { firstName, lastName } }) => {
+          return (
+            <Box display="flex" justifyContent="center" borderRadius="4px">
+              {firstName} {lastName}
+            </Box>
+          );
+        },
       },
-    },
-  ];
+      {
+        field: "cash",
+        headerName: t("cash"),
+        type: Number,
+        valueFormatter: (params) => Number(params.value).toFixed(3),
+      },
+      {
+        field: "hour",
+        headerName: t("hours"),
+      },
+      {
+        field: "mainOrder",
+        headerName: t("mainOrders"),
+      },
+      {
+        field: "additionalOrder",
+        headerName: t("additionalOrders"),
+        flex: 0.2,
+      },
+      {
+        field: "invoiceDate",
+        headerName: t("date"),
+        headerAlign: "center",
+        align: "center",
+        valueFormatter: (params) => {
+          if (!params.value) return "";
+
+          const date = new Date(params.value);
+          const formattedDate = `${date.getDate()}/${
+            date.getMonth() + 1
+          }/${date.getFullYear()}`;
+          return formattedDate;
+        },
+      },
+      {
+        field: "actions",
+        headerName: t("details"),
+        flex: 0.5,
+        renderCell: ({ row }) => {
+          if (!row.hasMultipleEntries) return null;
+
+          return (
+            <IconButton size="small" onClick={() => handleRowClick(row)}>
+              <InfoIcon />
+            </IconButton>
+          );
+        },
+      },
+    ],
+    [isSearchActive, t]
+  );
+
+  // Handle search form submission
+  const handleFormSubmit = (values) => {
+    // Ensure driverIds is an array and handle empty selection
+    const driverIds = Array.isArray(values.selectedDriver)
+      ? values.selectedDriver
+      : values.selectedDriver
+      ? [values.selectedDriver]
+      : [];
+
+    const searchData = {
+      startDate: values.startDate,
+      endDate: values.endDate,
+      driverIds: driverIds,
+    };
+
+    console.log("Submitting search with:", searchData);
+
+    // First set the search params
+    setSearchParams(searchData);
+
+    // Then dispatch the search
+    dispatch(searchArchivedInvoices(searchData))
+      .unwrap()
+      .then((response) => {
+        console.log("Search response received:", response);
+        // Only set search active if we got valid results
+        if (response.data?.driverInvoices?.length > 0) {
+          setIsSearchActive(true);
+        }
+      })
+      .catch((error) => {
+        console.error("Search failed:", error);
+        setIsSearchActive(false);
+      });
+  };
+
+  const handleClearSearch = useCallback(() => {
+    setIsSearchActive(false);
+    setSearchParams({
+      startDate: "",
+      endDate: "",
+      driverIds: [],
+    });
+    dispatch(fetchArchivedInvoices(localStorage.getItem("token")));
+  }, [dispatch]);
+
+  const handleRowClick = (row) => {
+    setSelectedDriver(row);
+    setModalOpen(true);
+  };
 
   useEffect(() => {
     dispatch(fetchDrivers(token));
@@ -221,8 +332,20 @@ const Invoices = () => {
   }
 
   function handleSubmit(values) {
-    setSelectedDriverIds(values.selectedDriver || []);
-    dispatch(searchArchivedInvoices(values));
+    const searchData = {
+      startDate: values.startDate,
+      endDate: values.endDate,
+      driverIds: values.selectedDriver, // This was using incorrect field name
+    };
+
+    console.log("selectedDriver", selectedDriver);
+
+    // Set the search state
+    setIsSearchActive(true);
+    setSearchParams(searchData);
+
+    // Dispatch the search action
+    dispatch(searchArchivedInvoices(searchData));
   }
 
   return (
@@ -234,7 +357,7 @@ const Invoices = () => {
       <Formik
         initialValues={initialValues}
         validationSchema={searchSchema}
-        onSubmit={handleSubmit}
+        onSubmit={handleFormSubmit}
       >
         {({
           values,
@@ -319,9 +442,20 @@ const Invoices = () => {
                 )}
               </FormControl>
 
-              <Button type="submit" color="secondary" variant="contained">
-                {t("search")}
-              </Button>
+              <Box display="flex" gap="10px">
+                <Button type="submit" color="secondary" variant="contained">
+                  {t("search")}
+                </Button>
+                {isSearchActive && (
+                  <Button
+                    onClick={handleClearSearch}
+                    color="primary"
+                    variant="outlined"
+                  >
+                    {t("clear")}
+                  </Button>
+                )}
+              </Box>
             </Box>
           </form>
         )}
@@ -361,13 +495,89 @@ const Invoices = () => {
       >
         <DataGrid
           // checkboxSelection
-          rows={Array.isArray(driverWithInvoices) ? driverWithInvoices : []}
+          // rows={Array.isArray(driverWithInvoices) ? driverWithInvoices : []}
+          rows={processedData}
           columns={columns}
-          getRowId={(row) => row._id}
+          getRowId={(row) => row._id || `${row.driverId}-${Math.random()}`}
           editRowsModel={editRowsModel}
           onEditRowsModelChange={(newModel) => setEditRowsModel(newModel)}
+          sx={{
+            "& .grouped-row": {
+              backgroundColor: colors.blueAccent[900],
+              "&:hover": {
+                backgroundColor: colors.blueAccent[800],
+              },
+            },
+          }}
+          getRowClassName={(params) =>
+            params.row.isGrouped ? "grouped-row" : ""
+          }
         />
       </Box>
+
+      {/* Details Modal */}
+      <Modal
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        aria-labelledby="driver-details"
+      >
+        <Box
+          sx={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            width: "80%",
+            maxHeight: "80vh",
+            bgcolor: "background.paper",
+            boxShadow: 24,
+            p: 4,
+            overflow: "auto",
+          }}
+        >
+          {selectedDriver && (
+            <>
+              <Typography variant="h5" component="h2" gutterBottom>
+                {`${selectedDriver.firstName} ${selectedDriver.lastName} - ${selectedDriver.civilId}`}
+              </Typography>
+              <DataGrid
+                rows={selectedDriver.details}
+                columns={[
+                  {
+                    field: "invoiceDate",
+                    headerName: t("date"),
+                    flex: 1,
+                    valueFormatter: (params) => {
+                      return new Date(params.value).toLocaleDateString();
+                    },
+                  },
+                  { field: "mainOrder", headerName: t("mainOrder"), flex: 1 },
+                  {
+                    field: "additionalOrder",
+                    headerName: t("additionalOrder"),
+                    flex: 1,
+                  },
+                  { field: "hour", headerName: t("hour"), flex: 1 },
+                  {
+                    field: "cash",
+                    headerName: t("cash"),
+                    flex: 1,
+                    valueFormatter: (params) => Number(params.value).toFixed(3),
+                  },
+                ]}
+                getRowId={(row) => row._id}
+                autoHeight
+                pageSize={5}
+              />
+              <Box mt={2} display="flex" justifyContent="flex-end">
+                <Button onClick={() => setModalOpen(false)}>
+                  {t("close")}
+                </Button>
+              </Box>
+            </>
+          )}
+        </Box>
+      </Modal>
     </Box>
   );
 };

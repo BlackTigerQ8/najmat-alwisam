@@ -274,7 +274,7 @@ const createDriverInvoice = async (req, res) => {
 
 const getAllInvoices = async (req, res) => {
   try {
-    let status = [];
+    let status = ["visibleToAll"];
     switch (req.user.role) {
       case "Admin":
         status = ["pendingAdminReview"];
@@ -287,16 +287,39 @@ const getAllInvoices = async (req, res) => {
         break;
     }
 
-    console.log("Filtering by status:", status);
+    // Get current month's date range
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+    endOfMonth.setHours(23, 59, 59, 999);
 
-    // Debug: First check all invoices without status filter
-    const allInvoices = await DriverInvoice.find().populate("driver");
-    console.log("Total invoices in DB:", allInvoices.length);
-
-    // Then apply the status filter
-    const driverInvoices = await DriverInvoice.find({
+    // Build the query
+    const query = {
       status: { $in: status },
-    }).populate("driver");
+    };
+
+    // Add date range filter only for visibleToAll status
+    query.$or = [
+      {
+        // Current month filter for visibleToAll
+        status: "visibleToAll",
+        invoiceDate: {
+          $gte: startOfMonth,
+          $lte: endOfMonth,
+        },
+      },
+      // Other statuses without date filter
+      {
+        status: { $in: status.filter((s) => s !== "visibleToAll") },
+      },
+    ];
+
+    console.log("Query date range:", { startOfMonth, endOfMonth });
+
+    const driverInvoices = await DriverInvoice.find(query).populate("driver");
+
+    console.log("Found invoices:", driverInvoices.length);
+    console.log("Status filter:", status);
 
     res.status(200).json({
       status: "Success",
@@ -659,21 +682,21 @@ const updateInvoiceStatus = async (req, res) => {
 
 const resetInvoices = async (req, res) => {
   try {
-    const driverInvoices = await getDriverInvoices(["visibleToAll"]);
-
-    for (const invoice of driverInvoices) {
-      invoice.status = "visibleToAllArchived";
-      invoice.archivedAt = new Date();
-      invoice.archivedBy = req.user._id;
-
-      await invoice.save();
-    }
+    // Instead of deleting, just update the status to visibleToAllArchived
+    const result = await DriverInvoice.updateMany(
+      { status: "visibleToAll" },
+      { $set: { status: "visibleToAllArchived" } }
+    );
 
     res.status(200).json({
       status: "Success",
-      data: "Invoices archived",
+      message: "Invoices reset successfully",
+      data: {
+        modifiedCount: result.modifiedCount,
+      },
     });
   } catch (error) {
+    console.error("Reset invoices error:", error);
     res.status(500).json({
       status: "Error",
       message: error.message,
@@ -713,18 +736,169 @@ const resetDriverInvoices = async (req, res) => {
   }
 };
 
+const restoreInvoices = async (req, res) => {
+  try {
+    // Get current month's first and last day
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth();
+
+    // Create dates for the current month only
+    const firstDay = new Date(Date.UTC(year, month, 1, 0, 0, 0));
+    const lastDay = new Date(Date.UTC(year, month + 1, 0, 23, 59, 59, 999));
+
+    // For debugging
+    console.log("Date range for restore:", {
+      firstDayOfMonth: firstDay.toISOString(),
+      lastDayOfMonth: lastDay.toISOString(),
+    });
+
+    // Update the status back to visibleToAll for the current month
+    const result = await DriverInvoice.updateMany(
+      {
+        status: "visibleToAllArchived",
+        invoiceDate: {
+          $gte: firstDay,
+          $lte: lastDay,
+        },
+      },
+      { $set: { status: "visibleToAll" } }
+    );
+
+    // Fetch the updated invoices
+    const restoredInvoices = await DriverInvoice.find({
+      status: "visibleToAll",
+    }).populate("driver");
+
+    return res.status(200).json({
+      status: "Success",
+      message: "Invoices restored successfully",
+      data: {
+        driverInvoices: restoredInvoices,
+        modifiedCount: result.modifiedCount,
+        dateRange: {
+          start: firstDay.toISOString().split("T")[0],
+          end: lastDay.toISOString().split("T")[0],
+        },
+      },
+    });
+  } catch (error) {
+    console.error("Restore invoices error:", error);
+    return res.status(500).json({
+      status: "Error",
+      message: error.message,
+    });
+  }
+};
+
+const cleanupOrphanedInvoices = async (req, res) => {
+  try {
+    console.log("Starting cleanup of orphaned invoices...");
+
+    // 1. Get all unique driver IDs from invoices
+    const allInvoices = await DriverInvoice.find({}).lean();
+    console.log(`Total invoices found: ${allInvoices.length}`);
+
+    // 2. Get all existing driver IDs
+    const existingDrivers = await Driver.find({}, "_id").lean();
+    const existingDriverIds = new Set(
+      existingDrivers.map((d) => d._id.toString())
+    );
+    console.log(`Existing drivers count: ${existingDriverIds.size}`);
+
+    // 3. Find invoices with non-existent drivers
+    const orphanedInvoices = allInvoices.filter(
+      (invoice) =>
+        !invoice.driver || !existingDriverIds.has(invoice.driver.toString())
+    );
+    console.log(`Found ${orphanedInvoices.length} orphaned invoices`);
+
+    // 4. Delete the orphaned invoices
+    if (orphanedInvoices.length > 0) {
+      const orphanedIds = orphanedInvoices.map((invoice) => invoice._id);
+      const result = await DriverInvoice.deleteMany({
+        _id: { $in: orphanedIds },
+      });
+
+      console.log(`Deleted ${result.deletedCount} orphaned invoices`);
+
+      res.status(200).json({
+        status: "Success",
+        message: `Successfully deleted ${result.deletedCount} orphaned invoices`,
+        data: {
+          totalInvoices: allInvoices.length,
+          existingDrivers: existingDriverIds.size,
+          orphanedCount: orphanedInvoices.length,
+          deletedCount: result.deletedCount,
+        },
+      });
+    } else {
+      res.status(200).json({
+        status: "Success",
+        message: "No orphaned invoices found",
+        data: {
+          totalInvoices: allInvoices.length,
+          existingDrivers: existingDriverIds.size,
+          orphanedCount: 0,
+          deletedCount: 0,
+        },
+      });
+    }
+  } catch (error) {
+    console.error("Error cleaning up orphaned invoices:", error);
+    res.status(500).json({
+      status: "Error",
+      message: error.message,
+    });
+  }
+};
+
 const fetchArchivedInvoices = async (req, res) => {
   try {
-    const driverInvoices = await getDriverInvoices(["visibleToAllArchived"]);
+    // First, get all unique driver IDs that have archived invoices
+    const uniqueDrivers = await DriverInvoice.distinct("driver", {
+      status: "visibleToAllArchived",
+    });
+
+    // Get all invoices with status either "visibleToAll" OR "visibleToAllArchived"
+    const driverInvoices = await DriverInvoice.find({
+      status: {
+        $in: ["visibleToAll", "visibleToAllArchived"],
+      },
+    })
+      .populate({
+        path: "driver",
+        model: "Driver",
+        select: "_id firstName lastName phone civilId",
+      })
+      .sort({ invoiceDate: -1 });
+
+    // Group by driver
+    const driverCounts = driverInvoices.reduce((acc, invoice) => {
+      const driverId = invoice.driver?._id.toString();
+      if (!acc[driverId]) {
+        acc[driverId] = {
+          driverName: `${invoice.driver?.firstName} ${invoice.driver?.lastName}`,
+          count: 0,
+        };
+      }
+      acc[driverId].count++;
+      return acc;
+    }, {});
 
     res.status(200).json({
       status: "Success",
       data: {
         driverInvoices,
+        summary: {
+          totalInvoices: driverInvoices.length,
+          uniqueDrivers: uniqueDrivers.length,
+          driverCounts,
+        },
       },
     });
   } catch (error) {
-    console.log("Get all archived invoice", error);
+    console.error("Error fetching archived invoices:", error);
     res.status(500).json({
       status: "Error",
       message: error.message,
@@ -734,16 +908,40 @@ const fetchArchivedInvoices = async (req, res) => {
 
 const filterArchivedInvoices = async (req, res) => {
   try {
-    const { startDate, endDate } = req.body;
+    const { startDate, endDate, driverIds } = req.body;
 
     if (!startDate || !startDate) {
       throw new Error("Required parameters are missing from request body");
     }
 
-    const driverInvoices = await getDriverInvoices(["visibleToAllArchived"], {
-      optionalStartDate: startDate,
-      optionalEndDate: endDate,
-    });
+    // Build the query
+    const query = {
+      status: { $in: ["visibleToAllArchived", "visibleToAll"] },
+      invoiceDate: {
+        $gte: new Date(startDate),
+        $lte: new Date(endDate),
+      },
+    };
+
+    // Add driver filter if driverIds are provided
+    if (driverIds && driverIds.length > 0) {
+      query.driver = { $in: driverIds };
+    }
+
+    // const driverInvoices = await getDriverInvoices(
+    //   ["visibleToAllArchived", "visibleToAll"],
+    //   {
+    //     optionalStartDate: startDate,
+    //     optionalEndDate: endDate,
+    //   }
+    // );
+
+    const driverInvoices = await DriverInvoice.find(query)
+      .populate({
+        path: "driver",
+        select: "_id firstName lastName phone civilId",
+      })
+      .sort({ invoiceDate: -1 });
 
     res.status(200).json({
       status: "Success",
@@ -964,6 +1162,53 @@ const getDriverStatsByMonth = async (req, res) => {
   }
 };
 
+// @desc    Clear recent invoices (from last hour)
+// @route   DELETE /api/drivers/invoices/recent
+// @access  Private/Admin
+// const clearRecentInvoices = async (req, res) => {
+//   try {
+//     // Get current time
+//     const now = new Date();
+
+//     // Calculate one hour ago
+//     const oneHourAgo = new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000); // Subtract 2 hours in milliseconds
+
+//     // Find and delete invoices created in the last hour
+//     const result = await DriverInvoice.deleteMany({
+//       invoiceDate: {
+//         $gte: oneHourAgo,
+//         $lte: now,
+//       },
+//       status: "visibleToAll", // Only delete active invoices
+//     });
+
+//     // Log the time range for debugging
+//     console.log("Deleting invoices between:", {
+//       from: oneHourAgo.toISOString(),
+//       to: now.toISOString(),
+//       deletedCount: result.deletedCount,
+//     });
+
+//     res.status(200).json({
+//       status: "Success",
+//       message: "Recent invoices cleared successfully",
+//       data: {
+//         deletedCount: result.deletedCount,
+//         timeRange: {
+//           from: oneHourAgo.toISOString(),
+//           to: now.toISOString(),
+//         },
+//       },
+//     });
+//   } catch (error) {
+//     console.error("Error clearing recent invoices:", error);
+//     res.status(500).json({
+//       status: "Error",
+//       message: error.message,
+//     });
+//   }
+// };
+
 module.exports = {
   getAllDrivers,
   getDriver,
@@ -984,4 +1229,7 @@ module.exports = {
   activateDriver,
   getDriverSummary,
   getDriverStatsByMonth,
+  restoreInvoices,
+  cleanupOrphanedInvoices,
+  // clearRecentInvoices,
 };
