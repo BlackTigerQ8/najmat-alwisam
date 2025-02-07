@@ -92,6 +92,244 @@ const PrintableTable = forwardRef(
       return num.toLocaleString();
     };
 
+    if (page === "bankStatement") {
+      const profitsRows = rows.filter(
+        (row) => row.bankAccountNumber === 61010108361
+      );
+      const expensesRows = rows.filter(
+        (row) => row.bankAccountNumber === 11010718657
+      );
+
+      // Calculate combined totals
+      const combinedSummary = {
+        profits: {
+          deposits: profitsRows.reduce(
+            (sum, row) => sum + Number(row.deposits || 0),
+            0
+          ),
+          spends: profitsRows.reduce(
+            (sum, row) => sum + Number(row.spends || 0),
+            0
+          ),
+          balance: profitsRows.reduce(
+            (sum, row) =>
+              sum + (Number(row.deposits || 0) - Number(row.spends || 0)),
+            0
+          ),
+        },
+        expenses: {
+          deposits: expensesRows.reduce(
+            (sum, row) => sum + Number(row.deposits || 0),
+            0
+          ),
+          spends: expensesRows.reduce(
+            (sum, row) => sum + Number(row.spends || 0),
+            0
+          ),
+          balance: expensesRows.reduce(
+            (sum, row) =>
+              sum + (Number(row.deposits || 0) - Number(row.spends || 0)),
+            0
+          ),
+        },
+      };
+
+      return (
+        <div
+          ref={ref}
+          className={`${styles.table} ${
+            orientation === "landscape" ? styles.printLandscape : ""
+          }`}
+        >
+          {/* Profits Account Table */}
+          {profitsRows.length > 0 && (
+            <div className={styles.pageContainer}>
+              <PrintLogo />
+              <h2 className={styles.accountTitle}>{t("profitsAccount")}</h2>
+              <table>
+                <thead>
+                  <tr style={{ backgroundColor: "#8298c0" }}>
+                    {printableColumns.map((column) => (
+                      <th key={column.field}>{column.headerName}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {profitsRows.map((row) => (
+                    <tr key={row._id}>
+                      {printableColumns.map((column) => (
+                        <td key={column.field} style={{ textAlign: "center" }}>
+                          {column.renderCell
+                            ? column.renderCell({
+                                row,
+                                value: row[column.field],
+                              })
+                            : typeof row[column.field] === "number"
+                            ? formatNegativeNumber(row[column.field])
+                            : getColumnValue(row, column)}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+
+              {/* Profits Account Summary */}
+              <div className={styles.summary}>
+                <div className={styles.summaryBox}>
+                  <div className={styles.summaryItem}>
+                    <span>{t("totalWithdrawals")}: </span>
+                    <strong>
+                      {formatNegativeNumber(
+                        profitsRows.reduce(
+                          (sum, row) => sum + Number(row.spends || 0),
+                          0
+                        )
+                      )}
+                      <span> {t("kd")} </span>
+                    </strong>
+                  </div>
+                  <div className={styles.summaryItem}>
+                    <span>{t("totalDeposits")}: </span>
+                    <strong>
+                      {formatNegativeNumber(
+                        profitsRows.reduce(
+                          (sum, row) => sum + Number(row.deposits || 0),
+                          0
+                        )
+                      )}
+                      <span> {t("kd")} </span>
+                    </strong>
+                  </div>
+                  <div className={styles.summaryItem}>
+                    <span>{t("currentBalance")}: </span>
+                    <strong>
+                      {formatNegativeNumber(
+                        profitsRows.reduce(
+                          (sum, row) =>
+                            sum +
+                            (Number(row.deposits || 0) -
+                              Number(row.spends || 0)),
+                          0
+                        )
+                      )}
+                      <span> {t("kd")} </span>
+                    </strong>
+                  </div>
+                </div>
+              </div>
+
+              <div className={styles.signatures}>
+                {signatures.map((signature, index) => (
+                  <div key={index} className={styles.signature}>
+                    <div className={styles.signatureLine}></div>
+                    <div>
+                      {t("currentLanguage") === "ar"
+                        ? signature.ar
+                        : signature.en}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Expenses Account Table */}
+          {expensesRows.length > 0 && (
+            <div className={styles.pageContainer}>
+              <PrintLogo />
+              <h2 className={styles.accountTitle}>{t("expensesAccount")}</h2>
+              <table>
+                <thead>
+                  <tr style={{ backgroundColor: "#8298c0" }}>
+                    {printableColumns.map((column) => (
+                      <th key={column.field}>{column.headerName}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {expensesRows.map((row) => (
+                    <tr key={row._id}>
+                      {printableColumns.map((column) => (
+                        <td key={column.field} style={{ textAlign: "center" }}>
+                          {column.renderCell
+                            ? column.renderCell({
+                                row,
+                                value: row[column.field],
+                              })
+                            : typeof row[column.field] === "number"
+                            ? formatNegativeNumber(row[column.field])
+                            : getColumnValue(row, column)}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+
+              {/* Expenses Account Summary */}
+              <div className={styles.summary}>
+                <div className={styles.summaryBox}>
+                  <div className={styles.summaryItem}>
+                    <span>{t("totalWithdrawals")}: </span>
+                    <strong>
+                      {formatNegativeNumber(
+                        expensesRows.reduce(
+                          (sum, row) => sum + Number(row.spends || 0),
+                          0
+                        )
+                      )}
+                      <span> {t("kd")} </span>
+                    </strong>
+                  </div>
+                  <div className={styles.summaryItem}>
+                    <span>{t("totalDeposits")}: </span>
+                    <strong>
+                      {formatNegativeNumber(
+                        expensesRows.reduce(
+                          (sum, row) => sum + Number(row.deposits || 0),
+                          0
+                        )
+                      )}
+                      <span> {t("kd")} </span>
+                    </strong>
+                  </div>
+                  <div className={styles.summaryItem}>
+                    <span>{t("currentBalance")}: </span>
+                    <strong>
+                      {formatNegativeNumber(
+                        expensesRows.reduce(
+                          (sum, row) =>
+                            sum +
+                            (Number(row.deposits || 0) -
+                              Number(row.spends || 0)),
+                          0
+                        )
+                      )}
+                      <span> {t("kd")} </span>
+                    </strong>
+                  </div>
+                </div>
+              </div>
+
+              <div className={styles.signatures}>
+                {signatures.map((signature, index) => (
+                  <div key={index} className={styles.signature}>
+                    <div className={styles.signatureLine}></div>
+                    <div>
+                      {t("currentLanguage") === "ar"
+                        ? signature.ar
+                        : signature.en}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    }
+
     return (
       <div
         ref={ref}

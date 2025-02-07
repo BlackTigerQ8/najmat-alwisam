@@ -160,3 +160,31 @@
     page-break-before: always;
   }
 }
+
+.pageContainer {
+  margin-bottom: 20px;
+}
+
+.accountTitle {
+  text-align: center;
+  margin: 20px 0;
+  font-size: 1.5em;
+  font-weight: bold;
+}
+
+@media print {
+  .pageContainer {
+    page-break-after: always;
+  }
+
+  .pageContainer:last-child {
+    page-break-after: avoid;
+  }
+
+  .accountTitle {
+    margin: 20px 0;
+    color: #000;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}

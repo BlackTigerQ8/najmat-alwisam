@@ -43,6 +43,8 @@ import { useReactToPrint } from "react-to-print";
 import PrintableTable from "./PrintableTable";
 import SaveIcon from "@mui/icons-material/Save";
 import DeleteIcon from "@mui/icons-material/Delete";
+import SearchIcon from "@mui/icons-material/Search";
+import InputAdornment from "@mui/material/InputAdornment";
 
 const newPettyCashInitialValues = {
   requestApplicant: "",
@@ -56,6 +58,7 @@ const newPettyCashInitialValues = {
   deductedFromDriver: "",
   currentBalance: "",
   serialNumber: "",
+  spendTypeSearch: "",
 };
 
 const PettyCash = () => {
@@ -1125,12 +1128,57 @@ function PettyCashForm({ isNonMobile, handlePrint }) {
                 error={!!touched.spendType && !!errors.spendType}
                 name="spendType"
                 label="Select spend type"
+                onOpen={() => setFieldValue("spendTypeSearch", "")}
               >
-                {spendTypes.map((spendType) => (
-                  <MenuItem key={spendType._id} value={spendType._id}>
-                    {spendType.name}
-                  </MenuItem>
-                ))}
+                <ListSubheader
+                  sx={{
+                    bgcolor: "background.paper",
+                    position: "sticky",
+                    top: 0,
+                    zIndex: 1,
+                  }}
+                >
+                  <Box
+                    onClick={(e) => e.stopPropagation()}
+                    onKeyDown={(e) => e.stopPropagation()}
+                  >
+                    <TextField
+                      size="small"
+                      autoFocus
+                      placeholder={t("searchSpendTypes")}
+                      fullWidth
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <SearchIcon />
+                          </InputAdornment>
+                        ),
+                      }}
+                      onChange={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setFieldValue("spendTypeSearch", e.target.value);
+                      }}
+                      onKeyDown={(e) => {
+                        e.stopPropagation();
+                      }}
+                      value={values.spendTypeSearch || ""}
+                    />
+                  </Box>
+                </ListSubheader>
+                {spendTypes
+                  .filter(
+                    (type) =>
+                      !values.spendTypeSearch ||
+                      type.name
+                        .toLowerCase()
+                        .includes(values.spendTypeSearch.toLowerCase())
+                  )
+                  .map((spendType) => (
+                    <MenuItem key={spendType._id} value={spendType._id}>
+                      {spendType.name}
+                    </MenuItem>
+                  ))}
               </Select>
               {values.selectedSpendType && (
                 <IconButton

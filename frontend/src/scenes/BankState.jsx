@@ -104,6 +104,7 @@ const BankState = () => {
   const [rowModifications, setRowModifications] = useState({});
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleteId, setDeleteId] = useState(null);
+  const [selectedAccount, setSelectedAccount] = useState(11010718657);
 
   const getStatementsByAccountNumber = useCallback(
     (selectedAccountNumber) => {
@@ -114,10 +115,113 @@ const BankState = () => {
     [bankStatement]
   );
 
+  // Filter rows based on selected account
+  useEffect(() => {
+    const filteredRows = searchStatus
+      ? searchResults.filter((row) => row.bankAccountNumber === selectedAccount)
+      : bankStatement.filter(
+          (row) => row.bankAccountNumber === selectedAccount
+        );
+    setRows(filteredRows);
+  }, [searchStatus, bankStatement, searchResults, selectedAccount]);
+
+  // Account switching buttons above the table
+  const renderAccountSwitcher = () => (
+    <Box
+      mb={2}
+      display="flex"
+      flexDirection={{ xs: "column", sm: "row" }}
+      justifyContent={{ sm: "space-between" }}
+      gap={2}
+    >
+      {/* Account Buttons */}
+      <Box display="flex" gap={2}>
+        <Button
+          variant={selectedAccount === 11010718657 ? "contained" : "outlined"}
+          color="secondary"
+          sx={{
+            flex: { xs: 1, sm: "auto" },
+            height: "50px",
+          }}
+          onClick={() => setSelectedAccount(11010718657)}
+        >
+          {t("expensesAccount")}
+        </Button>
+        <Button
+          variant={selectedAccount === 61010108361 ? "contained" : "outlined"}
+          color="secondary"
+          sx={{
+            flex: { xs: 1, sm: "auto" },
+            height: "50px",
+          }}
+          onClick={() => setSelectedAccount(61010108361)}
+        >
+          {t("profitsAccount")}
+        </Button>
+      </Box>
+
+      {/* Print Button */}
+      <Button
+        onClick={handlePrint}
+        color="primary"
+        variant="contained"
+        sx={{
+          width: { xs: "100%", sm: "120px" },
+          height: "50px",
+          "&:hover": { backgroundColor: colors.blueAccent[600] },
+        }}
+      >
+        {t("print")}
+      </Button>
+    </Box>
+  );
+
   useEffect(() => {
     // Update rows whenever bankStatement or searchResults change
     setRows(searchStatus ? searchResults : bankStatement);
   }, [searchStatus, bankStatement, searchResults]);
+
+  const profitsAccountTotals = useMemo(() => {
+    const profitsData = searchStatus
+      ? searchResults.filter((row) => row.bankAccountNumber === 61010108361)
+      : bankStatement.filter((row) => row.bankAccountNumber === 61010108361);
+
+    const totalDeposits = profitsData.reduce((total, statement) => {
+      return total + Number(statement.deposits);
+    }, 0);
+
+    const totalSpends = profitsData.reduce((total, statement) => {
+      return total + Number(statement.spends);
+    }, 0);
+
+    return {
+      deposits: totalDeposits,
+      spends: totalSpends,
+      balance: totalDeposits - totalSpends,
+    };
+  }, [searchStatus, bankStatement, searchResults]);
+
+  const expensesAccountTotals = useMemo(() => {
+    const expensesData = searchStatus
+      ? searchResults.filter((row) => row.bankAccountNumber === 11010718657)
+      : bankStatement.filter((row) => row.bankAccountNumber === 11010718657);
+
+    const totalDeposits = expensesData.reduce((total, statement) => {
+      return total + Number(statement.deposits);
+    }, 0);
+
+    const totalSpends = expensesData.reduce((total, statement) => {
+      return total + Number(statement.spends);
+    }, 0);
+
+    return {
+      deposits: totalDeposits,
+      spends: totalSpends,
+      balance: totalDeposits - totalSpends,
+    };
+  }, [searchStatus, bankStatement, searchResults]);
+
+  /////////////////////////////
 
   const totalSpends = useMemo(() => {
     if (searchStatus) {
@@ -258,13 +362,28 @@ const BankState = () => {
   };
 
   const rowsWithSum = useMemo(() => {
+    const filteredRows = searchStatus
+      ? searchResults.filter((row) => row.bankAccountNumber === selectedAccount)
+      : bankStatement.filter(
+          (row) => row.bankAccountNumber === selectedAccount
+        );
+
     const sumRow = {
       _id: "sum-row",
       sequence: "",
       statementDate: "",
-      deposits: calculateColumnSum("deposits"),
-      spends: calculateColumnSum("spends"),
-      balance: calculateColumnSum("deposits") - calculateColumnSum("spends"),
+      deposits: filteredRows.reduce(
+        (sum, row) => sum + Number(row.deposits || 0),
+        0
+      ),
+      spends: filteredRows.reduce(
+        (sum, row) => sum + Number(row.spends || 0),
+        0
+      ),
+      balance: filteredRows.reduce(
+        (sum, row) => sum + Number(row.deposits || 0) - Number(row.spends || 0),
+        0
+      ),
       statementRemarks: "",
       checkNumber: null,
       statementDetails: "",
@@ -272,12 +391,12 @@ const BankState = () => {
     };
 
     return [...rows, sumRow];
-  }, [rows, calculateColumnSum, t]);
+  }, [rows, selectedAccount, searchStatus, searchResults, bankStatement]);
 
   const columns = [
     {
       field: "sequence",
-      headerName: "NO.",
+      headerName: t("no"),
       editable: false,
       flex: 0.5,
       renderCell: (params) => {
@@ -294,7 +413,7 @@ const BankState = () => {
     {
       field: "statementDate",
       headerName: t("date"),
-      flex: 1,
+      flex: 0.8,
       headerAlign: "center",
       align: "center",
       editable: (params) => params.row._id !== "sum-row",
@@ -336,7 +455,7 @@ const BankState = () => {
     {
       field: "deposits",
       headerName: t("deposits"),
-      flex: 1,
+      flex: 0.5,
       headerAlign: "center",
       align: "center",
       editable: true,
@@ -346,7 +465,7 @@ const BankState = () => {
     {
       field: "spends",
       headerName: t("withdrawals"),
-      flex: 1,
+      flex: 0.5,
       headerAlign: "center",
       align: "center",
       editable: true,
@@ -356,7 +475,7 @@ const BankState = () => {
     {
       field: "balance",
       headerName: t("balance"),
-      flex: 1,
+      flex: 0.5,
       headerAlign: "center",
       align: "center",
       type: "number",
@@ -365,7 +484,7 @@ const BankState = () => {
     {
       field: "statementRemarks",
       headerName: t("remarks"),
-      flex: 1,
+      flex: 1.2,
       headerAlign: "center",
       align: "center",
       editable: true,
@@ -373,7 +492,7 @@ const BankState = () => {
     {
       field: "checkNumber",
       headerName: t("checkNumber"),
-      flex: 1,
+      flex: 0.5,
       headerAlign: "center",
       align: "center",
       editable: true,
@@ -390,7 +509,8 @@ const BankState = () => {
     {
       field: "actions",
       headerName: t("actions"),
-      flex: 1,
+      headerAlign: "center",
+      flex: 1.3,
       sortable: false,
       filterable: false,
       renderCell: (params) => {
@@ -677,9 +797,16 @@ const BankState = () => {
                     }
                     sx={{ gridColumn: "span 1" }}
                   />
-                </Box>
-                <Box display="flex" justifyContent="end" mt="20px">
-                  <Button type="submit" color="secondary" variant="contained">
+                  <Button
+                    type="submit"
+                    color="secondary"
+                    variant="contained"
+                    sx={{
+                      gridColumn: isNonMobile ? "span 1" : "span 4",
+                      width: "100%",
+                      height: "50px",
+                    }}
+                  >
                     {t("addNewRow")}
                   </Button>
                 </Box>
@@ -688,12 +815,15 @@ const BankState = () => {
           </Formik>
         </Box>
 
-        <Box mb="20px">
+        {/* <Box mb="20px">
           <BankStatementSearchForm
             isNonMobile={isNonMobile}
             handlePrint={handlePrint}
           />
-        </Box>
+        </Box> */}
+
+        {renderAccountSwitcher()}
+
         <Box mt="40px" height="75vh">
           <DataGrid
             rows={rowsWithSum}
@@ -730,6 +860,15 @@ const BankState = () => {
           />
           {/* Summary Section */}
           <Box mt="20px" className={styles.notes}>
+            {/* Expenses Account Summary */}
+            <Typography
+              variant="h5"
+              color="secondary"
+              mb={2}
+              sx={{ textAlign: "center" }}
+            >
+              {t("expensesAccount")}
+            </Typography>
             <Box
               mt={4}
               p={3}
@@ -773,7 +912,7 @@ const BankState = () => {
                     fontSize: { xs: "1.5rem", sm: "2rem", md: "2.125rem" },
                   }}
                 >
-                  {formatNegativeNumber(totalSpends)}
+                  {formatNegativeNumber(expensesAccountTotals.spends)}
                   <span style={{ fontSize: "1em" }}> KD</span>
                 </Typography>
               </Box>
@@ -797,7 +936,7 @@ const BankState = () => {
                     fontSize: { xs: "1.5rem", sm: "2rem", md: "2.125rem" },
                   }}
                 >
-                  {formatNegativeNumber(totalDeposits)}
+                  {formatNegativeNumber(expensesAccountTotals.deposits)}
                   <span style={{ fontSize: "1em" }}> KD</span>
                 </Typography>
               </Box>
@@ -821,7 +960,113 @@ const BankState = () => {
                     fontSize: { xs: "1.5rem", sm: "2rem", md: "2.125rem" },
                   }}
                 >
-                  {formatNegativeNumber(totalBalance)}
+                  {formatNegativeNumber(expensesAccountTotals.balance)}
+                  <span style={{ fontSize: "1em" }}> KD</span>
+                </Typography>
+              </Box>
+            </Box>
+            {/* Profits Account Summary */}
+            <Typography
+              variant="h5"
+              color="secondary"
+              mb={2}
+              mt={4}
+              sx={{ textAlign: "center" }}
+            >
+              {t("profitsAccount")}
+            </Typography>
+            <Box
+              mt={4}
+              p={3}
+              bgcolor={colors.primary[400]}
+              borderRadius="4px"
+              display="grid"
+              gap="30px"
+              sx={{
+                gridTemplateColumns: {
+                  xs: "1fr",
+                  sm: "repeat(3, 1fr)",
+                  md: "repeat(3, 1fr)",
+                },
+                "& > div": {
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  textAlign: "center",
+                  padding: "20px",
+                  borderRadius: "8px",
+                },
+              }}
+            >
+              <Box>
+                <Typography
+                  variant="subtitle2"
+                  color={colors.grey[100]}
+                  mb={1}
+                  sx={{
+                    fontSize: { xs: "1rem", sm: "1.1rem" },
+                    fontWeight: "bold",
+                  }}
+                >
+                  {t("totalWithdrawals")}
+                </Typography>
+                <Typography
+                  variant="h4"
+                  color="secondary"
+                  sx={{
+                    fontSize: { xs: "1.5rem", sm: "2rem", md: "2.125rem" },
+                  }}
+                >
+                  {formatNegativeNumber(profitsAccountTotals.spends)}
+                  <span style={{ fontSize: "1em" }}> KD</span>
+                </Typography>
+              </Box>
+
+              <Box>
+                <Typography
+                  variant="subtitle2"
+                  color={colors.grey[100]}
+                  mb={1}
+                  sx={{
+                    fontSize: { xs: "1rem", sm: "1.1rem" },
+                    fontWeight: "bold",
+                  }}
+                >
+                  {t("totalDeposits")}
+                </Typography>
+                <Typography
+                  variant="h4"
+                  color="secondary"
+                  sx={{
+                    fontSize: { xs: "1.5rem", sm: "2rem", md: "2.125rem" },
+                  }}
+                >
+                  {formatNegativeNumber(profitsAccountTotals.deposits)}
+                  <span style={{ fontSize: "1em" }}> KD</span>
+                </Typography>
+              </Box>
+
+              <Box>
+                <Typography
+                  variant="subtitle2"
+                  color={colors.grey[100]}
+                  mb={1}
+                  sx={{
+                    fontSize: { xs: "1rem", sm: "1.1rem" },
+                    fontWeight: "bold",
+                  }}
+                >
+                  {t("currentBalance")}
+                </Typography>
+                <Typography
+                  variant="h4"
+                  color="secondary"
+                  sx={{
+                    fontSize: { xs: "1.5rem", sm: "2rem", md: "2.125rem" },
+                  }}
+                >
+                  {formatNegativeNumber(profitsAccountTotals.balance)}
                   <span style={{ fontSize: "1em" }}> KD</span>
                 </Typography>
               </Box>
@@ -861,131 +1106,131 @@ const BankState = () => {
   );
 };
 
-export function BankStatementSearchForm({ isNonMobile, handlePrint }) {
-  const dispatch = useDispatch();
-  const { t } = useTranslation();
-  const theme = useTheme();
-  const colors = tokens(theme.palette.mode);
+// export function BankStatementSearchForm({ isNonMobile, handlePrint }) {
+//   const dispatch = useDispatch();
+//   const { t } = useTranslation();
+//   const theme = useTheme();
+//   const colors = tokens(theme.palette.mode);
 
-  const onSearchSubmit = async (values) => [
-    dispatch(searchBankStatement({ values })),
-  ];
+//   const onSearchSubmit = async (values) => [
+//     dispatch(searchBankStatement({ values })),
+//   ];
 
-  return (
-    <Formik
-      onSubmit={onSearchSubmit}
-      initialValues={searchInitialValues}
-      validationSchema={searchSchema}
-    >
-      {({
-        values,
-        errors,
-        touched,
-        handleBlur,
-        handleChange,
-        handleSubmit,
-      }) => (
-        <form onSubmit={handleSubmit}>
-          <Box
-            display="grid"
-            gap="30px"
-            gridTemplateColumns="repeat(5, minmax(0, 1fr))"
-            sx={{
-              "& > div": {
-                gridColumn: isNonMobile ? undefined : "span 5",
-              },
-            }}
-          >
-            <FormControl
-              fullWidth
-              variant="filled"
-              sx={{ gridColumn: "span 1.8" }}
-            >
-              <InputLabel htmlFor="bankAccountNumber">
-                Bank Account Number
-              </InputLabel>
-              <Select
-                label="bankAccountNumber"
-                value={values.bankAccountNumber}
-                onChange={handleChange}
-                onBlur={handleBlur}
-                name="bankAccountNumber"
-                error={
-                  !!touched.bankAccountNumber && !!errors.bankAccountNumber
-                }
-                helperText={
-                  touched.bankAccountNumber && errors.bankAccountNumber
-                }
-              >
-                <MenuItem value={61010108361}>حساب الأرباح</MenuItem>
-                <MenuItem value={11010718657}>حساب المصاريف</MenuItem>
-              </Select>
-            </FormControl>
-            <TextField
-              fullWidth
-              variant="filled"
-              type="date"
-              label={t("startingDate")}
-              onBlur={handleBlur}
-              onChange={handleChange}
-              value={values.startDate}
-              name="startDate"
-              error={!!touched.startDate && !!errors.startDate}
-              helperText={touched.startDate && errors.startDate}
-              sx={{ gridColumn: "span 1" }}
-            />
-            <TextField
-              fullWidth
-              variant="filled"
-              type="date"
-              label={t("endingDate")}
-              onBlur={handleBlur}
-              onChange={handleChange}
-              value={values.endDate}
-              name="endDate"
-              error={!!touched.endDate && !!errors.endDate}
-              helperText={touched.endDate && errors.endDate}
-              sx={{ gridColumn: "span 1" }}
-            />
-            <Box
-              display="flex"
-              gap="20px"
-              sx={{
-                gridColumn: "span 2",
-                justifyContent: "flex-end",
-                alignItems: "center",
-              }}
-            >
-              <Button
-                type="submit"
-                color="secondary"
-                variant="contained"
-                sx={{
-                  width: "120px",
-                  height: "50px",
-                  "&:hover": { backgroundColor: colors.greenAccent[600] },
-                }}
-              >
-                {t("saveData")}
-              </Button>
-              <Button
-                onClick={handlePrint}
-                color="primary"
-                variant="contained"
-                sx={{
-                  width: "120px",
-                  height: "50px",
-                  "&:hover": { backgroundColor: colors.blueAccent[600] },
-                }}
-              >
-                {t("print")}
-              </Button>
-            </Box>
-          </Box>
-        </form>
-      )}
-    </Formik>
-  );
-}
+//   return (
+//     <Formik
+//       onSubmit={onSearchSubmit}
+//       initialValues={searchInitialValues}
+//       validationSchema={searchSchema}
+//     >
+//       {({
+//         values,
+//         errors,
+//         touched,
+//         handleBlur,
+//         handleChange,
+//         handleSubmit,
+//       }) => (
+//         <form onSubmit={handleSubmit}>
+//           <Box
+//             display="grid"
+//             gap="30px"
+//             gridTemplateColumns="repeat(5, minmax(0, 1fr))"
+//             sx={{
+//               "& > div": {
+//                 gridColumn: isNonMobile ? undefined : "span 5",
+//               },
+//             }}
+//           >
+//             <FormControl
+//               fullWidth
+//               variant="filled"
+//               sx={{ gridColumn: "span 1.8" }}
+//             >
+//               <InputLabel htmlFor="bankAccountNumber">
+//                 Bank Account Number
+//               </InputLabel>
+//               <Select
+//                 label="bankAccountNumber"
+//                 value={values.bankAccountNumber}
+//                 onChange={handleChange}
+//                 onBlur={handleBlur}
+//                 name="bankAccountNumber"
+//                 error={
+//                   !!touched.bankAccountNumber && !!errors.bankAccountNumber
+//                 }
+//                 helperText={
+//                   touched.bankAccountNumber && errors.bankAccountNumber
+//                 }
+//               >
+//                 <MenuItem value={61010108361}>حساب الأرباح</MenuItem>
+//                 <MenuItem value={11010718657}>حساب المصاريف</MenuItem>
+//               </Select>
+//             </FormControl>
+//             <TextField
+//               fullWidth
+//               variant="filled"
+//               type="date"
+//               label={t("startingDate")}
+//               onBlur={handleBlur}
+//               onChange={handleChange}
+//               value={values.startDate}
+//               name="startDate"
+//               error={!!touched.startDate && !!errors.startDate}
+//               helperText={touched.startDate && errors.startDate}
+//               sx={{ gridColumn: "span 1" }}
+//             />
+//             <TextField
+//               fullWidth
+//               variant="filled"
+//               type="date"
+//               label={t("endingDate")}
+//               onBlur={handleBlur}
+//               onChange={handleChange}
+//               value={values.endDate}
+//               name="endDate"
+//               error={!!touched.endDate && !!errors.endDate}
+//               helperText={touched.endDate && errors.endDate}
+//               sx={{ gridColumn: "span 1" }}
+//             />
+//             <Box
+//               display="flex"
+//               gap="20px"
+//               sx={{
+//                 gridColumn: "span 2",
+//                 justifyContent: "flex-end",
+//                 alignItems: "center",
+//               }}
+//             >
+//               <Button
+//                 type="submit"
+//                 color="secondary"
+//                 variant="contained"
+//                 sx={{
+//                   width: "120px",
+//                   height: "50px",
+//                   "&:hover": { backgroundColor: colors.greenAccent[600] },
+//                 }}
+//               >
+//                 {t("saveData")}
+//               </Button>
+//               <Button
+//                 onClick={handlePrint}
+//                 color="primary"
+//                 variant="contained"
+//                 sx={{
+//                   width: "120px",
+//                   height: "50px",
+//                   "&:hover": { backgroundColor: colors.blueAccent[600] },
+//                 }}
+//               >
+//                 {t("print")}
+//               </Button>
+//             </Box>
+//           </Box>
+//         </form>
+//       )}
+//     </Formik>
+//   );
+// }
 
 export default BankState;

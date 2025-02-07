@@ -293,30 +293,33 @@ const getAllInvoices = async (req, res) => {
     const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
     endOfMonth.setHours(23, 59, 59, 999);
 
-    // Build the query
+    // Build the query to include both current and archived invoices for the current month
     const query = {
-      status: { $in: status },
-    };
-
-    // Add date range filter only for visibleToAll status
-    query.$or = [
-      {
-        // Current month filter for visibleToAll
-        status: "visibleToAll",
-        invoiceDate: {
-          $gte: startOfMonth,
-          $lte: endOfMonth,
+      $or: [
+        // Include both visibleToAll and visibleToAllArchived status
+        {
+          status: { $in: ["visibleToAll", "visibleToAllArchived"] },
+          invoiceDate: {
+            $gte: startOfMonth,
+            $lte: endOfMonth,
+          },
         },
-      },
-      // Other statuses without date filter
-      {
-        status: { $in: status.filter((s) => s !== "visibleToAll") },
-      },
-    ];
+        // Other statuses without date filtering
+        {
+          status: {
+            $in: status.filter(
+              (s) => !["visibleToAll", "visibleToAllArchived"].includes(s)
+            ),
+          },
+        },
+      ],
+    };
 
     console.log("Query date range:", { startOfMonth, endOfMonth });
 
-    const driverInvoices = await DriverInvoice.find(query).populate("driver");
+    const driverInvoices = await DriverInvoice.find(query)
+      .populate("driver")
+      .sort({ invoiceDate: -1 });
 
     console.log("Found invoices:", driverInvoices.length);
     console.log("Status filter:", status);
@@ -762,13 +765,27 @@ const restoreInvoices = async (req, res) => {
           $lte: lastDay,
         },
       },
-      { $set: { status: "visibleToAll" } }
+      {
+        $set: {
+          status: "visibleToAll",
+          restoredAt: new Date(),
+          restoredBy: req.user._id,
+        },
+      }
     );
+
+    console.log("Restore result:", result);
 
     // Fetch the updated invoices
     const restoredInvoices = await DriverInvoice.find({
       status: "visibleToAll",
+      invoiceDate: {
+        $gte: firstDay,
+        $lte: lastDay,
+      },
     }).populate("driver");
+
+    console.log(`Restored ${restoredInvoices.length} invoices`);
 
     return res.status(200).json({
       status: "Success",

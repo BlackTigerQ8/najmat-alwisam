@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import * as yup from "yup";
-import { Box, useTheme, Button, TextField } from "@mui/material";
+import { Box, useTheme, Button, TextField, Tooltip } from "@mui/material";
 import { Formik } from "formik";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import { DataGrid } from "@mui/x-data-grid";
@@ -63,7 +63,7 @@ const SpendType = () => {
     };
 
     if (file) {
-      reader.readAsBinaryString(file);
+      reader.readAsArrayBuffer(file);
     }
   };
 
@@ -213,14 +213,21 @@ const SpendType = () => {
                   onChange={handleFileUpload}
                 />
                 <label htmlFor="excel-upload" style={{ height: "100%" }}>
-                  <Button
-                    variant="contained"
-                    component="span"
-                    color="secondary"
-                    sx={{ height: "100%", width: "100%" }}
+                  <Tooltip
+                    title={t("excelColumnNote", {
+                      defaultValue: "Excel file must have a 'spendType' column",
+                    })}
+                    arrow
                   >
-                    {t("uploadExcel")}
-                  </Button>
+                    <Button
+                      variant="contained"
+                      component="span"
+                      color="secondary"
+                      sx={{ height: "100%", width: "100%" }}
+                    >
+                      {t("uploadExcel")}
+                    </Button>
+                  </Tooltip>
                 </label>
               </Box>
             </Box>

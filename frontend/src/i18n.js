@@ -571,6 +571,7 @@ i18n
           close: "Close",
           clear: "Clear",
           initialize: "Initialize",
+          excelColumnNote: "Excel file must have a 'spendType' column",
         },
       },
       ar: {
@@ -1110,6 +1111,7 @@ i18n
           close: "إغلاق",
           clear: "مسح",
           initialize: "تصفير",
+          excelColumnNote: "sepndType يجب أن يحتوي الملف على عامود باسم",
         },
       },
     },
