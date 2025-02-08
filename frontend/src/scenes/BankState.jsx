@@ -20,7 +20,10 @@ import {
   DialogTitle,
   Dialog,
   DialogContentText,
+  FormHelperText,
+  Grid,
 } from "@mui/material";
+import AddIcon from "@mui/icons-material/Add";
 import SaveIcon from "@mui/icons-material/Save";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { DataGrid } from "@mui/x-data-grid";
@@ -32,9 +35,10 @@ import { useSelector, useDispatch } from "react-redux";
 import {
   createBankStatement,
   fetchBankStatement,
-  searchBankStatement,
+  createNewBankAccount,
   updateBankStatement,
   deleteBankStatement,
+  fetchBankAccounts,
 } from "../redux/bankStatementSlice";
 import { Formik } from "formik";
 import useMediaQuery from "@mui/material/useMediaQuery";
@@ -43,30 +47,124 @@ import { useReactToPrint } from "react-to-print";
 import styles from "./Print.module.css";
 import { useTranslation } from "react-i18next";
 
-const initialValues = {
-  statementDate: "",
-  deposits: 0,
-  spends: 0,
-  balance: 0,
-  statementRemarks: "",
-  checkNumber: "",
-  statementDetails: "",
-  bankAccountNumber: 11010718657,
-};
-
-const searchInitialValues = {
-  bankAccountNumber: 11010718657,
-  startDate: "",
-  endDate: "",
-};
-
-const searchSchema = yup.object().shape({
-  startDate: yup.string().required("Select starting date"),
-  endDate: yup.string().required("Select ending date"),
-});
 const rowSchema = yup.object().shape({
   statementDate: yup.string().required("Select a date"),
 });
+
+// Create new account
+const CreateNewAccountDialog = ({
+  open,
+  onClose,
+  onSubmit,
+  availableAccounts,
+}) => {
+  const { t } = useTranslation();
+
+  const newAccountSchema = yup.object().shape({
+    accountNumber: yup
+      .string()
+      .required(t("accountNumberRequired"))
+      .test(
+        "unique-account-number",
+        t("accountNumberExists"),
+        function (value) {
+          if (!value) return true; // Skip validation if no value
+
+          // Check if account number exists in availableAccounts
+          return !availableAccounts?.some(
+            (account) => account.accountNumber === Number(value)
+          );
+        }
+      ),
+    accountName: yup
+      .string()
+      .required(t("accountNameRequired"))
+      .test("unique-account-name", t("accountNameExists"), function (value) {
+        if (!value) return true; // Skip validation if no value
+
+        // Check if account name exists in availableAccounts (case insensitive)
+        return !availableAccounts?.some(
+          (account) =>
+            account.accountName.toLowerCase() === value?.toLowerCase()
+        );
+      }),
+  });
+
+  return (
+    <Dialog open={open} onClose={onClose}>
+      <DialogTitle>{t("createNewBankAccount")}</DialogTitle>
+      <Formik
+        initialValues={{
+          accountNumber: "",
+          accountName: "",
+        }}
+        validationSchema={newAccountSchema}
+        onSubmit={async (values, { setSubmitting, resetForm }) => {
+          try {
+            await onSubmit(values);
+            resetForm();
+            onClose();
+          } catch (error) {
+            console.error("Failed to create account:", error);
+          } finally {
+            setSubmitting(false);
+          }
+        }}
+      >
+        {({
+          values,
+          errors,
+          touched,
+          handleChange,
+          handleBlur,
+          handleSubmit,
+          isSubmitting,
+        }) => (
+          <form onSubmit={handleSubmit}>
+            <DialogContent>
+              <Box
+                sx={{ pt: 2, display: "flex", flexDirection: "column", gap: 2 }}
+              >
+                <TextField
+                  fullWidth
+                  label={t("accountNumber")}
+                  name="accountNumber"
+                  value={values.accountNumber}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  error={touched.accountNumber && Boolean(errors.accountNumber)}
+                  helperText={touched.accountNumber && errors.accountNumber}
+                  type="number"
+                />
+                <TextField
+                  fullWidth
+                  label={t("accountName")}
+                  name="accountName"
+                  value={values.accountName}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  error={touched.accountName && Boolean(errors.accountName)}
+                  helperText={touched.accountName && errors.accountName}
+                />
+              </Box>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={onClose}>{t("cancel")}</Button>
+              <Button
+                type="submit"
+                variant="contained"
+                color="secondary"
+                disabled={isSubmitting}
+              >
+                {t("create")}
+              </Button>
+            </DialogActions>
+          </form>
+        )}
+      </Formik>
+    </Dialog>
+  );
+};
 
 const BankState = () => {
   const componentRef = useRef();
@@ -87,6 +185,7 @@ const BankState = () => {
   );
   const pageStatus = useSelector((state) => state.bankStatement.status);
   const searchStatus = useSelector((state) => state.bankStatement.searchStatus);
+  const bankAccounts = useSelector((state) => state.bankStatement.bankAccounts);
 
   const searchResults = useSelector(
     (state) => state.bankStatement.searchResults
@@ -104,12 +203,91 @@ const BankState = () => {
   const [rowModifications, setRowModifications] = useState({});
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleteId, setDeleteId] = useState(null);
-  const [selectedAccount, setSelectedAccount] = useState(11010718657);
+  const [selectedAccount, setSelectedAccount] = useState(null);
+  const [newAccountDialogOpen, setNewAccountDialogOpen] = useState(false);
+  const [availableAccounts, setAvailableAccounts] = useState([]);
+  const [accountTypes, setAccountTypes] = useState({
+    expensesAccount: null,
+    profitsAccount: null,
+  });
+
+  // Get default account number
+  const defaultAccountNumber = useMemo(() => {
+    if (!bankAccounts?.length) return "";
+
+    // Convert environment variable to number for comparison
+    const expensesAccountNumber = Number(
+      process.env.REACT_APP_EXPENSES_ACCOUNT_NUMBER
+    );
+
+    const expensesAccount = bankAccounts.find(
+      (acc) => acc.accountNumber === expensesAccountNumber
+    );
+
+    return expensesAccount ? expensesAccount.accountNumber : "";
+  }, [bankAccounts]);
+
+  const initialValues = useMemo(
+    () => ({
+      statementDate: "",
+      deposits: 0,
+      spends: 0,
+      balance: 0,
+      statementRemarks: "",
+      checkNumber: "",
+      statementDetails: "",
+      bankAccountNumber: defaultAccountNumber,
+      bankAccounts: [],
+    }),
+    [accountTypes.expensesAccount]
+  );
+
+  const searchInitialValues = useMemo(
+    () => ({
+      bankAccountNumber: selectedAccount || "",
+      startDate: "",
+      endDate: "",
+    }),
+    [selectedAccount]
+  );
+
+  // Fetch bank accounts when component mounts
+  useEffect(() => {
+    dispatch(fetchBankAccounts());
+  }, [dispatch]);
+
+  // Update availableAccounts when bankAccounts changes
+  useEffect(() => {
+    if (bankAccounts && bankAccounts.length > 0) {
+      setAvailableAccounts(bankAccounts);
+
+      // Set default selected account (Expenses Account) if none selected
+      if (!selectedAccount) {
+        const expensesAccount = bankAccounts.find((acc) =>
+          acc.accountName.toLowerCase().includes("expenses")
+        );
+        if (expensesAccount) {
+          setSelectedAccount(expensesAccount.accountNumber);
+        }
+      }
+    }
+  }, [bankAccounts, selectedAccount]);
+
+  // Filter data based on selected account
+  const filteredData = useMemo(() => {
+    if (!selectedAccount) return [];
+
+    return searchStatus
+      ? searchResults.filter((row) => row.bankAccountNumber === selectedAccount)
+      : bankStatement.filter(
+          (row) => row.bankAccountNumber === selectedAccount
+        );
+  }, [searchStatus, searchResults, bankStatement, selectedAccount]);
 
   const getStatementsByAccountNumber = useCallback(
     (selectedAccountNumber) => {
       return bankStatement.filter(
-        (b) => b.bankAccountNumber == selectedAccountNumber
+        (b) => b.bankAccountNumber === selectedAccountNumber
       );
     },
     [bankStatement]
@@ -125,6 +303,28 @@ const BankState = () => {
     setRows(filteredRows);
   }, [searchStatus, bankStatement, searchResults, selectedAccount]);
 
+  const handleCreateNewAccount = async (formData) => {
+    try {
+      await dispatch(
+        createNewBankAccount({
+          accountNumber: Number(formData.accountNumber),
+          accountName: formData.accountName,
+        })
+      ).unwrap();
+
+      // After creating account, fetch all accounts again
+      await dispatch(fetchBankAccounts());
+
+      // Close dialog on success
+      setNewAccountDialogOpen(false);
+
+      // Refresh bank statement data
+      await dispatch(fetchBankStatement());
+    } catch (error) {
+      console.error("Failed to create bank account:", error);
+    }
+  };
+
   // Account switching buttons above the table
   const renderAccountSwitcher = () => (
     <Box
@@ -134,46 +334,88 @@ const BankState = () => {
       justifyContent={{ sm: "space-between" }}
       gap={2}
     >
-      {/* Account Buttons */}
-      <Box display="flex" gap={2}>
-        <Button
-          variant={selectedAccount === 11010718657 ? "contained" : "outlined"}
-          color="secondary"
-          sx={{
-            flex: { xs: 1, sm: "auto" },
-            height: "50px",
-          }}
-          onClick={() => setSelectedAccount(11010718657)}
-        >
-          {t("expensesAccount")}
-        </Button>
-        <Button
-          variant={selectedAccount === 61010108361 ? "contained" : "outlined"}
-          color="secondary"
-          sx={{
-            flex: { xs: 1, sm: "auto" },
-            height: "50px",
-          }}
-          onClick={() => setSelectedAccount(61010108361)}
-        >
-          {t("profitsAccount")}
-        </Button>
+      <Box display="flex" gap={2} flexWrap="wrap">
+        {availableAccounts.map((account) => (
+          <Button
+            key={account.accountNumber}
+            variant={
+              selectedAccount === account.accountNumber
+                ? "contained"
+                : "outlined"
+            }
+            color="secondary"
+            sx={{
+              flex: { xs: 1, sm: "auto" },
+              height: "50px",
+            }}
+            onClick={() => setSelectedAccount(account.accountNumber)}
+          >
+            {t(account.accountName)}
+          </Button>
+        ))}
       </Box>
 
       {/* Print Button */}
-      <Button
-        onClick={handlePrint}
-        color="primary"
-        variant="contained"
-        sx={{
-          width: { xs: "100%", sm: "120px" },
-          height: "50px",
-          "&:hover": { backgroundColor: colors.blueAccent[600] },
-        }}
-      >
-        {t("print")}
-      </Button>
+      <Box>
+        <Button
+          onClick={handlePrint}
+          variant="contained"
+          sx={{
+            width: { xs: "100%", sm: "120px" },
+            height: "50px",
+            backgroundColor: colors.blueAccent[600],
+            "&:hover": { backgroundColor: colors.blueAccent[500] },
+            marginRight: "10px",
+          }}
+        >
+          {t("print")}
+        </Button>
+        <Button
+          variant="contained"
+          startIcon={<AddIcon />}
+          sx={{
+            flex: { xs: 1, sm: "auto" },
+            height: "50px",
+            backgroundColor: colors.greenAccent[500],
+            "&:hover": {
+              backgroundColor: colors.greenAccent[400],
+            },
+          }}
+          onClick={() => setNewAccountDialogOpen(true)}
+        >
+          {t("createNewAccount")}
+        </Button>
+      </Box>
     </Box>
+  );
+
+  const renderAccountSelect = (
+    values,
+    handleChange,
+    handleBlur,
+    touched,
+    errors
+  ) => (
+    <FormControl fullWidth variant="filled" sx={{ gridColumn: "span 1" }}>
+      <InputLabel htmlFor="bankAccountNumber">
+        {t("bankAccountNumber")}
+      </InputLabel>
+      <Select
+        label="bankAccountNumber"
+        value={values.bankAccountNumber}
+        onChange={handleChange}
+        onBlur={handleBlur}
+        name="bankAccountNumber"
+        error={!!touched.bankAccountNumber && !!errors.bankAccountNumber}
+        helperText={touched.bankAccountNumber && errors.bankAccountNumber}
+      >
+        {availableAccounts.map((account) => (
+          <MenuItem key={account.accountNumber} value={account.accountNumber}>
+            {account.accountName}
+          </MenuItem>
+        ))}
+      </Select>
+    </FormControl>
   );
 
   useEffect(() => {
@@ -181,75 +423,188 @@ const BankState = () => {
     setRows(searchStatus ? searchResults : bankStatement);
   }, [searchStatus, bankStatement, searchResults]);
 
-  const profitsAccountTotals = useMemo(() => {
-    const profitsData = searchStatus
-      ? searchResults.filter((row) => row.bankAccountNumber === 61010108361)
-      : bankStatement.filter((row) => row.bankAccountNumber === 61010108361);
+  // Calculate totals for each account
+  const accountTotals = useMemo(() => {
+    if (!bankStatement || !bankAccounts) return {};
 
-    const totalDeposits = profitsData.reduce((total, statement) => {
-      return total + Number(statement.deposits);
-    }, 0);
+    return bankAccounts.reduce((acc, account) => {
+      const accountData = bankStatement.filter(
+        (row) => row.bankAccountNumber === account.accountNumber
+      );
 
-    const totalSpends = profitsData.reduce((total, statement) => {
-      return total + Number(statement.spends);
-    }, 0);
+      const totalDeposits = accountData.reduce(
+        (sum, row) => sum + Number(row.deposits || 0),
+        0
+      );
+      const totalSpends = accountData.reduce(
+        (sum, row) => sum + Number(row.spends || 0),
+        0
+      );
+      const balance = totalDeposits - totalSpends;
 
-    return {
-      deposits: totalDeposits,
-      spends: totalSpends,
-      balance: totalDeposits - totalSpends,
-    };
-  }, [searchStatus, bankStatement, searchResults]);
+      acc[account.accountNumber] = {
+        deposits: totalDeposits,
+        spends: totalSpends,
+        balance: balance,
+      };
 
-  const expensesAccountTotals = useMemo(() => {
-    const expensesData = searchStatus
-      ? searchResults.filter((row) => row.bankAccountNumber === 11010718657)
-      : bankStatement.filter((row) => row.bankAccountNumber === 11010718657);
+      return acc;
+    }, {});
+  }, [bankStatement, bankAccounts]);
+  // Render summary section
+  const renderSummarySection = () => {
+    return (
+      <Box
+        display="grid"
+        gridTemplateColumns="repeat(auto-fit, minmax(300px, 1fr))"
+        gap={2}
+        mb={3}
+        mt={3}
+      >
+        {bankAccounts?.map((account) => {
+          const totals = accountTotals[account.accountNumber] || {
+            deposits: 0,
+            spends: 0,
+            balance: 0,
+          };
 
-    const totalDeposits = expensesData.reduce((total, statement) => {
-      return total + Number(statement.deposits);
-    }, 0);
+          return (
+            <Box
+              key={account.accountNumber}
+              bgcolor={colors.primary[400]}
+              p={2}
+              borderRadius={2}
+            >
+              <Typography variant="h6" color={colors.grey[100]} mb={1}>
+                {t(account.accountName)}
+              </Typography>
+              <Grid container spacing={2}>
+                <Grid item xs={4}>
+                  <Typography color={colors.greenAccent[500]}>
+                    {t("deposits")}
+                  </Typography>
+                  <Typography color={colors.grey[100]}>
+                    {totals.deposits.toLocaleString()}
+                  </Typography>
+                </Grid>
+                <Grid item xs={4}>
+                  <Typography color={colors.greenAccent[500]}>
+                    {t("spends")}
+                  </Typography>
+                  <Typography color={colors.grey[100]}>
+                    {totals.spends.toLocaleString()}
+                  </Typography>
+                </Grid>
+                <Grid item xs={4}>
+                  <Typography color={colors.greenAccent[500]}>
+                    {t("balance")}
+                  </Typography>
+                  <Typography
+                    color={
+                      totals.balance >= 0
+                        ? colors.greenAccent[500]
+                        : colors.redAccent[500]
+                    }
+                  >
+                    {totals.balance.toLocaleString()}
+                  </Typography>
+                </Grid>
+              </Grid>
+            </Box>
+          );
+        })}
+      </Box>
+    );
+  };
 
-    const totalSpends = expensesData.reduce((total, statement) => {
-      return total + Number(statement.spends);
-    }, 0);
+  // const profitsAccountTotals = useMemo(() => {
+  //   if (!accountTypes.profitsAccount)
+  //     return { deposits: 0, spends: 0, balance: 0 };
 
-    return {
-      deposits: totalDeposits,
-      spends: totalSpends,
-      balance: totalDeposits - totalSpends,
-    };
-  }, [searchStatus, bankStatement, searchResults]);
+  //   const profitsData = searchStatus
+  //     ? searchResults.filter(
+  //         (row) => row.bankAccountNumber === accountTypes.profitsAccount
+  //       )
+  //     : bankStatement.filter(
+  //         (row) => row.bankAccountNumber === accountTypes.profitsAccount
+  //       );
 
-  /////////////////////////////
+  //   const totalDeposits = profitsData.reduce((total, statement) => {
+  //     return total + Number(statement.deposits);
+  //   }, 0);
 
-  const totalSpends = useMemo(() => {
-    if (searchStatus) {
-      return searchResults.reduce((total, statement) => {
-        return total + Number(statement.spends);
-      }, 0);
-    }
+  //   const totalSpends = profitsData.reduce((total, statement) => {
+  //     return total + Number(statement.spends);
+  //   }, 0);
 
-    return bankStatement.reduce((total, statement) => {
-      return total + Number(statement.spends);
-    }, 0);
-  }, [searchStatus, bankStatement, searchResults]);
+  //   return {
+  //     deposits: totalDeposits,
+  //     spends: totalSpends,
+  //     balance: totalDeposits - totalSpends,
+  //   };
+  // }, [searchStatus, bankStatement, searchResults, accountTypes.profitsAccount]);
 
-  const totalDeposits = useMemo(() => {
-    if (searchStatus) {
-      return searchResults.reduce((total, statement) => {
-        return total + Number(statement.deposits);
-      }, 0);
-    }
+  // const expensesAccountTotals = useMemo(() => {
+  //   if (!accountTypes.expensesAccount)
+  //     return { deposits: 0, spends: 0, balance: 0 };
 
-    return bankStatement.reduce((total, statement) => {
-      return total + Number(statement.deposits);
-    }, 0);
-  }, [searchStatus, bankStatement, searchResults]);
+  //   const expensesData = searchStatus
+  //     ? searchResults.filter(
+  //         (row) => row.bankAccountNumber === accountTypes.expensesAccount
+  //       )
+  //     : bankStatement.filter(
+  //         (row) => row.bankAccountNumber === accountTypes.expensesAccount
+  //       );
 
-  const totalBalance = useMemo(() => {
-    return totalDeposits - totalSpends;
-  }, [totalDeposits, totalSpends]);
+  //   const totalDeposits = expensesData.reduce((total, statement) => {
+  //     return total + Number(statement.deposits);
+  //   }, 0);
+
+  //   const totalSpends = expensesData.reduce((total, statement) => {
+  //     return total + Number(statement.spends);
+  //   }, 0);
+
+  //   return {
+  //     deposits: totalDeposits,
+  //     spends: totalSpends,
+  //     balance: totalDeposits - totalSpends,
+  //   };
+  // }, [
+  //   searchStatus,
+  //   bankStatement,
+  //   searchResults,
+  //   accountTypes.expensesAccount,
+  // ]);
+
+  // /////////////////////////////
+
+  // const totalSpends = useMemo(() => {
+  //   if (searchStatus) {
+  //     return searchResults.reduce((total, statement) => {
+  //       return total + Number(statement.spends);
+  //     }, 0);
+  //   }
+
+  //   return bankStatement.reduce((total, statement) => {
+  //     return total + Number(statement.spends);
+  //   }, 0);
+  // }, [searchStatus, bankStatement, searchResults]);
+
+  // const totalDeposits = useMemo(() => {
+  //   if (searchStatus) {
+  //     return searchResults.reduce((total, statement) => {
+  //       return total + Number(statement.deposits);
+  //     }, 0);
+  //   }
+
+  //   return bankStatement.reduce((total, statement) => {
+  //     return total + Number(statement.deposits);
+  //   }, 0);
+  // }, [searchStatus, bankStatement, searchResults]);
+
+  // const totalBalance = useMemo(() => {
+  //   return totalDeposits - totalSpends;
+  // }, [totalDeposits, totalSpends]);
 
   const formatNegativeNumber = (value) => {
     const num = Number(value);
@@ -361,37 +716,36 @@ const BankState = () => {
     }, 0);
   };
 
-  const rowsWithSum = useMemo(() => {
-    const filteredRows = searchStatus
-      ? searchResults.filter((row) => row.bankAccountNumber === selectedAccount)
-      : bankStatement.filter(
-          (row) => row.bankAccountNumber === selectedAccount
-        );
+  const sumRow = useMemo(() => {
+    if (!selectedAccount || !filteredData.length) return null;
 
-    const sumRow = {
-      _id: "sum-row",
-      sequence: "",
-      statementDate: "",
-      deposits: filteredRows.reduce(
-        (sum, row) => sum + Number(row.deposits || 0),
-        0
-      ),
-      spends: filteredRows.reduce(
-        (sum, row) => sum + Number(row.spends || 0),
-        0
-      ),
-      balance: filteredRows.reduce(
-        (sum, row) => sum + Number(row.deposits || 0) - Number(row.spends || 0),
-        0
-      ),
+    const totalDeposits = filteredData.reduce(
+      (sum, row) => sum + Number(row.deposits || 0),
+      0
+    );
+    const totalSpends = filteredData.reduce(
+      (sum, row) => sum + Number(row.spends || 0),
+      0
+    );
+    const finalBalance = totalDeposits - totalSpends;
+
+    return {
+      _id: `sum-${selectedAccount}`,
+      statementDate: t("total"),
+      deposits: totalDeposits,
+      spends: totalSpends,
+      balance: finalBalance,
+      bankAccountNumber: selectedAccount,
       statementRemarks: "",
-      checkNumber: null,
+      checkNumber: "",
       statementDetails: "",
-      actions: "",
     };
+  }, [filteredData, selectedAccount, t]);
 
-    return [...rows, sumRow];
-  }, [rows, selectedAccount, searchStatus, searchResults, bankStatement]);
+  const rowsWithSum = useMemo(() => {
+    if (!filteredData.length || !sumRow) return filteredData;
+    return [...filteredData, sumRow];
+  }, [filteredData, sumRow]);
 
   const columns = [
     {
@@ -522,6 +876,8 @@ const BankState = () => {
           editedRows[rowId] && rowModifications[rowId]
         );
 
+        if (params.row._id?.startsWith("sum-")) return null;
+
         return (
           <Box display="flex" gap={1}>
             <Button
@@ -605,9 +961,11 @@ const BankState = () => {
 
   return (
     <Box m="20px">
-      <Header
-        title={t("bankStatementTitle")}
-        subtitle={t("bankStatementSubtitle")}
+      <CreateNewAccountDialog
+        open={newAccountDialogOpen}
+        onClose={() => setNewAccountDialogOpen(false)}
+        onSubmit={handleCreateNewAccount}
+        availableAccounts={availableAccounts || []}
       />
       <Box
         mt="40px"
@@ -641,6 +999,7 @@ const BankState = () => {
             onSubmit={handleSubmit}
             initialValues={initialValues}
             validationSchema={rowSchema}
+            enableReinitialize={true}
           >
             {({
               values,
@@ -662,30 +1021,37 @@ const BankState = () => {
                   }}
                 >
                   <FormControl
-                    fullWidth
-                    variant="filled"
+                    error={
+                      !!touched.bankAccountNumber && !!errors.bankAccountNumber
+                    }
                     sx={{ gridColumn: "span 1" }}
                   >
-                    <InputLabel htmlFor="bankAccountNumber">
+                    <InputLabel id="bankAccountNumber-label">
                       {t("bankAccountNumber")}
                     </InputLabel>
                     <Select
-                      label="bankAccountNumber"
-                      value={values.bankAccountNumber}
+                      labelId="bankAccountNumber-label"
+                      id="bankAccountNumber"
+                      name="bankAccountNumber"
+                      value={values.bankAccountNumber || defaultAccountNumber}
                       onChange={handleChange}
                       onBlur={handleBlur}
-                      name="bankAccountNumber"
-                      error={
-                        !!touched.bankAccountNumber &&
-                        !!errors.bankAccountNumber
-                      }
-                      helperText={
-                        touched.bankAccountNumber && errors.bankAccountNumber
-                      }
+                      label={t("bankAccountNumber")}
                     >
-                      <MenuItem value={61010108361}>حساب الأرباح</MenuItem>
-                      <MenuItem value={11010718657}>حساب المصاريف</MenuItem>
+                      {bankAccounts?.map((account) => (
+                        <MenuItem
+                          key={account.accountNumber}
+                          value={account.accountNumber}
+                        >
+                          {t(account.accountName)}
+                        </MenuItem>
+                      ))}
                     </Select>
+                    {touched.bankAccountNumber && errors.bankAccountNumber && (
+                      <FormHelperText>
+                        {t(errors.bankAccountNumber)}
+                      </FormHelperText>
+                    )}
                   </FormControl>
                   <TextField
                     fullWidth
@@ -770,7 +1136,7 @@ const BankState = () => {
                   <TextField
                     fullWidth
                     variant="filled"
-                    type="text"
+                    type="number"
                     label={t("checkNumber")}
                     onBlur={handleBlur}
                     onChange={handleChange}
@@ -797,19 +1163,21 @@ const BankState = () => {
                     }
                     sx={{ gridColumn: "span 1" }}
                   />
-                  <Button
-                    type="submit"
-                    color="secondary"
-                    variant="contained"
-                    sx={{
-                      gridColumn: isNonMobile ? "span 1" : "span 4",
-                      width: "100%",
-                      height: "50px",
-                    }}
-                  >
-                    {t("addNewRow")}
-                  </Button>
                 </Box>
+                <Button
+                  type="submit"
+                  color="secondary"
+                  variant="contained"
+                  sx={{
+                    gridColumn: isNonMobile ? "span 1" : "span 4",
+                    display: "flex",
+                    justifySelf: isNonMobile ? "flex-end" : "center",
+                    height: "50px",
+                    marginTop: "10px",
+                  }}
+                >
+                  {t("addNewRow")}
+                </Button>
               </form>
             )}
           </Formik>
@@ -835,14 +1203,21 @@ const BankState = () => {
             processRowUpdate={processRowUpdate}
             onProcessRowUpdateError={(error) => console.log(error)}
             getRowClassName={(params) =>
-              params.row._id === "sum-row" ? `sum-row-highlight` : ""
+              params.row._id?.startsWith("sum-") ? `sum-row-highlight` : ""
             }
+            isCellEditable={(params) => !params.row._id?.startsWith("sum-")}
             sx={{
               "& .sum-row-highlight": {
-                bgcolor: colors.blueAccent[700],
+                bgcolor: colors.greenAccent[700],
+                fontWeight: "bold",
+                fontSize: "1rem",
                 "&:hover": {
-                  bgcolor: colors.blueAccent[600],
+                  bgcolor: colors.greenAccent[600],
                 },
+                "& .MuiDataGrid-cell": {
+                  color: colors.grey[100],
+                },
+                borderBottom: `2px solid ${colors.grey[100]}`,
               },
             }}
           />
@@ -853,225 +1228,14 @@ const BankState = () => {
             orientation="landscape"
             page="bankStatement"
             summary={{
-              totalDeposits: formatNegativeNumber(totalDeposits),
-              totalSpends: formatNegativeNumber(totalSpends),
-              totalBalance: formatNegativeNumber(totalBalance),
+              totalDeposits: formatNegativeNumber(accountTotals.totalDeposits),
+              totalSpends: formatNegativeNumber(accountTotals.totalSpends),
+              totalBalance: formatNegativeNumber(accountTotals.totalBalance),
             }}
+            availableAccounts={availableAccounts}
           />
-          {/* Summary Section */}
-          <Box mt="20px" className={styles.notes}>
-            {/* Expenses Account Summary */}
-            <Typography
-              variant="h5"
-              color="secondary"
-              mb={2}
-              sx={{ textAlign: "center" }}
-            >
-              {t("expensesAccount")}
-            </Typography>
-            <Box
-              mt={4}
-              p={3}
-              bgcolor={colors.primary[400]}
-              borderRadius="4px"
-              display="grid"
-              gap="30px"
-              sx={{
-                gridTemplateColumns: {
-                  xs: "1fr",
-                  sm: "repeat(3, 1fr)",
-                  md: "repeat(3, 1fr)",
-                },
-                "& > div": {
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  textAlign: "center",
-                  padding: "20px",
-                  borderRadius: "8px",
-                },
-              }}
-            >
-              <Box>
-                <Typography
-                  variant="subtitle2"
-                  color={colors.grey[100]}
-                  mb={1}
-                  sx={{
-                    fontSize: { xs: "1rem", sm: "1.1rem" },
-                    fontWeight: "bold",
-                  }}
-                >
-                  {t("totalWithdrawals")}
-                </Typography>
-                <Typography
-                  variant="h4"
-                  color="secondary"
-                  sx={{
-                    fontSize: { xs: "1.5rem", sm: "2rem", md: "2.125rem" },
-                  }}
-                >
-                  {formatNegativeNumber(expensesAccountTotals.spends)}
-                  <span style={{ fontSize: "1em" }}> KD</span>
-                </Typography>
-              </Box>
 
-              <Box>
-                <Typography
-                  variant="subtitle2"
-                  color={colors.grey[100]}
-                  mb={1}
-                  sx={{
-                    fontSize: { xs: "1rem", sm: "1.1rem" },
-                    fontWeight: "bold",
-                  }}
-                >
-                  {t("totalDeposits")}
-                </Typography>
-                <Typography
-                  variant="h4"
-                  color="secondary"
-                  sx={{
-                    fontSize: { xs: "1.5rem", sm: "2rem", md: "2.125rem" },
-                  }}
-                >
-                  {formatNegativeNumber(expensesAccountTotals.deposits)}
-                  <span style={{ fontSize: "1em" }}> KD</span>
-                </Typography>
-              </Box>
-
-              <Box>
-                <Typography
-                  variant="subtitle2"
-                  color={colors.grey[100]}
-                  mb={1}
-                  sx={{
-                    fontSize: { xs: "1rem", sm: "1.1rem" },
-                    fontWeight: "bold",
-                  }}
-                >
-                  {t("currentBalance")}
-                </Typography>
-                <Typography
-                  variant="h4"
-                  color="secondary"
-                  sx={{
-                    fontSize: { xs: "1.5rem", sm: "2rem", md: "2.125rem" },
-                  }}
-                >
-                  {formatNegativeNumber(expensesAccountTotals.balance)}
-                  <span style={{ fontSize: "1em" }}> KD</span>
-                </Typography>
-              </Box>
-            </Box>
-            {/* Profits Account Summary */}
-            <Typography
-              variant="h5"
-              color="secondary"
-              mb={2}
-              mt={4}
-              sx={{ textAlign: "center" }}
-            >
-              {t("profitsAccount")}
-            </Typography>
-            <Box
-              mt={4}
-              p={3}
-              bgcolor={colors.primary[400]}
-              borderRadius="4px"
-              display="grid"
-              gap="30px"
-              sx={{
-                gridTemplateColumns: {
-                  xs: "1fr",
-                  sm: "repeat(3, 1fr)",
-                  md: "repeat(3, 1fr)",
-                },
-                "& > div": {
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  textAlign: "center",
-                  padding: "20px",
-                  borderRadius: "8px",
-                },
-              }}
-            >
-              <Box>
-                <Typography
-                  variant="subtitle2"
-                  color={colors.grey[100]}
-                  mb={1}
-                  sx={{
-                    fontSize: { xs: "1rem", sm: "1.1rem" },
-                    fontWeight: "bold",
-                  }}
-                >
-                  {t("totalWithdrawals")}
-                </Typography>
-                <Typography
-                  variant="h4"
-                  color="secondary"
-                  sx={{
-                    fontSize: { xs: "1.5rem", sm: "2rem", md: "2.125rem" },
-                  }}
-                >
-                  {formatNegativeNumber(profitsAccountTotals.spends)}
-                  <span style={{ fontSize: "1em" }}> KD</span>
-                </Typography>
-              </Box>
-
-              <Box>
-                <Typography
-                  variant="subtitle2"
-                  color={colors.grey[100]}
-                  mb={1}
-                  sx={{
-                    fontSize: { xs: "1rem", sm: "1.1rem" },
-                    fontWeight: "bold",
-                  }}
-                >
-                  {t("totalDeposits")}
-                </Typography>
-                <Typography
-                  variant="h4"
-                  color="secondary"
-                  sx={{
-                    fontSize: { xs: "1.5rem", sm: "2rem", md: "2.125rem" },
-                  }}
-                >
-                  {formatNegativeNumber(profitsAccountTotals.deposits)}
-                  <span style={{ fontSize: "1em" }}> KD</span>
-                </Typography>
-              </Box>
-
-              <Box>
-                <Typography
-                  variant="subtitle2"
-                  color={colors.grey[100]}
-                  mb={1}
-                  sx={{
-                    fontSize: { xs: "1rem", sm: "1.1rem" },
-                    fontWeight: "bold",
-                  }}
-                >
-                  {t("currentBalance")}
-                </Typography>
-                <Typography
-                  variant="h4"
-                  color="secondary"
-                  sx={{
-                    fontSize: { xs: "1.5rem", sm: "2rem", md: "2.125rem" },
-                  }}
-                >
-                  {formatNegativeNumber(profitsAccountTotals.balance)}
-                  <span style={{ fontSize: "1em" }}> KD</span>
-                </Typography>
-              </Box>
-            </Box>
-          </Box>
+          {renderSummarySection()}
         </Box>
       </Box>
       <Dialog

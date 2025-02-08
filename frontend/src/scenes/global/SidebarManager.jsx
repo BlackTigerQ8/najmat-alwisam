@@ -181,10 +181,10 @@ const SidebarM = () => {
             /> */}
             <Typography
               variant="h6"
-              color={colors.grey[300]}
+              color={colors.greenAccent[500]}
               sx={{ m: "15px 0 5px 20px" }}
             >
-              {t("pages")}
+              {t("employeesManagement")}
             </Typography>
             <Item
               title={t("manageTeam")}
@@ -204,7 +204,7 @@ const SidebarM = () => {
             />
             <Typography
               variant="h6"
-              color={colors.grey[300]}
+              color={colors.greenAccent[500]}
               sx={{ m: "15px 0 5px 20px" }}
             >
               {t("forms")}
@@ -226,6 +226,29 @@ const SidebarM = () => {
               isCollapsed={isCollapsed}
             />
             <Item
+              title={t("deductionForm")}
+              to="/deduction"
+              icon={<MoneyOffIcon />}
+              selected={selected}
+              setSelected={setSelected}
+              isCollapsed={isCollapsed}
+            />
+            <Item
+              title={t("archiveForm")}
+              to="/archive-form"
+              icon={<ArchiveOutlinedIcon />}
+              selected={selected}
+              setSelected={setSelected}
+              isCollapsed={isCollapsed}
+            />
+            <Typography
+              variant="h6"
+              color={colors.greenAccent[500]}
+              sx={{ m: "15px 0 5px 20px" }}
+            >
+              {t("invoices")}
+            </Typography>
+            <Item
               title={t("driversInvoices")}
               to="/invoices"
               icon={<ReceiptOutlinedIcon />}
@@ -241,10 +264,17 @@ const SidebarM = () => {
               setSelected={setSelected}
               isCollapsed={isCollapsed}
             />
+            <Typography
+              variant="h6"
+              color={colors.greenAccent[500]}
+              sx={{ m: "15px 0 5px 20px" }}
+            >
+              {t("contactAndMessages")}
+            </Typography>
             <Item
-              title={t("deduction")}
-              to="/deduction"
-              icon={<MoneyOffIcon />}
+              title={t("notifications")}
+              to="/notifications"
+              icon={<NotificationsActiveOutlinedIcon />}
               selected={selected}
               setSelected={setSelected}
               isCollapsed={isCollapsed}
@@ -267,19 +297,11 @@ const SidebarM = () => {
             />
             <Typography
               variant="h6"
-              color={colors.grey[300]}
+              color={colors.greenAccent[500]}
               sx={{ m: "15px 0 5px 20px" }}
             >
-              {t("notifications")}
+              {t("archive")}
             </Typography>
-            <Item
-              title={t("notifications")}
-              to="/notifications"
-              icon={<NotificationsActiveOutlinedIcon />}
-              selected={selected}
-              setSelected={setSelected}
-              isCollapsed={isCollapsed}
-            />
             <Item
               title={t("invoicesArchive")}
               to="/invoices-archive"
@@ -296,14 +318,7 @@ const SidebarM = () => {
               setSelected={setSelected}
               isCollapsed={isCollapsed}
             />
-            <Item
-              title={t("archiveForm")}
-              to="/archive-form"
-              icon={<ArchiveOutlinedIcon />}
-              selected={selected}
-              setSelected={setSelected}
-              isCollapsed={isCollapsed}
-            />
+
             <Item
               title={t("searchingArchive")}
               to="/searching-archive"

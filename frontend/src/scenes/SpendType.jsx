@@ -222,8 +222,14 @@ const SpendType = () => {
                     <Button
                       variant="contained"
                       component="span"
-                      color="secondary"
-                      sx={{ height: "100%", width: "100%" }}
+                      sx={{
+                        height: "100%",
+                        width: "100%",
+                        backgroundColor: colors.blueAccent[600],
+                        "&:hover": {
+                          backgroundColor: colors.blueAccent[500],
+                        },
+                      }}
                     >
                       {t("uploadExcel")}
                     </Button>

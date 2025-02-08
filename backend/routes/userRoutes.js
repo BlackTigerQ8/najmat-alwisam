@@ -14,6 +14,7 @@ const {
   fetchMessages,
   getAllInvoices,
   updateInvoiceStatus,
+  removeProfileImage,
 } = require("../controllers/userController");
 const { protect, restrictTo } = require("../middleware/authMiddleware");
 const { contractUpload, userInvoicesUpload } = require("./uploadRoutes");
@@ -80,6 +81,9 @@ router
     updateUser
   )
   .delete(protect, restrictTo("Admin", "Manager"), deleteUser);
+
+router.delete("/:id/profile-image", protect, removeProfileImage);
+
 router.post("/logout", protect, logoutUser);
 router.post("/login", loginUser);
 

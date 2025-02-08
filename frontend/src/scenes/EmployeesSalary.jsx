@@ -154,7 +154,7 @@ const EmployeesSalary = () => {
   const columns = [
     {
       field: "sequenceNumber",
-      headerName: "NO.",
+      headerName: t("no"),
       flex: 0.25,
       renderCell: (params) => {
         if (params.row._id === "sum-row") {
@@ -438,7 +438,14 @@ const EmployeesSalary = () => {
           </Button>
         </Box>
         <Box display="flex" sx={{ gridColumn: "span 1" }} marginLeft={"20px"}>
-          <Button onClick={handlePrint} color="primary" variant="contained">
+          <Button
+            variant="contained"
+            onClick={handlePrint}
+            sx={{
+              backgroundColor: colors.blueAccent[600],
+              "&:hover": { backgroundColor: colors.blueAccent[500] },
+            }}
+          >
             {t("print")}
           </Button>
         </Box>
@@ -483,10 +490,16 @@ const EmployeesSalary = () => {
           }
           sx={{
             "& .sum-row-highlight": {
-              bgcolor: colors.blueAccent[700],
+              bgcolor: colors.greenAccent[700],
+              fontWeight: "bold",
+              fontSize: "1rem",
               "&:hover": {
-                bgcolor: colors.blueAccent[600],
+                bgcolor: colors.greenAccent[600],
               },
+              "& .MuiDataGrid-cell": {
+                color: colors.grey[100],
+              },
+              borderBottom: `2px solid ${colors.grey[100]}`,
             },
           }}
         />

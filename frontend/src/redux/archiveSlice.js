@@ -59,6 +59,28 @@ export const fetchArchives = createAsyncThunk(
   }
 );
 
+// Async thunk to update an archive
+export const updateArchive = createAsyncThunk(
+  "archive/updateArchive",
+  async ({ archiveId, modifications }, { rejectWithValue }) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.patch(
+        `${API_URL}/archives/${archiveId}`,
+        modifications,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      return response.data?.data?.archive;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || error.message);
+    }
+  }
+);
+
 // Async thunk to delete an archive
 export const deleteArchive = createAsyncThunk(
   "archive/deleteArchive",
@@ -110,6 +132,22 @@ const archiveSlice = createSlice({
       .addCase(fetchArchives.rejected, (state, action) => {
         state.status = "failed";
         state.error = action.error.message;
+      })
+      .addCase(updateArchive.pending, (state) => {
+        state.status = "loading";
+      })
+      .addCase(updateArchive.fulfilled, (state, action) => {
+        state.status = "succeeded";
+        const updatedArchive = action.payload;
+        state.archives = state.archives.map((archive) =>
+          archive._id === updatedArchive._id ? updatedArchive : archive
+        );
+        dispatchToast(i18next.t("updateArchiveFulfilled"), "success");
+      })
+      .addCase(updateArchive.rejected, (state, action) => {
+        state.status = "failed";
+        state.error = action.error.message;
+        dispatchToast(i18next.t("updateArchiveRejected"), "error");
       })
       .addCase(deleteArchive.pending, (state) => {
         state.status = "loading";

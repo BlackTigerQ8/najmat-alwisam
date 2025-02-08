@@ -447,7 +447,10 @@ const CoSpends = () => {
               >
                 <Button
                   onClick={handlePrint}
-                  color="primary"
+                  sx={{
+                    backgroundColor: colors.blueAccent[600],
+                    "&:hover": { backgroundColor: colors.blueAccent[500] },
+                  }}
                   variant="contained"
                 >
                   {t("print")}

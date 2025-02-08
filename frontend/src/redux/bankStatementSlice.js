@@ -44,6 +44,26 @@ export const fetchBankStatement = createAsyncThunk(
   }
 );
 
+export const fetchBankAccounts = createAsyncThunk(
+  "bankStatement/fetchBankAccounts",
+  async () => {
+    try {
+      const token = localStorage.getItem("token");
+
+      const response = await axios.get(`${API_URL}/bank-statement/accounts`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching bank accounts:", error);
+      throw error;
+    }
+  }
+);
+
 export const fetchCurrentYearBankStatement = createAsyncThunk(
   "bankStatement/fetchCurrentYearBankStatement",
   async () => {
@@ -140,6 +160,27 @@ export const deleteBankStatement = createAsyncThunk(
   }
 );
 
+export const createNewBankAccount = createAsyncThunk(
+  "bankStatement/createNewBankAccount",
+  async ({ accountNumber, accountName }) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.post(
+        `${API_URL}/bank-statement/create-account`,
+        { accountNumber, accountName },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  }
+);
+
 const bankStatementSlice = createSlice({
   name: "bankStatement",
   initialState,
@@ -223,6 +264,30 @@ const bankStatementSlice = createSlice({
       })
       .addCase(deleteBankStatement.rejected, (state, action) => {
         dispatchToast(i18next.t("deleteBankStatementRejected"), "error");
+      })
+      .addCase(createNewBankAccount.pending, (state) => {
+        state.status = "loading";
+      })
+      .addCase(createNewBankAccount.fulfilled, (state, action) => {
+        state.status = "succeeded";
+        dispatchToast(i18next.t("accountCreatedSuccessfully"), "success");
+      })
+      .addCase(createNewBankAccount.rejected, (state, action) => {
+        state.status = "failed";
+        state.error = action.error.message;
+        dispatchToast(i18next.t("errorCreatingAccount"), "error");
+      })
+      .addCase(fetchBankAccounts.pending, (state) => {
+        state.status = "loading";
+      })
+      .addCase(fetchBankAccounts.fulfilled, (state, action) => {
+        state.status = "succeeded";
+        state.bankAccounts = action.payload.data.bankAccounts;
+      })
+      .addCase(fetchBankAccounts.rejected, (state, action) => {
+        state.status = "failed";
+        state.error = action.error.message;
+        dispatchToast(i18next.t("fetchBankAccountsRejected"), "error");
       });
   },
 });

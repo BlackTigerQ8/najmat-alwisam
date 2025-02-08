@@ -88,6 +88,29 @@ export const profileImage = createAsyncThunk(
   }
 );
 
+// Add new thunk action for removing profile image
+export const removeProfileImage = createAsyncThunk(
+  "user/removeProfileImage",
+  async (_, { getState }) => {
+    const token = localStorage.getItem("token");
+    const userId = getState().user.userInfo._id;
+
+    try {
+      const response = await axios.delete(
+        `${API_URL}/users/${userId}/profile-image`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response.data.message || error.message);
+    }
+  }
+);
+
 // Create user invoice
 export const createUserInvoice = createAsyncThunk(
   "user/createUserInvoice",
@@ -164,6 +187,15 @@ const userSlice = createSlice({
       .addCase(profileImage.rejected, (state) => {
         state.status = "failed";
         dispatchToast(i18next.t("profileImageRejected"), "error");
+      })
+      .addCase(removeProfileImage.fulfilled, (state, action) => {
+        state.status = "succeeded";
+        state.userProfileImage = null;
+        dispatchToast(i18next.t("profileImageRemoved"), "success");
+      })
+      .addCase(removeProfileImage.rejected, (state) => {
+        state.status = "failed";
+        dispatchToast(i18next.t("profileImageRemovalFailed"), "error");
       })
       .addCase(createUserInvoice.fulfilled, (state, action) => {
         state.status = "succeeded";

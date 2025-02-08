@@ -1,4 +1,4 @@
-const BankStatement = require("../models/bankStatementModel");
+const { BankStatement, BankAccount } = require("../models/bankStatementModel");
 
 // @desc    Get all BankStatement
 // @route   GET /api/bank-statement
@@ -236,6 +236,68 @@ const deleteBankStatement = async (req, res) => {
   }
 };
 
+const createBankAccount = async (req, res) => {
+  try {
+    const { accountNumber, accountName } = req.body;
+
+    // Check if account number already exists
+    const existingAccount = await BankAccount.findOne({ accountNumber });
+    if (existingAccount) {
+      return res.status(400).json({
+        status: "Error",
+        message: "Account number already exists",
+      });
+    }
+
+    // Check if account name already exists (case insensitive)
+    const existingAccountName = await BankAccount.findOne({
+      accountName: { $regex: new RegExp(`^${accountName}$`, "i") },
+    });
+    if (existingAccountName) {
+      return res.status(400).json({
+        status: "Error",
+        message: "Account name already exists",
+      });
+    }
+
+    const newAccount = await BankAccount.create({
+      accountNumber,
+      accountName,
+      addedByUser: req.user.id,
+    });
+
+    res.status(201).json({
+      status: "Success",
+      data: {
+        bankAccount: newAccount,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: "Error",
+      message: error.message,
+    });
+  }
+};
+
+const getAllBankAccounts = async (req, res) => {
+  try {
+    const bankAccounts = await BankAccount.find().sort({ accountNumber: 1 });
+
+    res.status(200).json({
+      status: "Success",
+      data: {
+        bankAccounts,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: "Error",
+      message: error.message,
+    });
+  }
+};
+
 module.exports = {
   getAllBankStatement,
   updateBankStatement,
@@ -243,4 +305,6 @@ module.exports = {
   searchBankStatementRecords,
   fetchCurrentYearBankStatement,
   deleteBankStatement,
+  createBankAccount,
+  getAllBankAccounts,
 };

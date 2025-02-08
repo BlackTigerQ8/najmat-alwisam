@@ -23,7 +23,7 @@ const archiveSchema = new mongoose.Schema(
     },
     vehicle: {
       type: String,
-      enum: ["Car", "Bike"],
+      enum: ["Car", "Bike", "None"],
     },
     workNumber: {
       type: Number,

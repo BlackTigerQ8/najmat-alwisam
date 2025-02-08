@@ -134,6 +134,7 @@ function App() {
     { path: "/archive-form", element: <ArchiveForm /> },
     { path: "/deactivated-drivers", element: <DeactivatedDrivers /> },
     { path: "/invoices-archive", element: <InvoicesArchive /> },
+    { path: "/searching-archive", element: <SearchArchive /> },
   ];
 
   const managerRoutes = [
@@ -143,6 +144,7 @@ function App() {
     { path: "/archive-form", element: <ArchiveForm /> },
     { path: "/invoices-archive", element: <InvoicesArchive /> },
     { path: "/deactivated-drivers", element: <DeactivatedDrivers /> },
+    { path: "/searching-archive", element: <SearchArchive /> },
   ];
 
   const accountantRoutes = [
@@ -156,6 +158,9 @@ function App() {
     { path: "/profits", element: <Profits /> },
     { path: "/income", element: <Income /> },
     { path: "/spend-type", element: <SpendType /> },
+    { path: "/archive-form", element: <ArchiveForm /> },
+    { path: "/deactivated-drivers", element: <DeactivatedDrivers /> },
+    { path: "/searching-archive", element: <SearchArchive /> },
   ];
 
   const employeeRoutes = [

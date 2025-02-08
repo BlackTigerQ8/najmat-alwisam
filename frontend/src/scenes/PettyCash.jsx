@@ -856,6 +856,8 @@ const PettyCash = () => {
 };
 
 function PettyCashForm({ isNonMobile, handlePrint }) {
+  const theme = useTheme();
+  const colors = tokens(theme.palette.mode);
   const drivers = useSelector((state) => state.drivers.drivers);
   const users = useSelector((state) => state.users.users);
   const spendTypes = useSelector((state) => state.spendType.spendTypes);
@@ -1287,9 +1289,13 @@ function PettyCashForm({ isNonMobile, handlePrint }) {
             >
               <Button
                 onClick={handlePrint}
-                color="primary"
                 variant="contained"
-                sx={{ width: "120px", height: "50px" }}
+                sx={{
+                  width: "120px",
+                  height: "50px",
+                  backgroundColor: colors.blueAccent[600],
+                  "&:hover": { backgroundColor: colors.blueAccent[500] },
+                }}
               >
                 {t("print")}
               </Button>

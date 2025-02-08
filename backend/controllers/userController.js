@@ -157,6 +157,18 @@ const deleteUser = async (req, res) => {
   }
 };
 
+// @desc    Remove profile image
+// @route   DELETE /api/users/:id/profile-image
+// @access  Private
+const removeProfileImage = async (req, res) => {
+  try {
+    await User.findByIdAndUpdate(req.params.id, { file: null });
+    res.status(204).json({ status: "Success", data: null });
+  } catch (error) {
+    res.status(500).json({ status: "Error", message: error.message });
+  }
+};
+
 // @desc    Login user & get token
 // @route   POST /api/users/login
 // @access  Public
@@ -673,4 +685,5 @@ module.exports = {
   fetchMessages,
   getAllInvoices,
   updateInvoiceStatus,
+  removeProfileImage,
 };

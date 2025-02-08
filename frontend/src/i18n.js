@@ -39,9 +39,15 @@ i18n
           notifications: "Notifications",
           settings: "Settings",
           forms: "Forms",
+          salaries: "Salaries",
+          contactAndMessages: "Contact and Messages",
+          employeesManagement: "Employees Management",
+          accountingPages: "Accounting Pages",
+          archive: "Archive",
           profileForm: "Team Form",
           driversForm: "Drivers Form",
           deduction: "Deduction",
+          deductionForm: "Deduction Form",
           contact: "Contact",
           messages: "Messages",
           invoicesArchive: "Invoices Archive",
@@ -109,6 +115,14 @@ i18n
           others: "Others",
           talabatId: "Talabat ID Number",
           uploadFile: "Upload File",
+          changeImage: "Change Image",
+          removeImage: "Remove Image",
+          uploadImage: "Upload Image",
+          invalidFileSelected:
+            "Invalid file selected. Please upload image file",
+          profileImageRemoved: "Profile image is removed successfully!",
+          profileImageRemovalFailed:
+            "Can't remove profile image, you can try later!",
           viewUploadedFile: "View Uploaded File",
           update: "Update",
           delete: "Delete",
@@ -269,6 +283,25 @@ i18n
           confirmDeleteBankStatementMessage:
             "Are you sure you want to delete this bank statement data?",
           confirmDeleteBankStatementTitle: "Confirm Delete Bank Statement Data",
+          profitsAccount: "Profits Account",
+          expensesAccount: "Expenses Account",
+          createNewAccount: "Create New Account",
+          accountCreatedSuccessfully: "Account created successfully",
+          errorCreatingAccount: "Error creating account",
+          pleaseEnterAllFields: "Please enter all fields",
+          accountNumberIsRequired: "Account number is required",
+          accountNameIsRequired: "Account name is required",
+          accountNumber: "Account Number",
+          accountName: "Account Name",
+          accountNumberIsUnique: "Account number must be unique",
+          accountNumberAlreadyExists: "Account number already exists",
+          createNewBankAccount: "Create New Bank Account",
+          create: "Create",
+          no: "No.",
+          accountNumberRequired: "Account number is required",
+          accountNameRequired: "Account name is required",
+          accountNumberExists: "Account number already exists",
+          accountNameExists: "Account name already exists",
           /////////////
           pettyCashTitle: "PETTY CASH",
           pettyCashSubtitle: "Petty Cash Page",
@@ -407,6 +440,8 @@ i18n
           createBankStatementFulfilled: "Bank statement is successfully added!",
           createBankStatementRejected:
             "Can't add a bank statement, you can try later!",
+          fetchBankAccountsRejected:
+            "Failed to fetch bank accounts, please try later!",
           /////////////
           createDriverInvoiceFulfilled: "Driver invoice is added successfully!",
           createDriverInvoiceRejected:
@@ -489,6 +524,8 @@ i18n
           totalOrdersThisMonth: "Total Orders This Month",
           totalCashThisMonth: "Total Cash This Month",
           totalHoursThisMonth: "Total Hours This Month",
+          updateArchiveFulfilled: "Archive is updated successfully",
+          updateArchiveRejected: "Can't update archive, please try later",
           /////////////
           deliveryManagement: "Delivery Management System",
           landingPageHero:
@@ -600,9 +637,15 @@ i18n
           notifications: "الإشعارات",
           settings: "الإعدادات",
           forms: "نماذج",
+          salaries: "الرواتب",
+          contactAndMessages: "التواصل والرسائل",
+          employeesManagement: "إدارة الموظفين",
+          accountingPages: "صفحات المحاسبة",
+          archive: "الأرشيف",
           profileForm: "نموذج الفريق",
           driversForm: "نموذج السائقين",
           deduction: "خصم",
+          deductionForm: "نموذج الخصم",
           contact: "التواصل",
           messages: "الرسائل",
           invoicesArchive: "أرشيف الفواتير",
@@ -670,6 +713,13 @@ i18n
           others: "أخرى",
           talabatId: "رقم هوية طلبات",
           uploadFile: "تحميل الملف",
+          removeImage: "إزالة الصورة",
+          changeImage: "تغيير الصورة",
+          uploadImage: "رفع الصورة",
+          invalidFileSelected: "الملف غير صالح، يجب أن يكون صورة",
+          profileImageRemoved: "تم إزالة الصورة الشخصية بنجاح",
+          profileImageRemovalFailed:
+            "لم يتم إزالة الصورة الشخصية، يمكنك المحاولة لاحقًا",
           viewUploadedFile: "عرض الملف المحمل",
           update: "تحديث",
           delete: "حذف",
@@ -825,6 +875,21 @@ i18n
           confirmDeleteBankStatementMessage:
             "هل أنت متاكد من حذف البيانات من الكشف البنكي؟",
           confirmDeleteBankStatementTitle: "تأكيد حذف البيانات من الكشف البنكي",
+          profitsAccount: "حساب الأرباح",
+          expensesAccount: "حساب المصاريف",
+          createNewAccount: "إنشاء حساب جديد",
+          accountCreatedSuccessfully: "تم إنشاء الحساب بنجاح",
+          errorCreatingAccount: "حدث خطأ ما! يرجى المحاولة لاحقًا",
+          accountNumber: "رقم الحساب",
+          accountName: "اسم الحساب",
+          pleaseEnterAllFields: "يرجى إدخال جميع الحقول",
+          createNewBankAccount: "إنشاء حساب بنكي جديد",
+          create: "إنشاء",
+          no: "الرقم",
+          accountNumberRequired: "رقم الحساب مطلوب",
+          accountNameRequired: "اسم الحساب مطلوب",
+          accountNumberExists: "رقم الحساب موجود بالفعل",
+          accountNameExists: "اسم الحساب موجود بالفعل",
           /////////////
           pettyCashTitle: "العهدة النقدية",
           pettyCashSubtitle: "صفحة العهدة النقدية",
@@ -957,6 +1022,8 @@ i18n
           createBankStatementFulfilled: "تمت إضافة كشف حساب البنك بنجاح",
           createBankStatementRejected:
             "لا يمكن إضافة كشف حساب البنك، يمكنك المحاولة لاحقًا",
+          fetchBankAccountsRejected:
+            "حدث خطأ في استرجاع حسابات البنك، يمكنك المحاولة لاحقًا",
           /////////////
           createDriverInvoiceFulfilled: "تمت إضافة فاتورة السائق بنجاح",
           createDriverInvoiceRejected:
@@ -1038,6 +1105,8 @@ i18n
           totalOrdersThisMonth: "إجمالي الطلبات هذا الشهر",
           totalCashThisMonth: "إجمالي النقود هذا الشهر",
           totalHoursThisMonth: "إجمالي الساعات هذا الشهر",
+          updateArchiveFulfilled: "تم تحديث الملف بنجاح",
+          updateArchiveRejected: "لا يمكن تحديث الملف، يرجى المحاولة لاحقاً",
           /////////////
           deliveryManagement: "نظام إدارة التوصيل",
           landingPageHero:
