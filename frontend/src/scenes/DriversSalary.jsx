@@ -20,7 +20,6 @@ import { useSelector, useDispatch } from "react-redux";
 import { overrideDriverSalary, fetchSalaries } from "../redux/driversSlice";
 import { pulsar } from "ldrs";
 import { useReactToPrint } from "react-to-print";
-import { startOfMonth, endOfMonth } from "date-fns";
 import PrintableTable from "./PrintableTable";
 import styles from "./Print.module.css";
 import { useTranslation } from "react-i18next";
@@ -44,8 +43,9 @@ const DriversSalary = () => {
   const [editRowsModel, setEditRowsModel] = useState({});
   const [rowModifications, setRowModifications] = useState({});
   const [editedRows, setEditedRows] = useState({});
+  const [rows, setRows] = useState([]);
 
-  console.log(driversSalaries[0]);
+  console.log(driversSalaries);
 
   const handlePrint = useReactToPrint({
     content: () => componentRef.current,
@@ -128,6 +128,11 @@ const DriversSalary = () => {
   }, [totalMonthlySalary, totalMonthlyDeduction]);
 
   const processRowUpdate = (newRow, oldRow) => {
+    // Don't process updates for sum row
+    if (newRow._id === "sum-row") {
+      return oldRow;
+    }
+
     const id = newRow._id;
     const changes = {};
 
@@ -138,6 +143,7 @@ const DriversSalary = () => {
     });
 
     if (Object.keys(changes).length > 0) {
+      // Store changes for save operation
       setRowModifications((prev) => ({
         ...prev,
         [id]: {
@@ -160,6 +166,10 @@ const DriversSalary = () => {
     console.error(error);
   };
 
+  useEffect(() => {
+    setRows(driversSalaries);
+  }, [driversSalaries]);
+
   const handleUpdate = (row) => {
     try {
       const modifications = rowModifications[row._id];
@@ -168,34 +178,49 @@ const DriversSalary = () => {
         return;
       }
 
-      dispatch(
-        overrideDriverSalary({
-          values: {
-            driverId: row._id,
-            mainOrder: modifications.mainOrder ?? row.mainOrder,
-            additionalOrder:
-              modifications.additionalOrder ?? row.additionalOrder,
-            talabatDeductionAmount:
-              modifications.talabatDeductionAmount ??
-              row.talabatDeductionAmount,
-            companyDeductionAmount:
-              modifications.companyDeductionAmount ??
-              row.companyDeductionAmount,
-          },
-        })
-      );
+      console.log("Sending modifications:", modifications);
 
-      // Clear modifications for this row
-      setRowModifications((prev) => {
-        const newState = { ...prev };
-        delete newState[row._id];
-        return newState;
+      // Only send the modified fields
+      const values = {
+        driverId: row._id,
+      };
+
+      // Add only the modified fields to the values object
+      Object.entries(modifications).forEach(([key, value]) => {
+        // Include empty string values for remarks
+        if (key === "remarks" || value !== undefined) {
+          values[key] = value;
+        }
       });
 
-      setEditedRows((prev) => {
-        const newState = { ...prev };
-        delete newState[row._id];
-        return newState;
+      dispatch(
+        overrideDriverSalary({
+          values,
+        })
+      ).then(() => {
+        // After successful update, refresh the salaries data
+        const startDate = new Date(startYear, startMonth, 1);
+        const endDate = new Date(startYear, startMonth + 1, 0);
+
+        dispatch(
+          fetchSalaries({
+            startDate,
+            endDate,
+          })
+        );
+
+        // Clear modifications for this row
+        setRowModifications((prev) => {
+          const newState = { ...prev };
+          delete newState[row._id];
+          return newState;
+        });
+
+        setEditedRows((prev) => {
+          const newState = { ...prev };
+          delete newState[row._id];
+          return newState;
+        });
       });
     } catch (error) {
       console.error("Error updating row:", error);
@@ -369,6 +394,15 @@ const DriversSalary = () => {
       headerName: t("remarks"),
       headerAlign: "center",
       align: "center",
+      editable: true,
+      width: 200,
+      renderCell: (params) => {
+        return (
+          <Box display="flex" justifyContent="center" borderRadius="4px">
+            {params.value || ""}
+          </Box>
+        );
+      },
     },
     {
       field: "actions",
@@ -435,6 +469,30 @@ const DriversSalary = () => {
   const rowsWithSum = [...driversSalaries, sumRow];
 
   useEffect(() => {
+    const baseRows = driversSalaries;
+    const sumRow = {
+      _id: "sum-row",
+      sequenceNumber: t("total"),
+      firstName: t("total"),
+      name: "",
+      vehicle: "",
+      mainOrder: calculateColumnSum("mainOrder"),
+      additionalOrder: calculateColumnSum("additionalOrder"),
+      salaryMainOrders: calculateColumnSum("salaryMainOrders"),
+      salaryAdditionalOrders: calculateColumnSum("salaryAdditionalOrders"),
+      talabatDeductionAmount: calculateColumnSum("talabatDeductionAmount"),
+      companyDeductionAmount: calculateColumnSum("companyDeductionAmount"),
+      pettyCashDeductionAmount: calculateColumnSum("pettyCashDeductionAmount"),
+      cashAmount: calculateColumnSum("cashAmount"),
+      netSalary: calculateColumnSum("netSalary"),
+      remarks: "",
+      actions: "",
+    };
+
+    setRows([...baseRows, sumRow]);
+  }, [driversSalaries, t]);
+
+  useEffect(() => {
     // Get the first and last day of the current month by default
     const startDate = new Date(startYear, startMonth, 1);
     const endDate = new Date(startYear, startMonth + 1, 0); // Last day of the month
@@ -446,10 +504,6 @@ const DriversSalary = () => {
       })
     );
   }, [dispatch, startMonth, startYear]);
-
-  useEffect(() => {
-    console.log("Driver Salaries Data:", driversSalaries);
-  }, [driversSalaries]);
 
   pulsar.register();
   if (status === "loading") {
@@ -602,7 +656,7 @@ const DriversSalary = () => {
       >
         <DataGrid
           // checkboxSelection
-          rows={rowsWithSum}
+          rows={rows}
           columns={columns}
           getRowId={(row) => row._id}
           editRowsModel={editRowsModel}

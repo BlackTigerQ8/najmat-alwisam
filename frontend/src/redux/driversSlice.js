@@ -425,9 +425,18 @@ const driversSlice = createSlice({
         state.salariesStatus = "succeeded";
         const updatedInvoice = action.payload.data.invoice;
 
+        // Update the state.salaries array with all fields from the updated invoice
         state.salaries = state.salaries.map((driver) =>
           driver._id === updatedInvoice.driver
-            ? { ...driver, ...updatedInvoice, _id: updatedInvoice.driver }
+            ? {
+                ...driver,
+                remarks: updatedInvoice.remarks, // Explicitly include remarks
+                talabatDeductionAmount: updatedInvoice.talabatDeductionAmount,
+                companyDeductionAmount: updatedInvoice.companyDeductionAmount,
+                pettyCashDeductionAmount:
+                  updatedInvoice.pettyCashDeductionAmount,
+                _id: updatedInvoice.driver,
+              }
             : driver
         );
         dispatchToast(i18next.t("overrideDriverSalaryFulfilled"), "success");

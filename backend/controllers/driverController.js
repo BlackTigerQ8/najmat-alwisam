@@ -435,6 +435,13 @@ const getDriverSalaries = async (req, res) => {
     const { startDate, endDate } = req.query;
     console.log("Date range:", { startDate, endDate });
 
+    // Parse dates and set time to start/end of day
+    const parsedStartDate = new Date(startDate);
+    parsedStartDate.setHours(0, 0, 0, 0);
+
+    const parsedEndDate = new Date(endDate);
+    parsedEndDate.setHours(23, 59, 59, 999);
+
     // Initialize data structure for each driver
     for (const driver of drivers) {
       driversData[driver._id] = {
@@ -455,13 +462,13 @@ const getDriverSalaries = async (req, res) => {
       };
     }
 
-    // Fetch invoices for the date range
+    // Fetch invoices for the date range with both visibleToAll and visibleToAllArchived status
     const invoices = await DriverInvoice.find({
       invoiceDate: {
-        $gte: new Date(startDate),
-        $lte: new Date(endDate),
+        $gte: parsedStartDate,
+        $lte: parsedEndDate,
       },
-      status: { $in: ["approved", "visibleToAll"] },
+      status: { $in: ["approved", "visibleToAll", "visibleToAllArchived"] },
     }).populate("driver");
 
     console.log(`Found ${invoices.length} invoices`);
@@ -558,55 +565,63 @@ const getDriverSalaries = async (req, res) => {
 
 const overrideDriverSalary = async (req, res) => {
   const {
+    driverId,
     mainOrder,
     additionalOrder,
     talabatDeductionAmount,
     companyDeductionAmount,
-    driverId,
+    pettyCashDeductionAmount,
+    remarks,
   } = req.body;
 
-  const driver = await Driver.findById(driverId);
+  try {
+    const driver = await Driver.findById(driverId);
+    if (!driver) {
+      return res.status(404).json({ message: "Driver does not exist" });
+    }
 
-  if (!driver)
-    return res.status(404).json({ message: "Driver does not exist" });
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ message: "User does not exist" });
+    }
 
-  const user = await User.findById(req.user.id);
+    // Create an object with only the fields that were sent
+    const invoiceData = {
+      driver: driverId,
+      user: req.user.id,
+      status: "approved",
+      invoiceDate: new Date(new Date().getTime() - 24 * 60 * 60 * 1000),
+    };
 
-  if (!user) return res.status(404).json({ message: "User does not exist" });
+    // Only add fields that were provided in the request
+    if (mainOrder !== undefined) invoiceData.mainOrder = mainOrder;
+    if (additionalOrder !== undefined)
+      invoiceData.additionalOrder = additionalOrder;
+    if (talabatDeductionAmount !== undefined)
+      invoiceData.talabatDeductionAmount = talabatDeductionAmount;
+    if (companyDeductionAmount !== undefined)
+      invoiceData.companyDeductionAmount = companyDeductionAmount;
+    if (pettyCashDeductionAmount !== undefined)
+      invoiceData.pettyCashDeductionAmount = pettyCashDeductionAmount;
+    // Handle remarks specifically, allowing empty strings
+    if (remarks !== undefined) invoiceData.remarks = remarks;
 
-  const { cash, hour, deductionReason } = await overrideDriverInvoices({
-    driverId,
-  });
+    const newInvoice = new DriverInvoice(invoiceData);
+    await newInvoice.save();
 
-  /** All invoices should be set using yesterday's date */
-  const currentDate = new Date();
-  const invoiceDate = new Date(currentDate.getTime() - 24 * 60 * 60 * 1000);
-
-  const newInvoice = new DriverInvoice({
-    driver: driverId,
-    mainOrder,
-    additionalOrder,
-    hour,
-    cash,
-    talabatDeductionAmount,
-    companyDeductionAmount,
-    deductionReason,
-    invoiceDate,
-    user: req.user.id,
-    status: "approved",
-  });
-
-  await newInvoice.save();
-
-  return res.status(201).json({
-    status: "Success",
-    data: {
-      invoice: newInvoice,
-    },
-  });
-
-  // TODO: Confirm if petty cash deductions for driver should be overridden or not
-  //await overridePettyCashInvoices({ driverId });
+    return res.status(201).json({
+      status: "Success",
+      data: {
+        invoice: { ...newInvoice._doc, driver: { _id: driverId } },
+      },
+    });
+  } catch (error) {
+    console.error("Error in overrideDriverSalary:", error);
+    return res.status(500).json({
+      status: "Error",
+      message: error.message,
+    });
+  }
 };
 
 const overrideDriverInvoices = async ({ driverId }) => {

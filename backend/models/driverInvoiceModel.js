@@ -27,11 +27,14 @@ const driverInvoiceSchema = new mongoose.Schema({
   deductionReason: { type: String, default: "" },
   talabatDeductionAmount: { type: Number, default: 0 },
   companyDeductionAmount: { type: Number, default: 0 },
+  pettyCashDeductionAmount: { type: Number, default: 0 },
+  remarks: { type: String, default: "" },
   user: {
     type: mongoose.Schema.Types.ObjectId,
     required: true,
     ref: "User",
   },
+
   status: {
     type: String,
     enum: invoiceStatus,
