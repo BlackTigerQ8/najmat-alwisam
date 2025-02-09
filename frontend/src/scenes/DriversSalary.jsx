@@ -9,6 +9,7 @@ import {
   Select,
   MenuItem,
   TextField,
+  Grid,
 } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import { tokens } from "../theme";
@@ -43,6 +44,8 @@ const DriversSalary = () => {
   const [editRowsModel, setEditRowsModel] = useState({});
   const [rowModifications, setRowModifications] = useState({});
   const [editedRows, setEditedRows] = useState({});
+
+  console.log(driversSalaries[0]);
 
   const handlePrint = useReactToPrint({
     content: () => componentRef.current,
@@ -203,7 +206,7 @@ const DriversSalary = () => {
     {
       field: "sequenceNumber",
       headerName: "NO.",
-      flex: 0.25,
+      flex: 0.2,
       renderCell: (params) => {
         if (params.row._id === "sum-row") {
           return "";
@@ -220,7 +223,7 @@ const DriversSalary = () => {
     {
       field: "name",
       headerName: t("name"),
-      flex: 0.5,
+      flex: 0.8,
       cellClassName: "name-column--cell",
       renderCell: ({ row: { firstName, lastName } }) => {
         return (
@@ -238,14 +241,14 @@ const DriversSalary = () => {
       align: "center",
     },
     {
-      field: "mainOrder", // NEW
+      field: "mainOrder",
       headerName: t("mainOrders"),
       headerAlign: "center",
       align: "center",
       editable: true,
     },
     {
-      field: "additionalOrder", // NEW
+      field: "additionalOrder",
       headerName: t("additionalOrders"),
       type: Number,
       editable: true,
@@ -253,7 +256,7 @@ const DriversSalary = () => {
       align: "center",
     },
     {
-      field: "totalOrders", // NEW (main  + additional)
+      field: "totalOrders", // (main  + additional)
       headerName: t("totalOrders"),
       type: Number,
       flex: 0.75,
@@ -268,30 +271,38 @@ const DriversSalary = () => {
       },
     },
     {
-      field: "salaryMainOrders", // NEW
+      field: "salaryMainOrders",
       headerName: t("salaryMainOrders"),
       //editable: true,
       flex: 1,
       headerAlign: "center",
       align: "center",
+      valueFormatter: (params) => {
+        return Number(params.value).toFixed(3);
+      },
     },
     {
-      field: "salaryAdditionalOrders", // NEW
+      field: "salaryAdditionalOrders",
       headerName: t("salaryAdditionalOrders"),
       //editable: true,
       flex: 1,
       headerAlign: "center",
       align: "center",
+      valueFormatter: (params) => {
+        return Number(params.value).toFixed(3);
+      },
     },
     {
-      field: "finalSalary", // NEW
+      field: "finalSalary",
       headerName: t("finalSalary"),
       headerAlign: "center",
       align: "center",
       renderCell: ({ row: { salaryAdditionalOrders, salaryMainOrders } }) => {
         return (
           <Box display="flex" justifyContent="center" borderRadius="4px">
-            {Number(salaryMainOrders) + Number(salaryAdditionalOrders)}
+            {(
+              Number(salaryMainOrders) + Number(salaryAdditionalOrders)
+            ).toFixed(3)}
           </Box>
         );
       },
@@ -302,6 +313,9 @@ const DriversSalary = () => {
       headerAlign: "center",
       align: "center",
       editable: true,
+      valueFormatter: (params) => {
+        return Number(params.value).toFixed(3);
+      },
     },
     {
       field: "companyDeductionAmount",
@@ -309,6 +323,9 @@ const DriversSalary = () => {
       headerAlign: "center",
       align: "center",
       editable: true,
+      valueFormatter: (params) => {
+        return Number(params.value).toFixed(3);
+      },
     },
     {
       field: "pettyCashDeductionAmount",
@@ -316,9 +333,12 @@ const DriversSalary = () => {
       headerAlign: "center",
       align: "center",
       //editable: true,
+      valueFormatter: (params) => {
+        return Number(params.value).toFixed(3);
+      },
     },
     {
-      field: "netSalary", // NEW
+      field: "netSalary",
       headerName: t("netSalary"),
       headerAlign: "center",
       align: "center",
@@ -339,13 +359,13 @@ const DriversSalary = () => {
                 Number(pettyCashDeductionAmount) -
                 Number(companyDeductionAmount) -
                 Number(talabatDeductionAmount)
-            ).toFixed(1)}
+            ).toFixed(3)}
           </Box>
         );
       },
     },
     {
-      field: "remarks", // NEW
+      field: "remarks",
       headerName: t("remarks"),
       headerAlign: "center",
       align: "center",
@@ -386,9 +406,10 @@ const DriversSalary = () => {
   ];
 
   const calculateColumnSum = (fieldName) => {
-    return driversSalaries.reduce((total, driver) => {
-      return total + (driver[fieldName] || 0);
+    const sum = driversSalaries.reduce((total, driver) => {
+      return total + Number(driver[fieldName] || 0);
     }, 0);
+    return sum;
   };
 
   const sumRow = {
@@ -414,10 +435,21 @@ const DriversSalary = () => {
   const rowsWithSum = [...driversSalaries, sumRow];
 
   useEffect(() => {
-    //if (status === "succeeded") {
-    dispatch(fetchSalaries());
-    //}
-  }, [dispatch]);
+    // Get the first and last day of the current month by default
+    const startDate = new Date(startYear, startMonth, 1);
+    const endDate = new Date(startYear, startMonth + 1, 0); // Last day of the month
+
+    dispatch(
+      fetchSalaries({
+        startDate,
+        endDate,
+      })
+    );
+  }, [dispatch, startMonth, startYear]);
+
+  useEffect(() => {
+    console.log("Driver Salaries Data:", driversSalaries);
+  }, [driversSalaries]);
 
   pulsar.register();
   if (status === "loading") {
@@ -455,14 +487,17 @@ const DriversSalary = () => {
     );
   }
 
-  const onSearchSubmit = async () => [
+  const onSearchSubmit = () => {
+    const startDate = new Date(startYear, startMonth, 1);
+    const endDate = new Date(endYear, endMonth + 1, 0);
+
     dispatch(
       fetchSalaries({
-        startDate: startOfMonth(new Date(startYear, startMonth)),
-        endDate: endOfMonth(new Date(endYear, endMonth)),
+        startDate,
+        endDate,
       })
-    ),
-  ];
+    );
+  };
 
   return (
     <Box m="20px">
@@ -624,131 +659,117 @@ const DriversSalary = () => {
                 sm: "repeat(2, 1fr)",
                 md: "repeat(5, 1fr)",
               },
-              "& > div": {
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-                textAlign: "center",
-                padding: "20px",
-                borderRadius: "8px",
-              },
             }}
           >
-            <Box>
-              <Typography
-                variant="subtitle2"
-                color={colors.grey[100]}
-                mb={1}
-                sx={{
-                  fontSize: { xs: "1rem", sm: "1.1rem" },
-                  fontWeight: "bold",
-                }}
-              >
+            <Box bgcolor={colors.primary[400]} p={2} borderRadius={2}>
+              <Typography variant="h6" color={colors.grey[100]} mb={1}>
                 {t("carDriversTotalNetSalary")}
               </Typography>
-              <Typography
-                variant="h4"
-                color="secondary"
-                sx={{
-                  fontSize: { xs: "1.5rem", sm: "2rem", md: "2.125rem" },
-                }}
-              >
-                <span>{netCarDriversSalary}</span>
-                <span style={{ fontSize: "1em" }}> {t("kd")}</span>
-              </Typography>
+              <Grid container spacing={2}>
+                <Grid item xs={12}>
+                  <Typography
+                    color={
+                      netCarDriversSalary >= 0
+                        ? colors.greenAccent[500]
+                        : colors.redAccent[500]
+                    }
+                    sx={{
+                      fontSize: { xs: "1.2rem", sm: "1.4rem", md: "1.6rem" },
+                    }}
+                  >
+                    {netCarDriversSalary.toFixed(3)}
+                    <span style={{ fontSize: "0.8em" }}> {t("kd")}</span>
+                  </Typography>
+                </Grid>
+              </Grid>
             </Box>
-            <Box>
-              <Typography
-                variant="subtitle2"
-                color={colors.grey[100]}
-                mb={1}
-                sx={{
-                  fontSize: { xs: "1rem", sm: "1.1rem" },
-                  fontWeight: "bold",
-                }}
-              >
+
+            <Box bgcolor={colors.primary[400]} p={2} borderRadius={2}>
+              <Typography variant="h6" color={colors.grey[100]} mb={1}>
                 {t("bikeDriversTotalNetSalary")}
               </Typography>
-              <Typography
-                variant="h4"
-                color="secondary"
-                sx={{
-                  fontSize: { xs: "1.5rem", sm: "2rem", md: "2.125rem" },
-                }}
-              >
-                <span>{netBikeDriversSalary}</span>
-                <span style={{ fontSize: "1em" }}> {t("kd")}</span>
-              </Typography>
+              <Grid container spacing={2}>
+                <Grid item xs={12}>
+                  <Typography
+                    color={
+                      netBikeDriversSalary >= 0
+                        ? colors.greenAccent[500]
+                        : colors.redAccent[500]
+                    }
+                    sx={{
+                      fontSize: { xs: "1.2rem", sm: "1.4rem", md: "1.6rem" },
+                    }}
+                  >
+                    {netBikeDriversSalary.toFixed(3)}
+                    <span style={{ fontSize: "0.8em" }}> {t("kd")}</span>
+                  </Typography>
+                </Grid>
+              </Grid>
             </Box>
-            <Box>
-              <Typography
-                variant="subtitle2"
-                color={colors.grey[100]}
-                mb={1}
-                sx={{
-                  fontSize: { xs: "1rem", sm: "1.1rem" },
-                  fontWeight: "bold",
-                }}
-              >
+
+            <Box bgcolor={colors.primary[400]} p={2} borderRadius={2}>
+              <Typography variant="h6" color={colors.grey[100]} mb={1}>
                 {t("totalMonthlySalary")}
               </Typography>
-              <Typography
-                variant="h4"
-                color="secondary"
-                sx={{
-                  fontSize: { xs: "1.5rem", sm: "2rem", md: "2.125rem" },
-                }}
-              >
-                <span>{totalMonthlySalary}</span>
-                <span style={{ fontSize: "1em" }}> {t("kd")}</span>
-              </Typography>
+              <Grid container spacing={2}>
+                <Grid item xs={12}>
+                  <Typography
+                    color={
+                      totalMonthlySalary >= 0
+                        ? colors.greenAccent[500]
+                        : colors.redAccent[500]
+                    }
+                    sx={{
+                      fontSize: { xs: "1.2rem", sm: "1.4rem", md: "1.6rem" },
+                    }}
+                  >
+                    {totalMonthlySalary.toFixed(3)}
+                    <span style={{ fontSize: "0.8em" }}> {t("kd")}</span>
+                  </Typography>
+                </Grid>
+              </Grid>
             </Box>
-            <Box>
-              <Typography
-                variant="subtitle2"
-                color={colors.grey[100]}
-                mb={1}
-                sx={{
-                  fontSize: { xs: "1rem", sm: "1.1rem" },
-                  fontWeight: "bold",
-                }}
-              >
+
+            <Box bgcolor={colors.primary[400]} p={2} borderRadius={2}>
+              <Typography variant="h6" color={colors.grey[100]} mb={1}>
                 {t("totalMonthlyDeduction")}
               </Typography>
-              <Typography
-                variant="h4"
-                color="secondary"
-                sx={{
-                  fontSize: { xs: "1.5rem", sm: "2rem", md: "2.125rem" },
-                }}
-              >
-                <span>{totalMonthlyDeduction}</span>
-                <span style={{ fontSize: "1em" }}> {t("kd")}</span>
-              </Typography>
+              <Grid container spacing={2}>
+                <Grid item xs={12}>
+                  <Typography
+                    color={colors.redAccent[500]}
+                    sx={{
+                      fontSize: { xs: "1.2rem", sm: "1.4rem", md: "1.6rem" },
+                    }}
+                  >
+                    {totalMonthlyDeduction.toFixed(3)}
+                    <span style={{ fontSize: "0.8em" }}> {t("kd")}</span>
+                  </Typography>
+                </Grid>
+              </Grid>
             </Box>
-            <Box>
-              <Typography
-                variant="subtitle2"
-                color={colors.grey[100]}
-                mb={1}
-                sx={{
-                  fontSize: { xs: "1rem", sm: "1.1rem" },
-                  fontWeight: "bold",
-                }}
-              >
+
+            <Box bgcolor={colors.primary[400]} p={2} borderRadius={2}>
+              <Typography variant="h6" color={colors.grey[100]} mb={1}>
                 {t("totalNetSalary")}
               </Typography>
-              <Typography
-                variant="h4"
-                color="secondary"
-                sx={{
-                  fontSize: { xs: "1.5rem", sm: "2rem", md: "2.125rem" },
-                }}
-              >
-                <span>{totalNetSalary}</span>
-                <span style={{ fontSize: "1em" }}> {t("kd")}</span>
-              </Typography>
+              <Grid container spacing={2}>
+                <Grid item xs={12}>
+                  <Typography
+                    color={
+                      totalNetSalary >= 0
+                        ? colors.greenAccent[500]
+                        : colors.redAccent[500]
+                    }
+                    sx={{
+                      fontSize: { xs: "1.2rem", sm: "1.4rem", md: "1.6rem" },
+                    }}
+                  >
+                    {totalNetSalary.toFixed(3)}
+                    <span style={{ fontSize: "0.8em" }}> {t("kd")}</span>
+                  </Typography>
+                </Grid>
+              </Grid>
             </Box>
           </Box>
         </Box>

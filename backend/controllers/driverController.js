@@ -370,9 +370,15 @@ const getDriverInvoices = async (
 // Salary calculations based on the number of main and additional orders for CAR drivers
 const carDriverSalary = (orders, salaryMainOrders, salaryAdditionalOrders) => {
   if (orders <= 399) {
-    return { mainSalary: salaryMainOrders * 0.3 };
+    return {
+      mainSalary: salaryMainOrders * 0.3,
+      additionalSalary: salaryAdditionalOrders * 0.3,
+    };
   } else if (orders >= 400 && orders <= 449) {
-    return { mainSalary: 140 };
+    return {
+      mainSalary: 140,
+      additionalSalary: salaryAdditionalOrders * 0.3,
+    };
   } else if (orders >= 450 && orders <= 599) {
     return {
       mainSalary: salaryMainOrders * 0.45,
@@ -393,11 +399,20 @@ const bikeDriverSalary = (
   salaryAdditionalOrders = 0
 ) => {
   if (orders <= 200) {
-    return { mainSalary: 50 };
+    return {
+      mainSalary: 50,
+      additionalSalary: salaryAdditionalOrders * 0.3,
+    };
   } else if (orders <= 300) {
-    return { mainSalary: 100 };
+    return {
+      mainSalary: 100,
+      additionalSalary: salaryAdditionalOrders * 0.3,
+    };
   } else if (orders >= 300 && orders <= 349) {
-    return { mainSalary: 150 };
+    return {
+      mainSalary: 150,
+      additionalSalary: salaryAdditionalOrders * 0.3,
+    };
   } else if (orders >= 350 && orders <= 419) {
     return {
       mainSalary: salaryMainOrders * 0.45,
@@ -412,107 +427,133 @@ const bikeDriverSalary = (
 };
 
 const getDriverSalaries = async (req, res) => {
-  const drivers = await filterDriversByStatus();
-  const driversData = {};
+  try {
+    const drivers = await filterDriversByStatus();
+    const driversData = {};
 
-  // Check if user already exists in userData, if not, create new entry
-  for (const driver of drivers) {
-    const driverId = driver._id;
+    // Get date parameters from query
+    const { startDate, endDate } = req.query;
+    console.log("Date range:", { startDate, endDate });
 
-    driversData[driverId] = {
-      firstName: driver.firstName,
-      lastName: driver.lastName,
-      _id: driverId,
-      vehicle: driver.vehicle,
-      sequenceNumber: driver.sequenceNumber,
-      startingSalary: driver.mainSalary,
+    // Initialize data structure for each driver
+    for (const driver of drivers) {
+      driversData[driver._id] = {
+        _id: driver._id,
+        firstName: driver.firstName,
+        lastName: driver.lastName,
+        vehicle: driver.vehicle,
+        sequenceNumber: driver.sequenceNumber,
+        mainOrder: 0,
+        additionalOrder: 0,
+        salaryMainOrders: 0,
+        salaryAdditionalOrders: 0,
+        talabatDeductionAmount: 0,
+        companyDeductionAmount: 0,
+        pettyCashDeductionAmount: 0,
+        cashAmount: 0,
+        netSalary: 0,
+      };
+    }
 
-      mainOrder: 0,
-      additionalOrder: 0,
+    // Fetch invoices for the date range
+    const invoices = await DriverInvoice.find({
+      invoiceDate: {
+        $gte: new Date(startDate),
+        $lte: new Date(endDate),
+      },
+      status: { $in: ["approved", "visibleToAll"] },
+    }).populate("driver");
 
-      salaryMainOrders: 0,
-      salaryAdditionalOrders: 0,
+    console.log(`Found ${invoices.length} invoices`);
 
-      talabatDeductionAmount: 0,
-      companyDeductionAmount: 0,
-      pettyCashDeductionAmount: 0,
+    // Aggregate data for each driver
+    for (const invoice of invoices) {
+      if (!invoice.driver || !invoice.driver._id) continue;
 
-      totalInvoices: 0,
-    };
-  }
+      const driverId = invoice.driver._id.toString();
+      if (!driversData[driverId]) continue;
 
-  const startDate = req.query.startDate || undefined;
-  const endDate = req.query.endDate || undefined;
+      // Sum up the values
+      driversData[driverId].mainOrder += Number(invoice.mainOrder || 0);
+      driversData[driverId].additionalOrder += Number(
+        invoice.additionalOrder || 0
+      );
+      driversData[driverId].talabatDeductionAmount += Number(
+        invoice.talabatDeductionAmount || 0
+      );
+      driversData[driverId].companyDeductionAmount += Number(
+        invoice.companyDeductionAmount || 0
+      );
+      driversData[driverId].pettyCashDeductionAmount += Number(
+        invoice.pettyCashDeductionAmount || 0
+      );
+      driversData[driverId].cashAmount += Number(invoice.cashAmount || 0);
+    }
 
-  const status = startDate && endDate ? ["approved", "archived"] : ["approved"];
-  const dateFilter =
-    startDate && endDate
-      ? {
-          optionalStartDate: startDate,
-          optionalEndDate: endDate,
+    // Calculate salaries for each driver
+    for (const driverId in driversData) {
+      const driver = driversData[driverId];
+      const totalOrders = driver.mainOrder + driver.additionalOrder;
+
+      // Calculate salary based on vehicle type and total orders
+      if (driver.vehicle === "Car") {
+        if (totalOrders <= 399) {
+          driver.salaryMainOrders = driver.mainOrder * 0.3;
+          driver.salaryAdditionalOrders = driver.additionalOrder * 0.3;
+        } else if (totalOrders <= 449) {
+          driver.salaryMainOrders = 140;
+          driver.salaryAdditionalOrders = driver.additionalOrder * 0.3;
+        } else if (totalOrders <= 599) {
+          driver.salaryMainOrders = driver.mainOrder * 0.45;
+          driver.salaryAdditionalOrders = driver.additionalOrder * 0.3;
+        } else {
+          driver.salaryMainOrders = driver.mainOrder * 0.5;
+          driver.salaryAdditionalOrders = driver.additionalOrder * 0.3;
         }
-      : undefined;
-  const driverInvoices = await getDriverInvoices(status, dateFilter);
+      } else {
+        // Bike
+        if (totalOrders <= 200) {
+          driver.salaryMainOrders = 50;
+          driver.salaryAdditionalOrders = driver.additionalOrder * 0.3;
+        } else if (totalOrders <= 300) {
+          driver.salaryMainOrders = 100;
+          driver.salaryAdditionalOrders = driver.additionalOrder * 0.3;
+        } else if (totalOrders <= 349) {
+          driver.salaryMainOrders = 150;
+          driver.salaryAdditionalOrders = driver.additionalOrder * 0.3;
+        } else if (totalOrders <= 419) {
+          driver.salaryMainOrders = driver.mainOrder * 0.45;
+          driver.salaryAdditionalOrders = driver.additionalOrder * 0.3;
+        } else {
+          driver.salaryMainOrders = driver.mainOrder * 0.5;
+          driver.salaryAdditionalOrders = driver.additionalOrder * 0.3;
+        }
+      }
 
-  for (const invoice of driverInvoices) {
-    if (!invoice?.driver?._id) continue;
+      // Calculate net salary
+      driver.netSalary =
+        driver.salaryMainOrders +
+        driver.salaryAdditionalOrders -
+        driver.talabatDeductionAmount -
+        driver.companyDeductionAmount -
+        driver.pettyCashDeductionAmount;
+    }
 
-    const {
-      mainOrder = 0,
-      additionalOrder = 0,
-      talabatDeductionAmount = 0,
-      companyDeductionAmount = 0,
-      driver,
-    } = invoice;
+    // console.log("Processed driver data:", driversData);
 
-    const driverData = driversData[driver.id];
-
-    if (!driverData) continue;
-
-    driverData.mainOrder += mainOrder;
-    driverData.additionalOrder += additionalOrder;
-    driverData.talabatDeductionAmount += talabatDeductionAmount;
-    driverData.companyDeductionAmount += companyDeductionAmount;
+    res.status(200).json({
+      status: "Success",
+      data: {
+        driverSalaries: Object.values(driversData),
+      },
+    });
+  } catch (error) {
+    console.error("Error in getDriverSalaries:", error);
+    res.status(500).json({
+      status: "Error",
+      message: error.message,
+    });
   }
-
-  const pettyCashResults = await fetchCurrentMonthPettyCash();
-
-  for (const pettyCash of pettyCashResults) {
-    if (!pettyCash.deductedFromDriver) continue;
-
-    const driverData = driversData[pettyCash.deductedFromDriver];
-
-    if (!driverData) continue;
-
-    const { cashAmount } = pettyCash;
-
-    driverData.pettyCashDeductionAmount += cashAmount;
-  }
-
-  // Calculating salary based on main order and additional order
-  for (const driverId of Object.keys(driversData)) {
-    const driverData = driversData[driverId];
-
-    if (!driverData) continue;
-
-    const { mainSalary, additionalSalary = 0 } =
-      driverData.vehicle === "Car"
-        ? carDriverSalary(driverData.mainOrder, driverData.startingSalary)
-        : bikeDriverSalary(driverData.mainOrder, driverData.startingSalary);
-
-    driverData.salaryMainOrders = mainSalary;
-    driverData.salaryAdditionalOrders = additionalSalary;
-  }
-
-  // Convert driversData object to array
-  const driverSalariesArray = Object.values(driversData);
-
-  res.status(200).json({
-    status: "Success",
-    data: {
-      driverSalaries: driversData,
-    },
-  });
 };
 
 const overrideDriverSalary = async (req, res) => {

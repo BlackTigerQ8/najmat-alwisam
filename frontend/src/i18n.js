@@ -202,12 +202,15 @@ i18n
           /////////////
           deductionInvoicesTitle: "Deduction Invoices",
           deductionInvoicesSubtitle: "Deduction Invoices Page",
+          talabatDeduction: "Talabat Deduction",
+          companyDeduction: "Company Deduction",
           /////////////
           startingDate: "Starting Date",
           endingDate: "Ending Date",
           search: "Search",
           /////////////
           EmployeesSalaryTitle: "EMPLOYEES SALARY",
+
           EmployeesSalarySubtitle: "Employees Salary Page",
           startMonth: "Start Month",
           startYear: "Start Year",
@@ -798,10 +801,13 @@ i18n
           /////////////
           deductionInvoicesTitle: "فواتير الخصم",
           deductionInvoicesSubtitle: "صفحة فواتير الخصم",
+          talabatDeduction: "خصم طلبات",
+          companyDeduction: "خصم الشركة",
           /////////////
           startingDate: "تاريخ البدء",
           endingDate: "تاريخ الانتهاء",
           search: "ابحث",
+
           /////////////
           EmployeesSalaryTitle: "رواتب الموظفين",
           EmployeesSalarySubtitle: "صفحة رواتب الموظفين",

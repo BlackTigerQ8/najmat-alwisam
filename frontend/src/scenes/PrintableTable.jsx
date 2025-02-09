@@ -384,35 +384,35 @@ const PrintableTable = forwardRef(
                   <div className={styles.summaryItem}>
                     <span>{t("carDriversTotalNetSalary")}: </span>
                     <strong>
-                      {summary.netCarDriversSalary}
+                      {summary.netCarDriversSalary.toFixed(3)}
                       <span> {t("kd")} </span>
                     </strong>
                   </div>
                   <div className={styles.summaryItem}>
                     <span>{t("bikeDriversTotalNetSalary")}: </span>
                     <strong>
-                      {summary.netBikeDriversSalary}
+                      {summary.netBikeDriversSalary.toFixed(3)}
                       <span> {t("kd")} </span>
                     </strong>
                   </div>
                   <div className={styles.summaryItem}>
                     <span>{t("totalMonthlySalary")}: </span>
                     <strong>
-                      {summary.totalMonthlySalary}
+                      {summary.totalMonthlySalary.toFixed(3)}
                       <span> {t("kd")} </span>
                     </strong>
                   </div>
                   <div className={styles.summaryItem}>
                     <span>{t("totalMonthlyDeduction")}: </span>
                     <strong>
-                      {summary.totalMonthlyDeduction}
+                      {summary.totalMonthlyDeduction.toFixed(3)}
                       <span> {t("kd")} </span>
                     </strong>
                   </div>
                   <div className={styles.summaryItem}>
                     <span>{t("totalNetSalary")}: </span>
                     <strong>
-                      {summary.totalNetSalary}
+                      {summary.totalNetSalary.toFixed(3)}
                       <span> {t("kd")} </span>
                     </strong>
                   </div>

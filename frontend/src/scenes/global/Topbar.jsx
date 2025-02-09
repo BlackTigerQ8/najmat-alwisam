@@ -23,6 +23,7 @@ import { getUserRoleFromToken } from "./getUserRoleFromToken";
 import { fetchNotifications } from "../../redux/notificationSlice";
 import Logo from "../../assets/nj-logo2.png";
 import { useTranslation } from "react-i18next";
+import { setLanguage } from "../../redux/i18nSlice";
 
 const Topbar = () => {
   const theme = useTheme();
@@ -52,6 +53,7 @@ const Topbar = () => {
 
   const toggleLanguage = (language) => {
     i18n.changeLanguage(language);
+    dispatch(setLanguage(language));
     handleCloseLanguageMenu();
   };
 
