@@ -225,9 +225,11 @@ const EmployeesSalary = () => {
             alignItems="center"
             borderRadius="4px"
           >
-            {Number(additionalSalary) +
+            {(
+              Number(additionalSalary) +
               Number(mainSalary) -
-              Number(companyDeductionAmount)}
+              Number(companyDeductionAmount)
+            ).toFixed(3)}
           </Box>
         );
       },
@@ -283,14 +285,18 @@ const EmployeesSalary = () => {
     },
   ];
 
-  const onSearchSubmit = async () => [
+  const onSearchSubmit = async () => {
+    const startDate = new Date(startYear, startMonth, 1);
+    const endDate = new Date(endYear, endMonth + 1, 0);
+    endDate.setHours(23, 59, 59, 999);
+
     dispatch(
       fetchSalaries({
-        startDate: startOfMonth(new Date(startYear, startMonth)),
-        endDate: endOfMonth(new Date(endYear, endMonth)),
+        startDate,
+        endDate,
       })
-    ),
-  ];
+    );
+  };
 
   useEffect(() => {
     dispatch(fetchSalaries());

@@ -28,65 +28,7 @@ import { fetchAllSpendTypes } from "../redux/spendTypeSlice";
 import { groupBy } from "lodash";
 import { useTranslation } from "react-i18next";
 
-const initialValues = {
-  type: "Income",
-  month: "",
-  year: new Date().getFullYear(),
-  bikeIncome: 0,
-  carIncome: 0,
-  otherIncome: 0,
-  refundCompany: "",
-  refundAmount: 0,
-  lastMonthIncome: 0,
-  lendsIncome: 0,
-  moneySafeBalance: 0,
-};
-
-const requestSchema = yup.object().shape({
-  type: yup.string().required(),
-  month: yup.string().required(),
-  year: yup.number().required(),
-  bikeIncome: yup.number(),
-  carIncome: yup.number(),
-  otherIncome: yup.number(),
-  refundCompany: yup.string(),
-  refundAmount: yup.number(),
-  lastMonthIncome: yup.number(),
-  lendsIncome: yup.number(),
-  moneySafeBalance: yup.number(),
-});
-
 const Types = ["Income", "Refund"];
-
-const INCOME_FIELDS = [
-  {
-    fieldName: "carIncome",
-    label: "Talabat Car Income",
-  },
-  {
-    fieldName: "bikeIncome",
-    label: "Talabat Bike Income",
-  },
-  {
-    fieldName: "otherIncome",
-    label: "Talabat Other Income",
-  },
-];
-
-const months = [
-  "Jan",
-  "Feb",
-  "Mar",
-  "Apr",
-  "May",
-  "Jun",
-  "Jul",
-  "Aug",
-  "Sep",
-  "Oct",
-  "Nov",
-  "Dec",
-];
 
 const Income = () => {
   const theme = useTheme();
@@ -106,6 +48,64 @@ const Income = () => {
   const pettyCash = useSelector(
     (state) => state.pettyCash.currentYearPettyCash
   );
+
+  const INCOME_FIELDS = [
+    {
+      fieldName: "carIncome",
+      label: t("talabatCarIncome"),
+    },
+    {
+      fieldName: "bikeIncome",
+      label: t("talabatBikeIncome"),
+    },
+    {
+      fieldName: "otherIncome",
+      label: t("talabatOtherIncome"),
+    },
+  ];
+
+  const months = [
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
+  ];
+
+  const initialValues = {
+    type: "Income",
+    month: "",
+    year: new Date().getFullYear(),
+    bikeIncome: 0,
+    carIncome: 0,
+    otherIncome: 0,
+    refundCompany: "",
+    refundAmount: 0,
+    lastMonthIncome: 0,
+    lendsIncome: 0,
+    moneySafeBalance: 0,
+  };
+
+  const requestSchema = yup.object().shape({
+    type: yup.string().required(t("selectIncomeType")),
+    month: yup.string().required(t("selectMonth")),
+    year: yup.number().required(t("year")),
+    bikeIncome: yup.number(t("talabatBikeIncome")),
+    carIncome: yup.number(t("talabatCarIncome")),
+    otherIncome: yup.number(t("talabatOtherIncome")),
+    refundCompany: yup.string(t("refundCompany")),
+    refundAmount: yup.number(t("refundAmount")),
+    lastMonthIncome: yup.number(t("lastMonthIncome")),
+    lendsIncome: yup.number(t("lendsIncome")),
+    moneySafeBalance: yup.number(t("moneySafeBalance")),
+  });
 
   const aggregatedIncomeResults = useMemo(() => {
     const aggregatedResults = [];
@@ -139,8 +139,8 @@ const Income = () => {
       perMonthCash: months.reduce((result, month) => {
         return { ...result, [month]: { cashAmount: 0 } };
       }, {}),
-      name: "Total",
-      id: "Total",
+      name: t("total"),
+      id: t("total"),
     };
 
     for (const result of aggregatedResults) {
@@ -153,7 +153,7 @@ const Income = () => {
     aggregatedResults.push(totalResult);
 
     return aggregatedResults;
-  }, [companyIncomeData]);
+  }, [companyIncomeData, t]);
 
   const aggregatedPettyCash = useMemo(() => {
     const groupedResult = groupBy(pettyCash, (item) => {
@@ -192,16 +192,16 @@ const Income = () => {
       perMonthCash: months.reduce((result, month) => {
         return { ...result, [month]: { cashAmount: 0 } };
       }, {}),
-      name: "Total Spends",
-      id: "Total spends",
+      name: t("totalSpends"),
+      id: t("totalSpends"),
     };
 
     const netProfitLossesResult = {
       perMonthCash: months.reduce((result, month) => {
         return { ...result, [month]: { cashAmount: 0 } };
       }, {}),
-      name: "Net profit/losses",
-      id: "Net profit/losses",
+      name: t("netProfitLosses"),
+      id: t("netProfitLosses"),
     };
 
     for (const result of aggregatedResults) {
@@ -224,7 +224,7 @@ const Income = () => {
     aggregatedResults.push(netProfitLossesResult);
 
     return aggregatedResults;
-  }, [pettyCash, spendTypes, aggregatedIncomeResults]);
+  }, [pettyCash, spendTypes, aggregatedIncomeResults, t]);
 
   const aggregatedRefunds = useMemo(() => {
     const aggregatedResults = [];
@@ -263,8 +263,8 @@ const Income = () => {
       perMonthCash: months.reduce((result, month) => {
         return { ...result, [month]: { cashAmount: 0 } };
       }, {}),
-      name: "Total Refunds",
-      id: "Total refunds",
+      name: t("totalRefunds"),
+      id: t("totalRefunds"),
     };
 
     for (const result of aggregatedResults) {
@@ -280,8 +280,8 @@ const Income = () => {
       perMonthCash: months.reduce((result, month) => {
         return { ...result, [month]: { cashAmount: 0 } };
       }, {}),
-      name: "Net profit/losses after refunds",
-      id: "Net profit/losses",
+      name: t("netProfitLossesAfterRefunds"),
+      id: t("netProfitLossesAfterRefunds"),
     };
 
     const totalIncomeResult =
@@ -296,7 +296,7 @@ const Income = () => {
     aggregatedResults.push(netProfitLossesResult);
 
     return aggregatedResults;
-  }, [companyIncomeData, aggregatedPettyCash]);
+  }, [companyIncomeData, aggregatedPettyCash, t]);
 
   useEffect(() => {
     dispatch(fetchCompanyIncome());
@@ -307,13 +307,13 @@ const Income = () => {
   const columns = [
     {
       field: "name",
-      headerName: "Total Spends",
+      headerName: t("totalSpends"),
       flex: 1,
       resizable: true,
     },
     ...months.map((month) => ({
       field: `cashAmount${month}`,
-      headerName: month,
+      headerName: t(month),
       flex: 0.75,
       resizable: true,
       renderCell: ({ row }) => {
@@ -329,19 +329,24 @@ const Income = () => {
   ];
 
   const companyIncomes = [
-    { field: "incomeType", headerName: "Income Type" },
+    { field: "incomeType", headerName: t("income") },
     ...months.map((month) => ({
       field: `cashAmount${month}`,
-      headerName: month,
-      flex: 0.75,
-    })),
-    ...months.map((month) => ({
-      field: `cashAmount${month}`,
-      headerName: month,
+      headerName: t(month),
       flex: 0.75,
       resizable: true,
     })),
   ];
+
+  const isTotalRow = (row) => {
+    return (
+      row.name === t("total") ||
+      row.name === t("totalSpends") ||
+      row.name === t("totalRefunds") ||
+      row.name === t("netProfitLosses") ||
+      row.name === t("netProfitLossesAfterRefunds")
+    );
+  };
 
   pulsar.register();
   if (pageStatus === "loading") {
@@ -662,9 +667,27 @@ const Income = () => {
               borderTop: "none",
               backgroundColor: colors.blueAccent[700],
             },
+            "& .total-row": {
+              bgcolor: colors.greenAccent[700],
+              fontWeight: "bold",
+              // fontSize: "1rem",
+              "&:hover": {
+                bgcolor: colors.greenAccent[600],
+              },
+              "& .MuiDataGrid-cell": {
+                color: colors.grey[100],
+              },
+              borderBottom: `2px solid ${colors.grey[100]}`,
+            },
           }}
         >
-          <DataGrid rows={aggregatedIncomeResults} columns={columns} />
+          <DataGrid
+            rows={aggregatedIncomeResults}
+            columns={columns}
+            getRowClassName={(params) =>
+              isTotalRow(params.row) ? "total-row" : ""
+            }
+          />
         </Box>
         <Box
           mb="40px"
@@ -690,9 +713,27 @@ const Income = () => {
               borderTop: "none",
               backgroundColor: colors.blueAccent[700],
             },
+            "& .total-row": {
+              bgcolor: colors.greenAccent[700],
+              fontWeight: "bold",
+              // fontSize: "1rem",
+              "&:hover": {
+                bgcolor: colors.greenAccent[600],
+              },
+              "& .MuiDataGrid-cell": {
+                color: colors.grey[100],
+              },
+              borderBottom: `2px solid ${colors.grey[100]}`,
+            },
           }}
         >
-          <DataGrid rows={aggregatedPettyCash} columns={columns} />
+          <DataGrid
+            rows={aggregatedPettyCash}
+            columns={columns}
+            getRowClassName={(params) =>
+              isTotalRow(params.row) ? "total-row" : ""
+            }
+          />
         </Box>
 
         <Box
@@ -719,9 +760,27 @@ const Income = () => {
               borderTop: "none",
               backgroundColor: colors.blueAccent[700],
             },
+            "& .total-row": {
+              bgcolor: colors.greenAccent[700],
+              fontWeight: "bold",
+              // fontSize: "1rem",
+              "&:hover": {
+                bgcolor: colors.greenAccent[600],
+              },
+              "& .MuiDataGrid-cell": {
+                color: colors.grey[100],
+              },
+              borderBottom: `2px solid ${colors.grey[100]}`,
+            },
           }}
         >
-          <DataGrid rows={aggregatedRefunds} columns={columns} />
+          <DataGrid
+            rows={aggregatedRefunds}
+            columns={columns}
+            getRowClassName={(params) =>
+              isTotalRow(params.row) ? "total-row" : ""
+            }
+          />
         </Box>
       </Box>
     </Box>

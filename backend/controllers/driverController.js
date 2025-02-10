@@ -458,11 +458,12 @@ const getDriverSalaries = async (req, res) => {
         companyDeductionAmount: 0,
         pettyCashDeductionAmount: 0,
         cashAmount: 0,
+        remarks: "",
         netSalary: 0,
       };
     }
 
-    // Fetch invoices for the date range with both visibleToAll and visibleToAllArchived status
+    // Fetch invoices for the date range
     const invoices = await DriverInvoice.find({
       invoiceDate: {
         $gte: parsedStartDate,
@@ -471,31 +472,61 @@ const getDriverSalaries = async (req, res) => {
       status: { $in: ["approved", "visibleToAll", "visibleToAllArchived"] },
     }).populate("driver");
 
-    console.log(`Found ${invoices.length} invoices`);
+    const allPettyCash = await PettyCash.find({
+      deductedFromDriver: { $exists: true, $ne: null },
+    });
+    console.log("All petty cash records:", allPettyCash);
 
-    // Aggregate data for each driver
-    for (const invoice of invoices) {
-      if (!invoice.driver || !invoice.driver._id) continue;
+    // Fetch petty cash records for the date range
+    const pettyCashDeductions = await PettyCash.aggregate([
+      {
+        $match: {
+          status: { $in: ["approved", "archived"] },
+          spendsDate: {
+            $gte: parsedStartDate,
+            $lte: parsedEndDate,
+          },
+          deductedFromDriver: { $exists: true, $ne: null },
+        },
+      },
+      {
+        $group: {
+          _id: "$deductedFromDriver",
+          totalDeduction: { $sum: "$cashAmount" },
+        },
+      },
+    ]);
 
-      const driverId = invoice.driver._id.toString();
-      if (!driversData[driverId]) continue;
+    console.log("Found petty cash deductions:", pettyCashDeductions);
 
-      // Sum up the values
-      driversData[driverId].mainOrder += Number(invoice.mainOrder || 0);
-      driversData[driverId].additionalOrder += Number(
-        invoice.additionalOrder || 0
-      );
-      driversData[driverId].talabatDeductionAmount += Number(
-        invoice.talabatDeductionAmount || 0
-      );
-      driversData[driverId].companyDeductionAmount += Number(
-        invoice.companyDeductionAmount || 0
-      );
-      driversData[driverId].pettyCashDeductionAmount += Number(
-        invoice.pettyCashDeductionAmount || 0
-      );
-      driversData[driverId].cashAmount += Number(invoice.cashAmount || 0);
-    }
+    // Process invoices
+    invoices.forEach((invoice) => {
+      if (invoice.driver && driversData[invoice.driver._id.toString()]) {
+        const driverData = driversData[invoice.driver._id.toString()];
+        driverData.mainOrder += invoice.mainOrder || 0;
+        driverData.additionalOrder += invoice.additionalOrder || 0;
+        driverData.salaryMainOrders += invoice.salaryMainOrders || 0;
+        driverData.salaryAdditionalOrders +=
+          invoice.salaryAdditionalOrders || 0;
+        driverData.talabatDeductionAmount +=
+          invoice.talabatDeductionAmount || 0;
+        driverData.companyDeductionAmount +=
+          invoice.companyDeductionAmount || 0;
+        driverData.remarks = invoice.remarks || "";
+      }
+    });
+
+    // Apply petty cash deductions
+    pettyCashDeductions.forEach((deduction) => {
+      const driverId = deduction._id.toString();
+      if (driversData[driverId]) {
+        driversData[driverId].pettyCashDeductionAmount =
+          deduction.totalDeduction;
+        console.log(
+          `Applied deduction ${deduction.totalDeduction} to driver ${driverId}`
+        );
+      }
+    });
 
     // Calculate salaries for each driver
     for (const driverId in driversData) {
@@ -503,39 +534,21 @@ const getDriverSalaries = async (req, res) => {
       const totalOrders = driver.mainOrder + driver.additionalOrder;
 
       // Calculate salary based on vehicle type and total orders
-      if (driver.vehicle === "Car") {
-        if (totalOrders <= 399) {
-          driver.salaryMainOrders = driver.mainOrder * 0.3;
-          driver.salaryAdditionalOrders = driver.additionalOrder * 0.3;
-        } else if (totalOrders <= 449) {
-          driver.salaryMainOrders = 140;
-          driver.salaryAdditionalOrders = driver.additionalOrder * 0.3;
-        } else if (totalOrders <= 599) {
-          driver.salaryMainOrders = driver.mainOrder * 0.45;
-          driver.salaryAdditionalOrders = driver.additionalOrder * 0.3;
-        } else {
-          driver.salaryMainOrders = driver.mainOrder * 0.5;
-          driver.salaryAdditionalOrders = driver.additionalOrder * 0.3;
-        }
-      } else {
-        // Bike
-        if (totalOrders <= 200) {
-          driver.salaryMainOrders = 50;
-          driver.salaryAdditionalOrders = driver.additionalOrder * 0.3;
-        } else if (totalOrders <= 300) {
-          driver.salaryMainOrders = 100;
-          driver.salaryAdditionalOrders = driver.additionalOrder * 0.3;
-        } else if (totalOrders <= 349) {
-          driver.salaryMainOrders = 150;
-          driver.salaryAdditionalOrders = driver.additionalOrder * 0.3;
-        } else if (totalOrders <= 419) {
-          driver.salaryMainOrders = driver.mainOrder * 0.45;
-          driver.salaryAdditionalOrders = driver.additionalOrder * 0.3;
-        } else {
-          driver.salaryMainOrders = driver.mainOrder * 0.5;
-          driver.salaryAdditionalOrders = driver.additionalOrder * 0.3;
-        }
-      }
+      const salaryCalculation =
+        driver.vehicle === "Car"
+          ? carDriverSalary(
+              totalOrders,
+              driver.mainOrder,
+              driver.additionalOrder
+            )
+          : bikeDriverSalary(
+              totalOrders,
+              driver.mainOrder,
+              driver.additionalOrder
+            );
+
+      driver.salaryMainOrders = salaryCalculation.mainSalary;
+      driver.salaryAdditionalOrders = salaryCalculation.additionalSalary;
 
       // Calculate net salary
       driver.netSalary =
@@ -545,8 +558,6 @@ const getDriverSalaries = async (req, res) => {
         driver.companyDeductionAmount -
         driver.pettyCashDeductionAmount;
     }
-
-    // console.log("Processed driver data:", driversData);
 
     res.status(200).json({
       status: "Success",
@@ -570,7 +581,6 @@ const overrideDriverSalary = async (req, res) => {
     additionalOrder,
     talabatDeductionAmount,
     companyDeductionAmount,
-    pettyCashDeductionAmount,
     remarks,
   } = req.body;
 
@@ -601,8 +611,6 @@ const overrideDriverSalary = async (req, res) => {
       invoiceData.talabatDeductionAmount = talabatDeductionAmount;
     if (companyDeductionAmount !== undefined)
       invoiceData.companyDeductionAmount = companyDeductionAmount;
-    if (pettyCashDeductionAmount !== undefined)
-      invoiceData.pettyCashDeductionAmount = pettyCashDeductionAmount;
     // Handle remarks specifically, allowing empty strings
     if (remarks !== undefined) invoiceData.remarks = remarks;
 

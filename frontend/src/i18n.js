@@ -204,6 +204,7 @@ i18n
           deductionInvoicesSubtitle: "Deduction Invoices Page",
           talabatDeduction: "Talabat Deduction",
           companyDeduction: "Company Deduction",
+          pettyCashDeduction: "Petty Cash Deduction",
           /////////////
           startingDate: "Starting Date",
           endingDate: "Ending Date",
@@ -357,12 +358,29 @@ i18n
           talabatCarIncome: "Talabat Car Income",
           talabatBikeIncome: "Talabat Bike Income",
           talabatOtherIncome: "Talabat Other Income",
+          netProfitLosses: "Net Profit/Losses",
+          netProfitLossesAfterRefunds: "Net Profit/Losses After Refunds",
+          totalRefunds: "Total Refunds",
+          // Month translations
+          Jan: "January",
+          Feb: "February",
+          Mar: "March",
+          Apr: "April",
+          May: "May",
+          Jun: "June",
+          Jul: "July",
+          Aug: "August",
+          Sep: "September",
+          Oct: "October",
+          Nov: "November",
+          Dec: "December",
           /////////////
           userDeletedSuccessfully: "User is successfully deleted!",
           userDeletedFailed: "Can't delete a user, you can try later!",
           userInformationUpdated: "User Information is updated successfully.",
           userInformationUdateFailed: "Something went wrong! Please try later.",
           /////////////
+
           totalCash: "Total Cash",
           totalHours: "Total Hours",
           revenue: "Revenue",
@@ -803,7 +821,9 @@ i18n
           deductionInvoicesSubtitle: "صفحة فواتير الخصم",
           talabatDeduction: "خصم طلبات",
           companyDeduction: "خصم الشركة",
+          pettyCashDeduction: "خصم العهدة النقدية",
           /////////////
+
           startingDate: "تاريخ البدء",
           endingDate: "تاريخ الانتهاء",
           search: "ابحث",
@@ -949,10 +969,28 @@ i18n
           talabatCarIncome: "دخل سيارات طلبات",
           talabatBikeIncome: "دخل دراجات طلبات",
           talabatOtherIncome: "دخل آخر من طلبات",
+          netProfitLosses: "أرباح وخسائر صافية",
+          netProfitLossesAfterRefunds: "أرباح وخسائر صافية بعد الاستردادات",
+          totalRefunds: "إجمالي الاستردادات",
+          //////////////
+          Jan: "يناير",
+          Feb: "فبراير",
+          Mar: "مارس",
+          Apr: "أبريل",
+          May: "مايو",
+
+          Jun: "يونيو",
+          Jul: "يوليو",
+          Aug: "أغسطس",
+          Sep: "سبتمبر",
+          Oct: "أكتوبر",
+          Nov: "نوفمبر",
+          Dec: "ديسمبر",
           /////////////
           totalCash: "إجمالي النقود",
           totalHours: "إجمالي الساعات",
           revenue: "الإيرادات",
+
           revenueGenerated: "الإيرادات المتولدة",
           salesQuantity: "كمية المبيعات",
           /////////////

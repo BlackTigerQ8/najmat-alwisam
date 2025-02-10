@@ -45,8 +45,6 @@ const DriversSalary = () => {
   const [editedRows, setEditedRows] = useState({});
   const [rows, setRows] = useState([]);
 
-  console.log(driversSalaries);
-
   const handlePrint = useReactToPrint({
     content: () => componentRef.current,
     documentTitle: "Drivers Salary Report",
@@ -248,7 +246,9 @@ const DriversSalary = () => {
     {
       field: "name",
       headerName: t("name"),
-      flex: 0.8,
+      flex: 1,
+      headerAlign: "center",
+      align: "center",
       cellClassName: "name-column--cell",
       renderCell: ({ row: { firstName, lastName } }) => {
         return (
@@ -334,32 +334,35 @@ const DriversSalary = () => {
     },
     {
       field: "talabatDeductionAmount",
-      headerName: t("talabatDeductionAmount"),
+      headerName: t("talabatDeduction"),
+      flex: 1,
+      editable: true,
       headerAlign: "center",
       align: "center",
-      editable: true,
       valueFormatter: (params) => {
-        return Number(params.value).toFixed(3);
+        return params.value?.toFixed(3);
       },
     },
     {
       field: "companyDeductionAmount",
-      headerName: t("companyDeductionAmount"),
+      headerName: t("companyDeduction"),
+      flex: 1,
+      editable: true,
       headerAlign: "center",
       align: "center",
-      editable: true,
       valueFormatter: (params) => {
-        return Number(params.value).toFixed(3);
+        return params.value?.toFixed(3);
       },
     },
     {
       field: "pettyCashDeductionAmount",
-      headerName: t("pettyCashDeductionAmount"),
+      headerName: t("pettyCashDeduction"),
+      flex: 1,
+      editable: false,
       headerAlign: "center",
       align: "center",
-      //editable: true,
       valueFormatter: (params) => {
-        return Number(params.value).toFixed(3);
+        return params.value?.toFixed(3);
       },
     },
     {
