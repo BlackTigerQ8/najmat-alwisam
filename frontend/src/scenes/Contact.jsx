@@ -86,12 +86,14 @@ const Contact = () => {
     setIsSubmitting(true);
     try {
       const formData = new FormData();
+      formData.append("file", values.file);
       formData.append("selectedUsers", JSON.stringify(values.selectedUsers));
-      formData.append("title", values.title);
-      formData.append("message", values.message);
-      if (values.file) {
-        formData.append("file", values.file);
-      }
+
+      Object.keys(values).forEach((key) => {
+        if (key !== "file" && key !== "selectedUsers" && values[key]) {
+          formData.append(key, values[key]);
+        }
+      });
 
       await dispatch(sendMessage(formData));
       resetForm();
@@ -214,7 +216,7 @@ const Contact = () => {
                   fullWidth
                   variant="filled"
                   type="text"
-                  label={t("title")}
+                  label={t("subject")}
                   onBlur={handleBlur}
                   onChange={handleChange}
                   value={values.title}

@@ -533,6 +533,8 @@ const sendMessage = async (req, res) => {
     const uploadedFile = req.file;
     const filePath = uploadedFile ? uploadedFile.path : null;
 
+    console.log("filePath", filePath);
+
     // Check if selectedUsers is an array
     if (!Array.isArray(selectedUsers)) {
       return res.status(400).json({

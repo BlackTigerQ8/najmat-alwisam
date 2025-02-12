@@ -72,10 +72,17 @@ const Invoices = () => {
   });
 
   const processedData = useMemo(() => {
+    // Add defensive check for archivedInvoices
+    if (!archivedInvoices) {
+      console.log("archivedInvoices is undefined");
+      return [];
+    }
+
     console.log("Raw archived invoices:", archivedInvoices);
     console.log("Search state:", { isSearchActive, searchParams });
 
     if (!Array.isArray(archivedInvoices) || archivedInvoices.length === 0) {
+      console.log("archivedInvoices is not an array or is empty");
       return [];
     }
 
@@ -87,14 +94,14 @@ const Invoices = () => {
       );
 
       // Group by driver
-      const groupedData = validInvoices.reduce((acc, invoice) => {
+      const groupedByDriver = validInvoices.reduce((acc, invoice) => {
         const driverId = invoice.driver._id;
 
         if (!acc[driverId]) {
           acc[driverId] = {
             _id: driverId,
-            firstName: invoice.driver.firstName,
-            lastName: invoice.driver.lastName,
+            firstName: invoice.driver.firstName || "",
+            lastName: invoice.driver.lastName || "",
             mainOrder: 0,
             additionalOrder: 0,
             hour: 0,
@@ -105,7 +112,7 @@ const Invoices = () => {
           };
         }
 
-        // Convert string values to numbers and add them up
+        // Add up the numeric values with default to 0 if undefined
         acc[driverId].mainOrder += Number(invoice.mainOrder) || 0;
         acc[driverId].additionalOrder += Number(invoice.additionalOrder) || 0;
         acc[driverId].hour += Number(invoice.hour) || 0;
@@ -121,37 +128,52 @@ const Invoices = () => {
         return acc;
       }, {});
 
-      // Convert to array
-      const result = Object.values(groupedData).map((driver) => ({
-        ...driver,
-        // Ensure all numeric values are properly converted
-        mainOrder: Number(driver.mainOrder),
-        additionalOrder: Number(driver.additionalOrder),
-        hour: Number(driver.hour),
-        cash: Number(driver.cash),
-      }));
-
-      console.log("Final processed search results:", result);
-      return result;
+      return Object.values(groupedByDriver);
     }
 
-    // For non-search view, show individual invoices
-    const result = archivedInvoices.map((invoice) => ({
-      _id: invoice._id,
-      driverId: invoice.driver?._id,
-      firstName: invoice.driver?.firstName || "",
-      lastName: invoice.driver?.lastName || "",
-      mainOrder: Number(invoice.mainOrder) || 0,
-      additionalOrder: Number(invoice.additionalOrder) || 0,
-      hour: Number(invoice.hour) || 0,
-      cash: Number(invoice.cash) || 0,
-      invoiceDate: invoice.invoiceDate,
-      isGrouped: false,
-      details: [invoice],
-    }));
+    // For non-search view, group by date
+    const groupedByDate = archivedInvoices.reduce((acc, invoice) => {
+      if (!invoice || !invoice.invoiceDate) {
+        return acc;
+      }
 
-    console.log("Final processed regular results:", result);
-    return result;
+      const date = new Date(invoice.invoiceDate);
+      const dateKey = date.toISOString().split("T")[0];
+
+      if (!acc[dateKey]) {
+        acc[dateKey] = {
+          _id: dateKey,
+          invoiceDate: date,
+          mainOrder: 0,
+          additionalOrder: 0,
+          hour: 0,
+          cash: 0,
+          details: [],
+          hasMultipleEntries: true,
+          isGrouped: true,
+        };
+      }
+
+      // Add up the numeric values with default to 0 if undefined
+      acc[dateKey].mainOrder += Number(invoice.mainOrder) || 0;
+      acc[dateKey].additionalOrder += Number(invoice.additionalOrder) || 0;
+      acc[dateKey].hour += Number(invoice.hour) || 0;
+      acc[dateKey].cash += Number(invoice.cash) || 0;
+      acc[dateKey].details.push({
+        ...invoice,
+        mainOrder: Number(invoice.mainOrder) || 0,
+        additionalOrder: Number(invoice.additionalOrder) || 0,
+        hour: Number(invoice.hour) || 0,
+        cash: Number(invoice.cash) || 0,
+      });
+
+      return acc;
+    }, {});
+
+    // Convert to array and sort by date (newest first)
+    return Object.values(groupedByDate).sort(
+      (a, b) => b.invoiceDate - a.invoiceDate
+    );
   }, [archivedInvoices, isSearchActive, searchParams]);
 
   // Add this useEffect to debug the processed data
@@ -159,14 +181,18 @@ const Invoices = () => {
     console.log("Final processed data:", processedData);
   }, [processedData]);
 
-  const columns = useMemo(
-    () => [
+  // Add this useEffect to debug the processed data
+  useEffect(() => {
+    console.log("Final processed data:", processedData);
+  }, [processedData]);
+
+  const columns = useMemo(() => {
+    const baseColumns = [
       {
         field: "sequenceNumber",
         headerName: "NO.",
         width: 70,
         renderCell: (params) => {
-          // Get all rows and find the index of current row
           const allRows = params.api.getRowModels();
           const rowIds = Array.from(allRows.keys());
           const index = rowIds.indexOf(params.id);
@@ -174,45 +200,13 @@ const Invoices = () => {
         },
       },
       {
-        field: "name",
-        headerName: t("name"),
-        flex: 0.75,
-        cellClassName: "name-column--cell",
-        renderCell: ({ row: { firstName, lastName } }) => {
-          return (
-            <Box display="flex" justifyContent="center" borderRadius="4px">
-              {firstName} {lastName}
-            </Box>
-          );
-        },
-      },
-      {
-        field: "cash",
-        headerName: t("cash"),
-        type: Number,
-        valueFormatter: (params) => Number(params.value).toFixed(3),
-      },
-      {
-        field: "hour",
-        headerName: t("hours"),
-      },
-      {
-        field: "mainOrder",
-        headerName: t("mainOrders"),
-      },
-      {
-        field: "additionalOrder",
-        headerName: t("additionalOrders"),
-        flex: 0.2,
-      },
-      {
         field: "invoiceDate",
         headerName: t("date"),
         headerAlign: "center",
         align: "center",
+        flex: 1,
         valueFormatter: (params) => {
           if (!params.value) return "";
-
           const date = new Date(params.value);
           const formattedDate = `${date.getDate()}/${
             date.getMonth() + 1
@@ -221,12 +215,44 @@ const Invoices = () => {
         },
       },
       {
+        field: "cash",
+        headerName: t("cash"),
+        type: "number",
+        flex: 1,
+        headerAlign: "center",
+        align: "center",
+        valueFormatter: (params) => Number(params.value).toFixed(3),
+      },
+      {
+        field: "hour",
+        headerName: t("hours"),
+        flex: 1,
+        headerAlign: "center",
+        align: "center",
+      },
+      {
+        field: "mainOrder",
+        headerName: t("mainOrders"),
+        flex: 1,
+        headerAlign: "center",
+        align: "center",
+      },
+      {
+        field: "additionalOrder",
+        headerName: t("additionalOrders"),
+        flex: 1,
+        headerAlign: "center",
+        align: "center",
+      },
+
+      {
         field: "actions",
         headerName: t("details"),
-        flex: 0.5,
+        flex: 1,
+        headerAlign: "center",
+        align: "center",
         renderCell: ({ row }) => {
           if (!row.hasMultipleEntries) return null;
-
           return (
             <IconButton size="small" onClick={() => handleRowClick(row)}>
               <InfoIcon />
@@ -234,9 +260,31 @@ const Invoices = () => {
           );
         },
       },
-    ],
-    [isSearchActive, t]
-  );
+    ];
+
+    // Only add the name column if in search mode
+    if (isSearchActive) {
+      baseColumns.splice(1, 0, {
+        field: "name",
+        headerName: t("name"),
+        flex: 1,
+        headerAlign: "center",
+        align: "center",
+        cellClassName: "name-column--cell",
+        renderCell: ({ row }) => {
+          // Access driver data from the row
+          return (
+            <Box display="flex" justifyContent="center" borderRadius="4px">
+              {row.driver?.firstName || row.firstName}{" "}
+              {row.driver?.lastName || row.lastName}
+            </Box>
+          );
+        },
+      });
+    }
+
+    return baseColumns;
+  }, [isSearchActive, t]);
 
   // Handle search form submission
   const handleFormSubmit = (values) => {
@@ -548,7 +596,31 @@ const Invoices = () => {
                     headerName: t("date"),
                     flex: 1,
                     valueFormatter: (params) => {
-                      return new Date(params.value).toLocaleDateString();
+                      if (!params.value) return "";
+                      const date = new Date(params.value);
+                      const formattedDate = `${date.getDate()}/${
+                        date.getMonth() + 1
+                      }/${date.getFullYear()}`;
+                      return formattedDate;
+                    },
+                  },
+                  {
+                    field: "name",
+                    headerName: t("driver"),
+                    flex: 1,
+                    headerAlign: "center",
+                    align: "center",
+                    renderCell: ({ row }) => {
+                      return (
+                        <Box
+                          display="flex"
+                          justifyContent="center"
+                          borderRadius="4px"
+                        >
+                          {row.driver?.firstName || ""}{" "}
+                          {row.driver?.lastName || ""}
+                        </Box>
+                      );
                     },
                   },
                   { field: "mainOrder", headerName: t("mainOrder"), flex: 1 },

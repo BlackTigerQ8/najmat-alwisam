@@ -1,4 +1,4 @@
-import { createContext, useMemo, useState } from "react";
+import { createContext, useMemo, useState, useEffect } from "react";
 import { createTheme } from "@mui/material/styles";
 
 // Color design tokens
@@ -197,7 +197,21 @@ export const ColorModeContext = createContext({
 });
 
 export const useMode = () => {
-  const [mode, setMode] = useState("light");
+  const prefersDarkMode = window.matchMedia(
+    "(prefers-color-scheme: light)"
+  ).matches;
+  const [mode, setMode] = useState(prefersDarkMode ? "dark" : "light");
+
+  // Event listener for system theme changes
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+    const handleChange = (e) => {
+      setMode(e.matches ? "light" : "dark");
+    };
+
+    mediaQuery.addEventListener("change", handleChange);
+    return () => mediaQuery.removeEventListener("change", handleChange);
+  }, []);
 
   const colorMode = useMemo(
     () => ({

@@ -13,6 +13,7 @@ const bankStatement = require("./routes/bankStatementRoutes");
 const spendTypeRoutes = require("./routes/spendTypeRoutes");
 const companyFilesRoutes = require("./routes/companyFilesRoutes");
 const archiveRoutes = require("./routes/archiveRoutes");
+const path = require("path");
 
 const app = express();
 app.use(cors());
@@ -34,7 +35,7 @@ app.use((req, res, next) => {
 app.use("/api/users", userRouter);
 app.use("/api/drivers", driverRoutes);
 app.use("/api/driver-invoice", driverInvoiceRoutes);
-app.use("/api/upload", uploadRoutes);
+app.use("/api/uploads", uploadRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/petty-cash", pettyCash);
 app.use("/api/bank-statement", bankStatement);
@@ -42,6 +43,7 @@ app.use("/api/spend-types", spendTypeRoutes);
 app.use("/api/company-income", companyIncomeRoutes);
 app.use("/api/company-files", companyFilesRoutes);
 app.use("/api/archives", archiveRoutes);
+app.use("/api/uploads", express.static(path.join(__dirname, "uploads")));
 
 app.get("/api/health", (req, res) => {
   res.status(200).json({ status: "ok", timestamp: new Date().toISOString() });
