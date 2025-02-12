@@ -150,7 +150,9 @@ const Topbar = () => {
             </IconButton>
           </Tooltip>
         </Link>
-        {(userRole === "Admin" || userRole === "Manager") && (
+        {(userRole === "Admin" ||
+          userRole === "Manager" ||
+          userRole === "Accountant") && (
           <Tooltip title={t("settings")}>
             <IconButton onClick={() => navigate(`/user-profile/${userId}`)}>
               <SettingsOutlinedIcon />

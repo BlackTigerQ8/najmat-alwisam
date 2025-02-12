@@ -1,4 +1,4 @@
-import React,{useEffect} from "react";
+import React, { useEffect } from "react";
 import {
   Box,
   Button,
@@ -10,6 +10,7 @@ import {
   TextField,
   Input,
   Typography,
+  Tooltip,
 } from "@mui/material";
 import Header from "../components/Header";
 import { tokens } from "../theme";
@@ -36,6 +37,8 @@ const UserProfile = () => {
     useSelector((state) => state.drivers.token) ||
     localStorage.getItem("token");
   const userInfo = users.find((d) => d._id === params.id);
+  const userRole = userInfo?.role;
+  const canEdit = userRole === "Admin" || userRole === "Manager";
 
   const status = useSelector((state) => state.users.status);
   const error = useSelector((state) => state.users.error);
@@ -112,13 +115,18 @@ const UserProfile = () => {
       if (userInfo && userInfo._id) {
         const formData = new FormData();
         Object.keys(values).forEach((key) => {
-          if (key !== "uploadedFile" && key !== "__v" && key !== "password" && key !== "mainSalary") {
+          if (
+            key !== "uploadedFile" &&
+            key !== "__v" &&
+            key !== "password" &&
+            key !== "mainSalary"
+          ) {
             formData.append(key, values[key] || undefined);
           }
         });
 
-        if(values.password !== userInfo.password){
-          formData.append("password" , values.password || undefined);
+        if (values.password !== userInfo.password) {
+          formData.append("password", values.password || undefined);
         }
 
         if (values.uploadedFile)
@@ -147,7 +155,16 @@ const UserProfile = () => {
     }
   };
 
-  
+  const renderField = (textField) => {
+    if (!canEdit) {
+      return (
+        <Tooltip title={t("noEditPermission")} placement="top">
+          <Box sx={{ gridColumn: "span 2" }}>{textField}</Box>
+        </Tooltip>
+      );
+    }
+    return textField;
+  };
 
   return (
     <Box m="20px">
@@ -192,122 +209,146 @@ const UserProfile = () => {
                 helperText={touched.sequenceNumber && errors.sequenceNumber}
                 sx={{ gridColumn: "span 2" }}
               />
-              <TextField
-                fullWidth
-                variant="filled"
-                type="text"
-                label={t("firstName")}
-                onBlur={handleBlur}
-                onChange={handleChange}
-                value={values.firstName}
-                name="firstName"
-                error={!!touched.firstName && !!errors.firstName}
-                helperText={touched.firstName && errors.firstName}
-                sx={{ gridColumn: "span 2" }}
-              />
-              <TextField
-                fullWidth
-                variant="filled"
-                type="text"
-                label={t("lastName")}
-                onBlur={handleBlur}
-                onChange={handleChange}
-                value={values.lastName}
-                name="lastName"
-                error={!!touched.lastName && !!errors.lastName}
-                helperText={touched.lastName && errors.lastName}
-                sx={{ gridColumn: "span 2" }}
-              />
-              <TextField
-                fullWidth
-                variant="filled"
-                type="text"
-                label={t("email")}
-                onBlur={handleBlur}
-                onChange={handleChange}
-                value={values.email}
-                name="email"
-                error={!!touched.email && !!errors.email}
-                helperText={touched.email && errors.email}
-                sx={{ gridColumn: "span 2" }}
-              />
-              <TextField
-                fullWidth
-                variant="filled"
-                type="text"
-                label={t("phone")}
-                onBlur={handleBlur}
-                onChange={handleChange}
-                value={values.phone}
-                name="phone"
-                error={!!touched.phone && !!errors.phone}
-                helperText={touched.phone && errors.phone}
-                sx={{ gridColumn: "span 2" }}
-              />
-              <TextField
-                fullWidth
-                variant="filled"
-                type="text"
-                label={t("idNumber")}
-                onBlur={handleBlur}
-                onChange={handleChange}
-                value={values.identification}
-                name="identification"
-                error={!!touched.identification && !!errors.identification}
-                helperText={touched.identification && errors.identification}
-                sx={{ gridColumn: "span 2" }}
-              />
-              <TextField
-                fullWidth
-                variant="filled"
-                type="date"
-                label={t("contractExpiryDate")}
-                onBlur={handleBlur}
-                onChange={handleChange}
-                // Convert the date string to a valid date string (YYYY-MM-DD)
-                value={
-                  values.contractExpiryDate
-                    ? new Date(values.contractExpiryDate)
-                        .toISOString()
-                        .split("T")[0]
-                    : ""
-                }
-                name="contractExpiryDate"
-                error={
-                  !!touched.contractExpiryDate && !!errors.contractExpiryDate
-                }
-                helperText={
-                  touched.contractExpiryDate && errors.contractExpiryDate
-                }
-                sx={{ gridColumn: "span 2" }}
-              />
+              {renderField(
+                <TextField
+                  fullWidth
+                  variant="filled"
+                  type="text"
+                  label={t("firstName")}
+                  onBlur={handleBlur}
+                  onChange={handleChange}
+                  value={values.firstName}
+                  name="firstName"
+                  disabled={!canEdit}
+                  error={!!touched.firstName && !!errors.firstName}
+                  helperText={touched.firstName && errors.firstName}
+                  sx={{ gridColumn: "span 2" }}
+                />
+              )}
+              {renderField(
+                <TextField
+                  fullWidth
+                  variant="filled"
+                  type="text"
+                  label={t("lastName")}
+                  onBlur={handleBlur}
+                  onChange={handleChange}
+                  value={values.lastName}
+                  name="lastName"
+                  disabled={!canEdit}
+                  error={!!touched.lastName && !!errors.lastName}
+                  helperText={touched.lastName && errors.lastName}
+                  sx={{ gridColumn: "span 2" }}
+                />
+              )}
+              {renderField(
+                <TextField
+                  fullWidth
+                  variant="filled"
+                  type="text"
+                  label={t("email")}
+                  onBlur={handleBlur}
+                  onChange={handleChange}
+                  value={values.email}
+                  name="email"
+                  disabled={!canEdit}
+                  error={!!touched.email && !!errors.email}
+                  helperText={touched.email && errors.email}
+                  sx={{ gridColumn: "span 2" }}
+                />
+              )}
+              {renderField(
+                <TextField
+                  fullWidth
+                  variant="filled"
+                  type="text"
+                  label={t("phone")}
+                  onBlur={handleBlur}
+                  onChange={handleChange}
+                  value={values.phone}
+                  name="phone"
+                  disabled={!canEdit}
+                  error={!!touched.phone && !!errors.phone}
+                  helperText={touched.phone && errors.phone}
+                  sx={{ gridColumn: "span 2" }}
+                />
+              )}
+              {renderField(
+                <TextField
+                  fullWidth
+                  variant="filled"
+                  type="text"
+                  label={t("idNumber")}
+                  onBlur={handleBlur}
+                  onChange={handleChange}
+                  value={values.identification}
+                  name="identification"
+                  disabled={!canEdit}
+                  error={!!touched.identification && !!errors.identification}
+                  helperText={touched.identification && errors.identification}
+                  sx={{ gridColumn: "span 2" }}
+                />
+              )}
+              {renderField(
+                <TextField
+                  fullWidth
+                  variant="filled"
+                  type="date"
+                  label={t("contractExpiryDate")}
+                  onBlur={handleBlur}
+                  onChange={handleChange}
+                  // Convert the date string to a valid date string (YYYY-MM-DD)
+                  value={
+                    values.contractExpiryDate
+                      ? new Date(values.contractExpiryDate)
+                          .toISOString()
+                          .split("T")[0]
+                      : ""
+                  }
+                  name="contractExpiryDate"
+                  disabled={!canEdit}
+                  error={
+                    !!touched.contractExpiryDate && !!errors.contractExpiryDate
+                  }
+                  helperText={
+                    touched.contractExpiryDate && errors.contractExpiryDate
+                  }
+                  sx={{ gridColumn: "span 2" }}
+                />
+              )}
 
-              <TextField
-                fullWidth
-                variant="filled"
-                type="text"
-                label={t("passport")}
-                onBlur={handleBlur}
-                onChange={handleChange}
-                value={values.passport}
-                name="passport"
-                error={!!touched.passport && !!errors.passport}
-                helperText={touched.passport && errors.passport}
-                sx={{ gridColumn: "span 2" }}
-              />
-              <TextField
-                fullWidth
-                variant="filled"
-                type="number"
-                label={t("mainSalary")}
-                onBlur={handleBlur}
-                onChange={handleChange}
-                value={values.mainSalary}
-                name="mainSalary"
-                error={!!touched.mainSalary && !!errors.mainSalary}
-                helperText={touched.mainSalary && errors.mainSalary}
-                sx={{ gridColumn: "span 2" }}
-              />
+              {renderField(
+                <TextField
+                  fullWidth
+                  variant="filled"
+                  type="text"
+                  label={t("passport")}
+                  onBlur={handleBlur}
+                  onChange={handleChange}
+                  value={values.passport}
+                  name="passport"
+                  disabled={!canEdit}
+                  error={!!touched.passport && !!errors.passport}
+                  helperText={touched.passport && errors.passport}
+                  sx={{ gridColumn: "span 2" }}
+                />
+              )}
+              {renderField(
+                <TextField
+                  fullWidth
+                  variant="filled"
+                  type="number"
+                  label={t("mainSalary")}
+                  onBlur={handleBlur}
+                  onChange={handleChange}
+                  value={values.mainSalary}
+                  name="mainSalary"
+                  disabled={!canEdit}
+                  error={!!touched.mainSalary && !!errors.mainSalary}
+                  helperText={touched.mainSalary && errors.mainSalary}
+                  sx={{ gridColumn: "span 2" }}
+                />
+              )}
               <TextField
                 fullWidth
                 variant="filled"
@@ -315,7 +356,6 @@ const UserProfile = () => {
                 label={t("password")}
                 onBlur={handleBlur}
                 onChange={handleChange}
-                // value={values.password}
                 name="password"
                 error={!!touched.password && !!errors.password}
                 helperText={touched.password && errors.password}
@@ -340,62 +380,71 @@ const UserProfile = () => {
                 sx={{ gridColumn: "span 2" }}
               />
 
-              <FormControl
-                fullWidth
-                variant="filled"
-                sx={{ gridColumn: "span 2" }}
-              >
-                <InputLabel htmlFor="role">{t("role")}</InputLabel>
-                <Select
-                  label="role"
-                  value={values.role}
-                  onChange={handleChange}
-                  onBlur={handleBlur}
-                  name="role"
-                  error={!!touched.role && !!errors.role}
-                  helperText={touched.role && errors.role}
+              {renderField(
+                <FormControl
+                  fullWidth
+                  variant="filled"
+                  sx={{ gridColumn: "span 2" }}
                 >
-                  {/* <MenuItem value={"Admin"}>Admin</MenuItem> */}
-                  <MenuItem value={"Manager"}>{t("Manager")}</MenuItem>
-                  <MenuItem value={"Accountant"}>{t("Accountant")}</MenuItem>
-                  <MenuItem value={"Employee"}>{t("Employee")}</MenuItem>
-                </Select>
-              </FormControl>
+                  <InputLabel htmlFor="role">{t("role")}</InputLabel>
+                  <Select
+                    label="role"
+                    value={values.role}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                    name="role"
+                    disabled={!canEdit}
+                    error={!!touched.role && !!errors.role}
+                    helperText={touched.role && errors.role}
+                  >
+                    {/* <MenuItem value={"Admin"}>Admin</MenuItem> */}
+                    <MenuItem value={"Manager"}>{t("Manager")}</MenuItem>
+                    <MenuItem value={"Accountant"}>{t("Accountant")}</MenuItem>
+                    <MenuItem value={"Employee"}>{t("Employee")}</MenuItem>
+                  </Select>
+                </FormControl>
+              )}
 
-              <FormControl fullWidth sx={{ gridColumn: "span 2" }}>
-                <InputLabel shrink htmlFor="uploadedFile">
-                  {t("uploadFile")}
-                </InputLabel>
-                <Input
-                  id="uploadedFile"
-                  type="file"
-                  name="uploadedFile"
-                  onBlur={handleBlur}
-                  onChange={(event) => {
-                    // Setting file to Formik state
-                    setFieldValue("uploadedFile", event.currentTarget.files[0]);
-                  }}
-                  error={!!touched.uploadedFile && !!errors.uploadedFile}
-                  helperText={touched.uploadedFile && errors.uploadedFile}
-                />
-                <ErrorMessage
-                  name="uploadedFile"
-                  render={(msg) => (
-                    <Typography variant="caption" color="error">
-                      {msg}
-                    </Typography>
-                  )}
-                />
-                <Button
-                  variant="contained"
-                  color="secondary"
-                  onClick={() => handleViewFile(values)}
-                  sx={{ gridColumn: "span 2", marginTop: "15px" }}
-                  disabled={!values.file && !userInfo?.file}
-                >
-                  {t("viewUploadedFile")}
-                </Button>
-              </FormControl>
+              {renderField(
+                <FormControl fullWidth sx={{ gridColumn: "span 2" }}>
+                  <InputLabel shrink htmlFor="uploadedFile">
+                    {t("uploadFile")}
+                  </InputLabel>
+                  <Input
+                    id="uploadedFile"
+                    type="file"
+                    name="uploadedFile"
+                    onBlur={handleBlur}
+                    onChange={(event) => {
+                      // Setting file to Formik state
+                      setFieldValue(
+                        "uploadedFile",
+                        event.currentTarget.files[0]
+                      );
+                    }}
+                    error={!!touched.uploadedFile && !!errors.uploadedFile}
+                    helperText={touched.uploadedFile && errors.uploadedFile}
+                    disabled={!canEdit}
+                  />
+                  <ErrorMessage
+                    name="uploadedFile"
+                    render={(msg) => (
+                      <Typography variant="caption" color="error">
+                        {msg}
+                      </Typography>
+                    )}
+                  />
+                  <Button
+                    variant="contained"
+                    color="secondary"
+                    onClick={() => handleViewFile(values)}
+                    sx={{ gridColumn: "span 2", marginTop: "15px" }}
+                    disabled={!values.file && !userInfo?.file}
+                  >
+                    {t("viewUploadedFile")}
+                  </Button>
+                </FormControl>
+              )}
             </Box>
             <Box display="flex" justifyContent="end" mt="20px">
               <Button type="submit" color="secondary" variant="contained">

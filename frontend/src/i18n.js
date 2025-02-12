@@ -80,6 +80,7 @@ i18n
           login: "LOGIN",
           logout: "Logout",
           loggingIn: "Logging in...",
+          noEditPermission: "You don't have permission to edit this field",
           /////////////
           email: "Email",
           password: "Password",
@@ -713,6 +714,7 @@ i18n
           login: "تسجيل الدخول",
           logout: "تسجيل الخروج",
           loggingIn: "...جاري تسجيل الدخول",
+          noEditPermission: "ليس لديك صلاحية لتعديل هذا الحقل",
           /////////////
           email: "البريد الإلكتروني",
           password: "كلمة المرور",

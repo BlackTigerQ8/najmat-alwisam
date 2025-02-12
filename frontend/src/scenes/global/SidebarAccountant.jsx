@@ -427,7 +427,14 @@ const SidebarA = () => {
                 setSelected={setSelected}
                 isCollapsed={isCollapsed}
               />
-
+              <Item
+                title={t("invoicesArchive")}
+                to="/invoices-archive"
+                icon={<ArchiveOutlinedIcon />}
+                selected={selected}
+                setSelected={setSelected}
+                isCollapsed={isCollapsed}
+              />
               <Item
                 title={t("searchingArchive")}
                 to="/searching-archive"
