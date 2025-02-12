@@ -27,48 +27,44 @@ const Notifications = () => {
   }, [dispatch, notifications.length]);
 
   const getNotificationType = (notification) => {
-
-    const {notification_type: type, additionalDetails} = notification;
-    const {subType} = additionalDetails;
-    if (type === 'Driver_Deduction' || type === 'Employee_Deduction'){
-      return `deduction${subType}`
+    const { notification_type: type, additionalDetails } = notification;
+    const { subType } = additionalDetails;
+    if (type === "Driver_Deduction" || type === "Employee_Deduction") {
+      return `deduction${subType}`;
     }
 
-    if(type === 'New_Message'){
-      return 'newMessage'
+    if (type === "New_Message") {
+      return "newMessage";
     }
 
-    if(type === "Driver_Status_Change"){
-      return subType === "Deactivate"?"deactivation":"activation"
+    if (type === "Driver_Status_Change") {
+      return subType === "Deactivate" ? "deactivation" : "activation";
     }
 
-    if(type === 'Driver_Documents_Expiry'){
-      return `${subType}Expiry`
+    if (type === "Driver_Documents_Expiry") {
+      return `${subType}Expiry`;
     }
 
-    return ''
-
-  }
+    return "";
+  };
 
   const getNotificationHeading = (notification) => {
     const type = getNotificationType(notification);
-    const { additionalDetails} = notification;
-    
+    const { additionalDetails } = notification;
 
-    if(!type) return notification.heading
+    if (!type) return notification.heading;
 
-    return t(`${type}Heading`, {...additionalDetails}) 
-  }
+    return t(`${type}Heading`, { ...additionalDetails });
+  };
 
   const getNotificationMessage = (notification) => {
     const type = getNotificationType(notification);
-    const { additionalDetails} = notification;
-    
+    const { additionalDetails } = notification;
 
-    if(!type) return notification.heading
-    
-    return t(`${type}Message`,{...additionalDetails})
-  }
+    if (!type) return notification.heading;
+
+    return t(`${type}Message`, { ...additionalDetails });
+  };
   return (
     <Box m="20px">
       <Header title={t("NOTIFICATIONS")} subtitle={t("notificationTitle")} />
@@ -79,7 +75,9 @@ const Notifications = () => {
               {getNotificationHeading(notification)}!
             </Typography>
           </AccordionSummary>
-          <AccordionDetails>{getNotificationMessage(notification)}</AccordionDetails>
+          <AccordionDetails>
+            {getNotificationMessage(notification)}
+          </AccordionDetails>
         </Accordion>
       ))}
     </Box>

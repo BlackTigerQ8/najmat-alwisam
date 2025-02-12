@@ -13,6 +13,7 @@ import {
   ListSubheader,
   Select,
   FormControl,
+  MenuItem,
 } from "@mui/material";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import Header from "../components/Header";
@@ -30,10 +31,10 @@ import {
 } from "../redux/archiveSlice";
 import DeleteIcon from "@mui/icons-material/Delete";
 import SaveIcon from "@mui/icons-material/Save";
+import FileUploadIcon from "@mui/icons-material/FileUpload";
 import { toast } from "react-toastify";
 import { fetchUsers } from "../redux/usersSlice";
 import { fetchDrivers } from "../redux/driversSlice";
-import { MenuItem } from "react-pro-sidebar";
 
 const SearchArchive = () => {
   const isNonMobile = useMediaQuery("(min-width: 600px)");
@@ -80,10 +81,12 @@ const SearchArchive = () => {
         if (driver) {
           updates = {
             fullName: `${driver.firstName} ${driver.lastName}`,
-            company: "Talabat",
+            company: driver.contractType,
             idNumber: driver.idNumber,
             vehicle: driver.vehicle || "Car",
-            workNumber: driver.employeeCompanyNumber,
+            workNumber: driver.employeeCompanyNumber || "",
+            // Preserve the current archiveNumber if it exists
+            archiveNumber: params.row.archiveNumber || "",
           };
         }
       } else if (type === "user") {
@@ -91,27 +94,38 @@ const SearchArchive = () => {
         if (user) {
           updates = {
             fullName: `${user.firstName} ${user.lastName}`,
-            company: user.company || "",
+            company: "نجمة الوسام",
             idNumber: user.identification,
             vehicle: "None",
-            workNumber: "",
+            workNumber: user.employeeCompanyNumber || "",
+            // Preserve the current archiveNumber if it exists
+            archiveNumber: params.row.archiveNumber || "",
           };
         }
       }
 
-      // Update all fields
-      Object.entries(updates).forEach(([field, value]) => {
-        params.api.setEditCellValue({
-          id: params.id,
-          field,
-          value,
-        });
-      });
+      // Store all the updates in rowModifications
+      setRowModifications((prev) => ({
+        ...prev,
+        [params.id]: updates, // Store all fields, not just the changed ones
+      }));
 
-      // Exit edit mode after a short delay
-      setTimeout(() => {
-        params.api.setRowMode(params.id, "view");
-      }, 100);
+      setEditedRows((prev) => ({
+        ...prev,
+        [params.id]: true,
+      }));
+
+      // Update all fields in the grid
+      Object.entries(updates).forEach(([field, value]) => {
+        params.api.setEditCellValue(
+          {
+            id: params.id,
+            field,
+            value,
+          },
+          true
+        ); // Add true to commit the changes immediately
+      });
     };
 
     // Set initial value when the cell enters edit mode
@@ -134,32 +148,103 @@ const SearchArchive = () => {
     }, [params.value, drivers, users]);
 
     return (
-      <FormControl fullWidth>
-        <Select
-          value={selectValue}
-          onChange={handleChange}
-          sx={{ width: "100%" }}
-        >
-          <MenuItem value="">
-            <em>None</em>
-          </MenuItem>
-          <ListSubheader>{t("drivers")}</ListSubheader>
-          {drivers.map((driver) => (
-            <MenuItem key={driver._id} value={`driver:${driver._id}`}>
-              {driver.firstName} {driver.lastName}
+      <Box sx={{ minWidth: 120 }}>
+        <FormControl fullWidth>
+          <Select
+            value={selectValue}
+            onChange={handleChange}
+            displayEmpty
+            sx={{
+              backgroundColor: colors.primary[400],
+              color: colors.grey[100],
+              "& .MuiOutlinedInput-notchedOutline": {
+                borderColor: colors.grey[100],
+              },
+              "& .MuiSvgIcon-root": {
+                color: colors.grey[100],
+              },
+              "&:hover": {
+                "& .MuiOutlinedInput-notchedOutline": {
+                  borderColor: colors.greenAccent[500],
+                },
+              },
+            }}
+            MenuProps={{
+              PaperProps: {
+                sx: {
+                  bgcolor: colors.primary[400],
+                  "& .MuiMenuItem-root": {
+                    color: colors.grey[100],
+                    "&:hover": {
+                      bgcolor: colors.greenAccent[800],
+                    },
+                  },
+                  "& .MuiListSubheader-root": {
+                    color: colors.greenAccent[500],
+                    bgcolor: colors.primary[400],
+                  },
+                },
+              },
+            }}
+          >
+            <MenuItem value="">
+              <em>{t("selectName")}</em>
             </MenuItem>
-          ))}
-          <ListSubheader>{t("users")}</ListSubheader>
-          {users
-            .filter((user) => user.role !== "Admin")
-            .map((user) => (
-              <MenuItem key={user._id} value={`user:${user._id}`}>
-                {user.firstName} {user.lastName} - ({user.role})
+            <ListSubheader>{t("drivers")}</ListSubheader>
+            {drivers.map((driver) => (
+              <MenuItem key={driver._id} value={`driver:${driver._id}`}>
+                {driver.firstName} {driver.lastName}
               </MenuItem>
             ))}
-        </Select>
-      </FormControl>
+            <ListSubheader>{t("users")}</ListSubheader>
+            {users
+              .filter((user) => user.role !== "Admin")
+              .map((user) => (
+                <MenuItem key={user._id} value={`user:${user._id}`}>
+                  {user.firstName} {user.lastName} - ({user.role})
+                </MenuItem>
+              ))}
+          </Select>
+        </FormControl>
+      </Box>
     );
+  };
+
+  const handleFileUpdate = async (archiveId) => {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "application/pdf";
+
+    input.onchange = async (e) => {
+      setIsSubmitting(true);
+      try {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const formData = new FormData();
+        formData.append("uploadedFile", file);
+
+        await dispatch(
+          updateArchive({
+            archiveId,
+            modifications: formData,
+          })
+        ).unwrap();
+      } catch (error) {
+        console.error("Error updating file:", error);
+        toast.error(t("fileUpdateError"), {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+        });
+      } finally {
+        setIsSubmitting(false);
+      }
+    };
+
+    input.click();
   };
 
   const columns = [
@@ -175,14 +260,11 @@ const SearchArchive = () => {
       renderEditCell: (params) => (
         <EditCell params={params} drivers={drivers} users={users} t={t} />
       ),
-      renderCell: (params) => {
-        if (!params.value) return null;
-        return (
-          <Box display="flex" justifyContent="center" borderRadius="4px">
-            {params.value}
-          </Box>
-        );
-      },
+      renderCell: (params) => (
+        <Box display="flex" justifyContent="flex-start" width="100%">
+          {params.value || ""}
+        </Box>
+      ),
     },
     {
       field: "company",
@@ -211,6 +293,10 @@ const SearchArchive = () => {
       field: "archiveNumber",
       headerName: t("archiveNumber"),
       editable: true,
+      preProcessEditCellProps: (params) => {
+        const hasError = params.props.value === "";
+        return { ...params.props, error: hasError };
+      },
     },
     {
       field: "preview",
@@ -236,7 +322,8 @@ const SearchArchive = () => {
     {
       field: "actions",
       headerName: t("actions"),
-      width: 200,
+      flex: 1,
+      width: 300,
       headerAlign: "center",
       align: "center",
       sortable: false,
@@ -258,6 +345,15 @@ const SearchArchive = () => {
               startIcon={<SaveIcon />}
             >
               {t("save")}
+            </Button>
+            <Button
+              variant="contained"
+              color="secondary"
+              size="small"
+              onClick={() => handleFileUpdate(params.row._id)}
+              startIcon={<FileUploadIcon />}
+            >
+              {t("updateFile")}
             </Button>
             <Button
               variant="contained"
@@ -318,7 +414,28 @@ const SearchArchive = () => {
   // };
 
   const processRowUpdate = (newRow, oldRow) => {
-    return oldRow; // No direct cell editing needed
+    const hasNameChange = newRow.fullName !== oldRow.fullName;
+
+    if (hasNameChange) {
+      // If it's a name change, return oldRow to let the EditCell handle it
+      return oldRow;
+    } else {
+      // For archiveNumber updates, merge with existing modifications
+      setRowModifications((prev) => ({
+        ...prev,
+        [newRow._id]: {
+          ...(prev[newRow._id] || {}), // Keep existing modifications
+          archiveNumber: newRow.archiveNumber, // Add/update archiveNumber
+        },
+      }));
+
+      setEditedRows((prev) => ({
+        ...prev,
+        [newRow._id]: true,
+      }));
+
+      return newRow;
+    }
   };
 
   const handleProcessRowUpdateError = (error) => {
@@ -341,10 +458,18 @@ const SearchArchive = () => {
         return;
       }
 
+      // Ensure we have all the necessary fields including archiveNumber
+      const updatedModifications = {
+        ...modifications,
+        workNumber: modifications.workNumber || row.workNumber,
+        company: modifications.company || row.company,
+        archiveNumber: modifications.archiveNumber || row.archiveNumber,
+      };
+
       await dispatch(
         updateArchive({
           archiveId: row._id,
-          modifications,
+          modifications: updatedModifications,
         })
       ).unwrap();
 
@@ -360,8 +485,18 @@ const SearchArchive = () => {
         delete newState[row._id];
         return newState;
       });
+
+      // Refresh the archives data
+      dispatch(fetchArchives());
     } catch (error) {
       console.error("Error updating archive:", error);
+      toast.error(t("updateError"), {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+      });
     } finally {
       setIsSubmitting(false);
     }

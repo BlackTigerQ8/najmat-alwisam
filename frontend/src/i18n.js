@@ -483,7 +483,8 @@ i18n
           resetSingleDriverInvoiceRejected:
             "Can't reset driver's invoices, you can try later!",
 
-          deductionAddHeading: "{{targetName}} Deduction Alert",
+          // Add these new translations
+          deductionAddHeading: "{{targetName}} Deduction Alert!",
           deductionAddMessage:
             "{{senderName}} has made a deduction request on {{date}}",
 
@@ -547,6 +548,10 @@ i18n
           totalHoursThisMonth: "Total Hours This Month",
           updateArchiveFulfilled: "Archive is updated successfully",
           updateArchiveRejected: "Can't update archive, please try later",
+          updateFile: "Update File",
+          selectName: "Select Name",
+          updateError: "Something went wrong! Please try later.",
+          fileUpdateError: "Something went wrong! Please try later.",
           /////////////
           deliveryManagement: "Delivery Management System",
           landingPageHero:
@@ -1086,42 +1091,42 @@ i18n
           resetSingleDriverInvoiceRejected:
             "لا يمكن إعادة تعيين فواتير السائق، يمكنك المحاولة لاحقًا",
 
-          deductionAddHeading: "{{targetName}} تنبيه الخصم",
-          deductionAddMessage: "{{senderName}} قدم طلب خصم بتاريخ {{date}}",
+          deductionAddHeading: "({{targetName}}) تنبيه الخصم على",
+          deductionAddMessage: "{{date}} قدم طلب خصم بتاريخ {{senderName}}",
 
-          deductionApproveHeading: "{{targetName}} Deduction Alert",
+          deductionApproveHeading: "({{targetName}}) تنبيه الموافقة على الخصم",
           deductionApproveMessage:
             "{{date}} وافق على طلب الاستقطاع بتاريخ {{senderName}}",
 
-          deductionRejectHeading: "{{targetName}} Deduction Alert",
+          deductionRejectHeading: "({{targetName}}) تنبيه رفض الخصم",
           deductionRejectMessage:
             "{{date}} رفض طلب الاستقطاع بتاريخ {{senderName}}",
 
-          deactivationHeading: "{{targetName}} تنبيه التعطيل",
+          deactivationHeading: "({{targetName}}) تنبيه التعطيل",
           deactivationMessage:
-            "قام {{senderName}} بتعطيل السائق بتاريخ {{date}}",
+            "{{date}} قام بتعطيل السائق بتاريخ {{senderName}}",
 
-          activationHeading: "{{targetName}} تنبيه التنشيط",
-          activationMessage: "{{senderName}} بتفعيل السائق بتاريخ {{date}}",
+          activationHeading: "({{targetName}}) تنبيه التنشيط",
+          activationMessage: "{{date}} قام بتفعيل السائق بتاريخ {{senderName}}",
 
-          newMessageHeading: "تنبيه رسالة جديدة",
-          newMessageMessage: "{{senderName}} أرسل لك رسالة بتاريخ {{date}}",
+          newMessageHeading: "({{senderName}}) تنبيه رسالة جديدة من",
+          newMessageMessage: "{{date}} أرسل لك رسالة بتاريخ {{senderName}}",
 
           civilIdExpiryHeading:
-            "{{targetName}} تنبيه انتهاء صلاحية البطاقة المدنية",
-          civilIdExpiryMessage: "ستنتهي صلاحية البطاقة المدنية في {{date}}",
+            "({{targetName}}) تنبيه انتهاء صلاحية البطاقة المدنية",
+          civilIdExpiryMessage: "{{date}} سوف تنتهي صلاحية البطاقة المدنية في",
 
           passportExpiryHeading:
-            "{{targetName}} تنبيه انتهاء صلاحية جواز السفر",
-          passportExpiryMessage: "سوف تنتهي صلاحية جواز السفر في {{date}}",
+            "({{targetName}}) تنبيه انتهاء صلاحية جواز السفر",
+          passportExpiryMessage: "{{date}} سوف تنتهي صلاحية جواز السفر في",
 
           healthInsuranceExpiryHeading:
-            "{{targetName}} تنبيه انتهاء التأمين الصحي",
+            "({{targetName}}) تنبيه انتهاء التأمين الصحي",
           healthInsuranceExpiryMessage:
-            "سوف تنتهي صلاحية التأمين الصحي في {{date}}",
+            "{{date}} سوف تنتهي صلاحية التأمين الصحي في",
 
-          contractExpiryHeading: "تنبيه انتهاء العقد{{targetName}}",
-          contractExpiryMessage: "سينتهي العقد في {{date}}",
+          contractExpiryHeading: "({{targetName}}) تنبيه انتهاء العقد",
+          contractExpiryMessage: "{{date}} سينتهي العقد في",
           /////////////
           archiveFormTitle: "نموذج الأرشيف",
           archiveFormSubtitle: "إضافة ملف جديد إلى الأرشيف",
@@ -1151,6 +1156,11 @@ i18n
           totalHoursThisMonth: "إجمالي الساعات هذا الشهر",
           updateArchiveFulfilled: "تم تحديث الملف بنجاح",
           updateArchiveRejected: "لا يمكن تحديث الملف، يرجى المحاولة لاحقاً",
+          updateFile: "تحديث الملف",
+          selectName: "اختر الاسم",
+          updateError: "حدث خطأ ما! يرجى المحاولة لاحقاً",
+          fileUpdateError: "حدث خطأ ما! يرجى المحاولة لاحقاً",
+
           /////////////
           deliveryManagement: "نظام إدارة التوصيل",
           landingPageHero:
