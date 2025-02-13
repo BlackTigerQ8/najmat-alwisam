@@ -10,6 +10,8 @@ import { useSelector, useDispatch } from "react-redux";
 import { fetchSentMessages, fetchUsers } from "../redux/usersSlice";
 import { pulsar } from "ldrs";
 import { useTranslation } from "react-i18next";
+import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
+import IconButton from "@mui/material/IconButton";
 
 const Messages = () => {
   const theme = useTheme();
@@ -22,6 +24,7 @@ const Messages = () => {
   const error = useSelector((state) => state.users.error);
   const userInfo = useSelector((state) => state.user.userInfo);
   const { t } = useTranslation();
+  const REACT_APP_API_URL = process.env.REACT_APP_API_URL;
 
   const getUserInfo = useCallback(
     (userId) => users.find((user) => user._id === userId),
@@ -69,6 +72,16 @@ const Messages = () => {
     );
   }
 
+  const handleViewFile = (filePath) => {
+    if (filePath) {
+      // Remove the REACT_APP_API_URL's /api prefix for static files
+      const baseUrl = REACT_APP_API_URL.replace("/api", "");
+      const cleanPath = filePath.replace(/^uploads[\/\\]/, "");
+      const fileUrl = `${baseUrl}/uploads/${cleanPath}`;
+      window.open(fileUrl, "_blank");
+    }
+  };
+
   return (
     <Box m="20px">
       <Header title={t("MESSAGES")} subtitle={t("messagesSubtitle")} />
@@ -76,20 +89,38 @@ const Messages = () => {
         [...sentMessages].reverse().map((message, index) => (
           <Accordion defaultExpanded key={index}>
             <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              {getUserInfo(message.sender) ? (
+              <Box
+                display="flex"
+                justifyContent="space-between"
+                width="100%"
+                alignItems="center"
+              >
                 <Typography color={colors.greenAccent[500]} variant="h5">
-                  {getUserInfo(message.sender).firstName}{" "}
-                  {getUserInfo(message.sender).lastName}
+                  {message.title}
                 </Typography>
-              ) : (
-                <Typography color="error" variant="h5">
-                  {t("unknownSender")}
-                </Typography>
-              )}
+                {message.file && (
+                  <IconButton
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleViewFile(message.file);
+                    }}
+                    size="large"
+                  >
+                    <PictureAsPdfIcon />
+                  </IconButton>
+                )}
+              </Box>
             </AccordionSummary>
 
             <AccordionDetails>
               <Typography>{message.message}</Typography>
+              <Typography
+                variant="body2"
+                color="textSecondary"
+                style={{ marginTop: "10px" }}
+              >
+                {new Date(message.timestamp).toLocaleString()}
+              </Typography>
             </AccordionDetails>
           </Accordion>
         ))

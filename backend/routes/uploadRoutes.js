@@ -67,6 +67,14 @@ const archiveStorage = multer.diskStorage({
   },
 });
 
+// Storage configuration for message attachments
+const messageAttachments = multer.diskStorage({
+  destination: "./uploads/messages",
+  filename(req, file, cb) {
+    cb(null, getUploadFileName(file));
+  },
+});
+
 // First upload instance
 const driverContractUpload = multer({
   storage: driverContracts,
@@ -84,6 +92,13 @@ const contractUpload = multer({
   storage: contracts,
   fileFilter: function (req, file, cb) {
     checkPdfFileType(file, cb, "contract");
+  },
+});
+
+const messageAttachmentsUpload = multer({
+  storage: messageAttachments,
+  fileFilter: function (req, file, cb) {
+    checkPdfFileType(file, cb, "message-attachment");
   },
 });
 
@@ -229,4 +244,5 @@ module.exports = {
   userInvoicesUpload,
   companyFilesUpload,
   archiveUpload,
+  messageAttachmentsUpload,
 };

@@ -528,7 +528,10 @@ const createEmployeeDeductionInvoice = async (req, res) => {
 
 const sendMessage = async (req, res) => {
   try {
-    const { selectedUsers, message } = req.body;
+    const selectedUsers = JSON.parse(req.body.selectedUsers);
+    const { message, title } = req.body;
+    const uploadedFile = req.file;
+    const filePath = uploadedFile ? uploadedFile.path : null;
 
     // Check if selectedUsers is an array
     if (!Array.isArray(selectedUsers)) {
@@ -542,6 +545,8 @@ const sendMessage = async (req, res) => {
     const newMessage = new Message({
       sender: req.user.id, // Assuming the sender is the currently logged-in user
       message,
+      title,
+      file: filePath,
       timestamp: Date.now(), // Add timestamp
       receivers: selectedUsers,
     });

@@ -189,19 +189,15 @@ export const updateUser = createAsyncThunk(
 
 export const sendMessage = createAsyncThunk(
   "user/Message",
-  async ({ selectedUsers, message }) => {
+  async (formData) => {
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.post(
-        `${API_URL}/users/messages`,
-        { selectedUsers, message },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      const response = await axios.post(`${API_URL}/users/messages`, formData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "multipart/form-data",
+        },
+      });
       return response.data;
     } catch (error) {
       throw new Error(error.response.data.message || error.message);

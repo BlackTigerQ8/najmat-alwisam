@@ -17,7 +17,11 @@ const {
   removeProfileImage,
 } = require("../controllers/userController");
 const { protect, restrictTo } = require("../middleware/authMiddleware");
-const { contractUpload, userInvoicesUpload } = require("./uploadRoutes");
+const {
+  contractUpload,
+  userInvoicesUpload,
+  messageAttachmentsUpload,
+} = require("./uploadRoutes");
 
 const router = express.Router();
 
@@ -44,7 +48,7 @@ router
 
 router
   .route("/messages")
-  .post(protect, sendMessage)
+  .post(protect, messageAttachmentsUpload.single("file"), sendMessage)
   .get(protect, fetchMessages);
 
 router.get(

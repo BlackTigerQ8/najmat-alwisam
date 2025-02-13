@@ -14,7 +14,9 @@ const messageSchema = new mongoose.Schema({
       required: true,
     },
   ],
+  title: { type: String, required: true },
   message: { type: String, required: true },
+  file: { type: String },
   timestamp: {
     type: Date,
     default: Date.now,

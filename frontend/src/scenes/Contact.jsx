@@ -21,10 +21,13 @@ import { Formik } from "formik";
 import { fetchUsers, sendMessage } from "../redux/usersSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { useTranslation } from "react-i18next";
+import AttachFileIcon from "@mui/icons-material/AttachFile";
 
 const initialValues = {
   selectedUsers: [],
+  title: "",
   message: "",
+  file: null,
 };
 
 const messageSchema = yup.object().shape({
@@ -32,7 +35,9 @@ const messageSchema = yup.object().shape({
     .array()
     .min(1, "Please select at least one user")
     .required("required"),
+  title: yup.string().required("required"),
   message: yup.string().required("required"),
+  file: yup.mixed(),
 });
 
 const Contact = () => {
@@ -80,16 +85,16 @@ const Contact = () => {
   const handleSubmit = async (values, { resetForm }) => {
     setIsSubmitting(true);
     try {
-      await dispatch(
-        sendMessage({
-          selectedUsers: values.selectedUsers,
-          message: values.message,
-        })
-      );
+      const formData = new FormData();
+      formData.append("selectedUsers", JSON.stringify(values.selectedUsers));
+      formData.append("title", values.title);
+      formData.append("message", values.message);
+      if (values.file) {
+        formData.append("file", values.file);
+      }
 
+      await dispatch(sendMessage(formData));
       resetForm();
-
-      console.log("Messages sent successfully!");
     } catch (error) {
       console.error("Error sending messages:", error);
     } finally {
@@ -163,9 +168,7 @@ const Contact = () => {
                 gap="30px"
                 gridTemplateColumns="repeat(4, minmax(0, 1fr))"
                 sx={{
-                  "& > div": {
-                    gridColumn: isNonMobile ? undefined : "span 4",
-                  },
+                  "& > div": { gridColumn: isNonMobile ? undefined : "span 4" },
                 }}
               >
                 <FormControl
@@ -209,6 +212,20 @@ const Contact = () => {
 
                 <TextField
                   fullWidth
+                  variant="filled"
+                  type="text"
+                  label={t("title")}
+                  onBlur={handleBlur}
+                  onChange={handleChange}
+                  value={values.title}
+                  name="title"
+                  error={!!touched.title && !!errors.title}
+                  helperText={touched.title && errors.title}
+                  sx={{ gridColumn: "span 4" }}
+                />
+
+                <TextField
+                  fullWidth
                   multiline
                   rows={4}
                   variant="filled"
@@ -222,6 +239,38 @@ const Contact = () => {
                   helperText={touched.message && errors.message}
                   sx={{ gridColumn: "span 4" }}
                 />
+
+                <Box sx={{ gridColumn: "span 4" }}>
+                  <input
+                    accept="application/pdf"
+                    style={{ display: "none" }}
+                    id="message-file"
+                    type="file"
+                    onChange={(event) => {
+                      setFieldValue("file", event.currentTarget.files[0]);
+                    }}
+                  />
+                  <label htmlFor="message-file">
+                    <Button
+                      variant="contained"
+                      component="span"
+                      startIcon={<AttachFileIcon />}
+                    >
+                      {t("attachFile")}
+                    </Button>
+                  </label>
+                  {values.file && (
+                    <Box mt={1}>
+                      {values.file.name}
+                      <IconButton
+                        onClick={() => setFieldValue("file", null)}
+                        size="small"
+                      >
+                        <ClearIcon />
+                      </IconButton>
+                    </Box>
+                  )}
+                </Box>
               </Box>
               <Box display="flex" justifyContent="end" mt="20px">
                 <Button type="submit" color="secondary" variant="contained">
