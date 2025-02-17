@@ -11,6 +11,7 @@ const NOTIFICATION_TYPE = [
   "Employee_Deduction",
   "New_Message",
   "Driver_Status_Change",
+  "Invoice_Action",
 ];
 
 const notificationSchema = new mongoose.Schema({

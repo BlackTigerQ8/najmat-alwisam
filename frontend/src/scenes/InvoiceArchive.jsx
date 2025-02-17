@@ -22,13 +22,20 @@ import { fetchDrivers } from "../redux/driversSlice";
 import { pulsar } from "ldrs";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import * as yup from "yup";
+import SaveIcon from "@mui/icons-material/Save";
+import UploadIcon from "@mui/icons-material/Upload";
+import * as XLSX from "xlsx";
 import {
+  createArchivedDriverInvoice,
   fetchArchivedInvoices,
   fetchEmployeeInvoices,
   searchArchivedInvoices,
+  updateInvoiceDetails,
 } from "../redux/invoiceSlice";
 import { Formik } from "formik";
 import { useTranslation } from "react-i18next";
+import { toast } from "react-toastify";
+import { format } from "date-fns";
 
 const initialValues = {
   startDate: "",
@@ -61,6 +68,7 @@ const Invoices = () => {
     (state) => state.invoice.archivedDriverInvoices || []
   );
 
+  const [isLoading, setIsLoading] = useState(false);
   const [editRowsModel, setEditRowsModel] = useState({});
   const [selectedDriver, setSelectedDriver] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
@@ -70,6 +78,9 @@ const Invoices = () => {
     endDate: "",
     driverIds: [],
   });
+  const [modalEditRowsModel, setModalEditRowsModel] = useState({});
+  const [rowModifications, setRowModifications] = useState({});
+  const [editedRows, setEditedRows] = useState({});
 
   const processedData = useMemo(() => {
     // Add defensive check for archivedInvoices
@@ -286,6 +297,108 @@ const Invoices = () => {
     return baseColumns;
   }, [isSearchActive, t]);
 
+  const modalColumns = useMemo(
+    () => [
+      {
+        field: "invoiceDate",
+        headerName: t("date"),
+        flex: 1,
+        valueFormatter: (params) => {
+          if (!params.value) return "";
+          const date = new Date(params.value);
+          const formattedDate = `${date.getDate()}/${
+            date.getMonth() + 1
+          }/${date.getFullYear()}`;
+          return formattedDate;
+        },
+        editable: false,
+      },
+      {
+        field: "name",
+        headerName: t("driver"),
+        flex: 1,
+        headerAlign: "center",
+        align: "center",
+        renderCell: ({ row }) => {
+          return (
+            <Box display="flex" justifyContent="center" borderRadius="4px">
+              {row.driver?.firstName || ""} {row.driver?.lastName || ""}
+            </Box>
+          );
+        },
+        editable: false,
+      },
+      {
+        field: "cash",
+        headerName: t("cash"),
+        headerAlign: "center",
+        align: "center",
+        flex: 1,
+        type: "number",
+        valueFormatter: (params) => Number(params.value).toFixed(3),
+        editable: true,
+      },
+      {
+        field: "hour",
+        headerName: t("hour"),
+        flex: 1,
+        headerAlign: "center",
+        align: "center",
+        type: "number",
+        editable: true,
+      },
+      {
+        field: "mainOrder",
+        headerName: t("mainOrder"),
+        flex: 1,
+        headerAlign: "center",
+        align: "center",
+        type: "number",
+        editable: true,
+      },
+      {
+        field: "additionalOrder",
+        headerName: t("additionalOrder"),
+        flex: 1,
+        headerAlign: "center",
+        align: "center",
+        type: "number",
+        editable: true,
+      },
+      {
+        field: "actions",
+        headerName: t("actions"),
+        flex: 1,
+        headerAlign: "center",
+        align: "center",
+        sortable: false,
+        filterable: false,
+        renderCell: (params) => {
+          const rowId = params.row._id;
+          const hasChanges = Boolean(
+            editedRows[rowId] && rowModifications[rowId]
+          );
+
+          return (
+            <Box display="flex" gap={1}>
+              <Button
+                color="secondary"
+                variant="contained"
+                size="small"
+                startIcon={<SaveIcon />}
+                onClick={() => handleModalCellEdit(params.row)}
+                disabled={!hasChanges}
+              >
+                {t("save")}
+              </Button>
+            </Box>
+          );
+        },
+      },
+    ],
+    [t, editedRows, rowModifications]
+  );
+
   // Handle search form submission
   const handleFormSubmit = (values) => {
     // Ensure driverIds is an array and handle empty selection
@@ -343,6 +456,85 @@ const Invoices = () => {
     dispatch(fetchEmployeeInvoices(token));
   }, [token, dispatch]);
 
+  const handleModalCellEdit = async (row) => {
+    try {
+      const modifications = rowModifications[row._id];
+
+      if (!modifications || Object.keys(modifications).length === 0) {
+        return;
+      }
+
+      await dispatch(
+        updateInvoiceDetails({
+          invoiceId: row._id,
+          modifications,
+        })
+      ).unwrap();
+
+      // Update the local state with the edited values
+      const updatedDriver = { ...selectedDriver };
+      const detailIndex = updatedDriver.details.findIndex(
+        (d) => d._id === row._id
+      );
+      if (detailIndex !== -1) {
+        updatedDriver.details[detailIndex] = {
+          ...updatedDriver.details[detailIndex],
+          ...modifications,
+        };
+        setSelectedDriver(updatedDriver);
+      }
+
+      // Clear modifications for this row
+      setRowModifications((prev) => {
+        const newState = { ...prev };
+        delete newState[row._id];
+        return newState;
+      });
+
+      setEditedRows((prev) => {
+        const newState = { ...prev };
+        delete newState[row._id];
+        return newState;
+      });
+    } catch (error) {
+      console.error("Error updating cell:", error);
+    }
+  };
+
+  const processRowUpdate = (newRow, oldRow) => {
+    const id = newRow._id;
+    const changes = {};
+
+    Object.keys(newRow).forEach((field) => {
+      if (newRow[field] !== oldRow[field]) {
+        changes[field] = newRow[field];
+      }
+    });
+
+    if (Object.keys(changes).length > 0) {
+      setRowModifications((prev) => ({
+        ...prev,
+        [id]: {
+          ...(prev[id] || {}),
+          ...changes,
+        },
+      }));
+
+      setEditedRows((prev) => ({
+        ...prev,
+        [id]: true,
+      }));
+    }
+
+    return newRow;
+  };
+
+  // Error handler
+  const handleProcessRowUpdateError = (error) => {
+    console.error("Error updating row:", error);
+    toast.error(t("updateError"));
+  };
+
   pulsar.register();
   if (status === "loading") {
     return (
@@ -395,6 +587,116 @@ const Invoices = () => {
     // Dispatch the search action
     dispatch(searchArchivedInvoices(searchData));
   }
+
+  const handleFileUpload = async (event) => {
+    try {
+      setIsLoading(true);
+      const file = event.target.files[0];
+      const reader = new FileReader();
+
+      reader.onload = async (e) => {
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, { type: "array" });
+        const sheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[sheetName];
+        const jsonData = XLSX.utils.sheet_to_json(worksheet);
+
+        console.log("Parsed Excel Data:", jsonData);
+
+        // Process and upload each row
+        for (const row of jsonData) {
+          const driverId = row["Driver ID (DO NOT EDIT)"] || row["driverId"];
+
+          if (!driverId) {
+            console.log("Skipping row - no driverId:", row);
+            continue;
+          }
+
+          // Parse and format the date from Excel
+          let formattedDate;
+          if (row.invoiceDate) {
+            try {
+              // Convert Excel serial number to date
+              if (typeof row.invoiceDate === "number") {
+                const excelEpoch = new Date(1899, 11, 30); // Excel's epoch starts from December 30, 1899
+                const millisecondsPerDay = 24 * 60 * 60 * 1000;
+                const date = new Date(
+                  excelEpoch.getTime() + row.invoiceDate * millisecondsPerDay
+                );
+                formattedDate = date.toISOString().split("T")[0];
+              }
+              // Handle string date format
+              else if (typeof row.invoiceDate === "string") {
+                if (row.invoiceDate.includes("/")) {
+                  const [month, day, year] = row.invoiceDate.split("/");
+                  formattedDate = `${year}-${month.padStart(
+                    2,
+                    "0"
+                  )}-${day.padStart(2, "0")}`;
+                } else if (row.invoiceDate.includes("-")) {
+                  formattedDate = row.invoiceDate;
+                }
+              }
+
+              if (!formattedDate) {
+                console.error("Could not parse date:", row.invoiceDate);
+                continue;
+              }
+
+              console.log("Parsed date:", {
+                original: row.invoiceDate,
+                formatted: formattedDate,
+              });
+            } catch (error) {
+              console.error("Date parsing error:", error, row.invoiceDate);
+              continue;
+            }
+          } else {
+            console.log("Skipping row - no date:", row);
+            continue;
+          }
+
+          const invoiceData = new FormData();
+          invoiceData.append("driverId", driverId.trim());
+          invoiceData.append("cash", Number(row.cash) || 0);
+          invoiceData.append("mainOrder", Number(row.mainOrder) || 0);
+          invoiceData.append(
+            "additionalOrder",
+            Number(row.additionalOrder) || 0
+          );
+          invoiceData.append("hour", Number(row.hour) || 0);
+          invoiceData.append("invoiceDate", formattedDate);
+
+          try {
+            const response = await dispatch(
+              createArchivedDriverInvoice(invoiceData)
+            ).unwrap();
+            console.log("Archived invoice created:", response);
+          } catch (error) {
+            console.error(
+              `Error uploading archived invoice for driver ${driverId}:`,
+              error
+            );
+            toast.error(
+              `Failed to upload archived invoice for driver ${driverId}`
+            );
+          }
+        }
+
+        // Refresh the archived invoices data
+        await dispatch(fetchArchivedInvoices(token));
+        toast.success(t("excelUploadSuccess"));
+      };
+
+      reader.readAsArrayBuffer(file);
+    } catch (error) {
+      console.error("Error uploading excel:", error);
+      toast.error(t("excelUploadError"));
+    } finally {
+      setIsLoading(false);
+      event.target.value = ""; // Reset file input
+    }
+  };
 
   return (
     <Box m="20px">
@@ -494,6 +796,23 @@ const Invoices = () => {
                 <Button type="submit" color="secondary" variant="contained">
                   {t("search")}
                 </Button>
+                <input
+                  type="file"
+                  accept=".xlsx, .xls"
+                  style={{ display: "none" }}
+                  id="archive-excel-upload"
+                  onChange={handleFileUpload}
+                />
+                <label htmlFor="archive-excel-upload">
+                  <Button
+                    component="span"
+                    color="secondary"
+                    variant="contained"
+                    startIcon={<UploadIcon />}
+                  >
+                    {t("uploadExcel")}
+                  </Button>
+                </label>
                 {isSearchActive && (
                   <Button
                     onClick={handleClearSearch}
@@ -585,64 +904,55 @@ const Invoices = () => {
         >
           {selectedDriver && (
             <>
-              <Typography variant="h5" component="h2" gutterBottom>
-                {`${selectedDriver.firstName} ${selectedDriver.lastName} - ${selectedDriver.civilId}`}
+              <Typography
+                variant="h3"
+                component="h2"
+                sx={{
+                  color: colors.greenAccent[500],
+                  fontWeight: "bold",
+                  textAlign: "center",
+                }}
+                gutterBottom
+              >
+                {`${t("invoiceDetailsByDate")}: ${
+                  selectedDriver.invoiceDate
+                    ? format(new Date(selectedDriver.invoiceDate), "dd-MM-yyyy")
+                    : ""
+                }`}
               </Typography>
               <DataGrid
                 rows={selectedDriver.details}
-                columns={[
-                  {
-                    field: "invoiceDate",
-                    headerName: t("date"),
-                    flex: 1,
-                    valueFormatter: (params) => {
-                      if (!params.value) return "";
-                      const date = new Date(params.value);
-                      const formattedDate = `${date.getDate()}/${
-                        date.getMonth() + 1
-                      }/${date.getFullYear()}`;
-                      return formattedDate;
-                    },
-                  },
-                  {
-                    field: "name",
-                    headerName: t("driver"),
-                    flex: 1,
-                    headerAlign: "center",
-                    align: "center",
-                    renderCell: ({ row }) => {
-                      return (
-                        <Box
-                          display="flex"
-                          justifyContent="center"
-                          borderRadius="4px"
-                        >
-                          {row.driver?.firstName || ""}{" "}
-                          {row.driver?.lastName || ""}
-                        </Box>
-                      );
-                    },
-                  },
-                  { field: "mainOrder", headerName: t("mainOrder"), flex: 1 },
-                  {
-                    field: "additionalOrder",
-                    headerName: t("additionalOrder"),
-                    flex: 1,
-                  },
-                  { field: "hour", headerName: t("hour"), flex: 1 },
-                  {
-                    field: "cash",
-                    headerName: t("cash"),
-                    flex: 1,
-                    valueFormatter: (params) => Number(params.value).toFixed(3),
-                  },
-                ]}
+                columns={modalColumns}
                 getRowId={(row) => row._id}
                 autoHeight
                 pageSize={5}
+                editMode="cell"
+                processRowUpdate={processRowUpdate}
+                onProcessRowUpdateError={handleProcessRowUpdateError}
+                experimentalFeatures={{ newEditingApi: true }}
+                sx={{
+                  "& .MuiDataGrid-columnHeaders": {
+                    backgroundColor: colors.blueAccent[700],
+                    borderBottom: "none",
+                  },
+                  "& .MuiDataGrid-virtualScroller": {
+                    backgroundColor: colors.primary[400],
+                  },
+                  "& .MuiDataGrid-footerContainer": {
+                    borderTop: "none",
+                    backgroundColor: colors.blueAccent[700],
+                  },
+                  "& .MuiDataGrid-toolbarContainer .MuiButton-text": {
+                    color: `${colors.grey[100]} !important`,
+                  },
+                }}
               />
               <Box mt={2} display="flex" justifyContent="flex-end">
-                <Button onClick={() => setModalOpen(false)}>
+                <Button
+                  onClick={() => setModalOpen(false)}
+                  color="secondary"
+                  variant="contained"
+                >
                   {t("close")}
                 </Button>
               </Box>

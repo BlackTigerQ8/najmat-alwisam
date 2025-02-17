@@ -267,6 +267,9 @@ const driversSlice = createSlice({
     setDriver: (state, action) => {
       state.driverInfo = action.payload;
     },
+    setDrivers: (state, action) => {
+      state.drivers = action.payload;
+    },
   },
   extraReducers(builder) {
     builder

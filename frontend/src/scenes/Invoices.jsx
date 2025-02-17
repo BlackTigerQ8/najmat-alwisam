@@ -14,7 +14,7 @@ import {
 import { DataGrid } from "@mui/x-data-grid";
 import { tokens } from "../theme";
 import Header from "../components/Header";
-import UpdateIcon from "@mui/icons-material/Update";
+import * as XLSX from "xlsx";
 import SaveIcon from "@mui/icons-material/Save";
 import { useSelector, useDispatch } from "react-redux";
 import { fetchDrivers } from "../redux/driversSlice";
@@ -29,7 +29,15 @@ import {
 } from "../redux/invoiceSlice";
 import DeleteIcon from "@mui/icons-material/Delete";
 import RestoreIcon from "@mui/icons-material/Restore";
+import UploadIcon from "@mui/icons-material/Upload";
+import DownloadIcon from "@mui/icons-material/Download";
 import { useTranslation } from "react-i18next";
+import { io } from "socket.io-client";
+import { toast } from "react-toastify";
+import {
+  buildInvoiceActionNotification,
+  createNotification,
+} from "../redux/notificationSlice";
 
 const InvoicesArchive = () => {
   const theme = useTheme();
@@ -37,6 +45,7 @@ const InvoicesArchive = () => {
   const isNonMobile = useMediaQuery("(min-width: 600px)");
   const dispatch = useDispatch();
   const { t } = useTranslation();
+  const userInfo = useSelector((state) => state.user.userInfo);
   const drivers = useSelector((state) => state.drivers.drivers);
   const status = useSelector((state) => state.drivers.status);
   const error = useSelector((state) => state.drivers.error);
@@ -109,7 +118,27 @@ const InvoicesArchive = () => {
     try {
       setIsLoading(true);
       setOpenModal(false);
-      await dispatch(resetDriverInvoices()).unwrap();
+
+      // Reset the invoices
+      const result = await dispatch(resetDriverInvoices()).unwrap();
+
+      // Create notification
+      const notificationData = buildInvoiceActionNotification({
+        actionType: "reset",
+        userRole: userInfo.role, // Make sure you have access to the user object
+        userName: `${userInfo.firstName} ${userInfo.lastName}`,
+      });
+
+      await dispatch(createNotification({ values: notificationData }));
+
+      // The table should now be empty since all invoices are archived
+      // Fetch only visibleToAll invoices
+      await dispatch(fetchInvoices(token));
+
+      // Clear local state
+      setRowModifications({});
+      setEditedRows({});
+      setEditRowsModel({});
     } catch (error) {
       console.error("Error resetting invoices:", error);
     } finally {
@@ -128,6 +157,7 @@ const InvoicesArchive = () => {
   const handleConfirmRestore = () => {
     setIsLoading(true);
     setOpenRestoreModal(false);
+
     const now = new Date();
     const startDate = new Date(now.getFullYear(), now.getMonth(), 1)
       .toISOString()
@@ -138,7 +168,16 @@ const InvoicesArchive = () => {
 
     dispatch(restoreDriverInvoices({ startDate, endDate }))
       .unwrap()
-      .then(() => {
+      .then(async () => {
+        // Create notification
+        const notificationData = buildInvoiceActionNotification({
+          actionType: "restore",
+          userRole: userInfo.role,
+          userName: `${userInfo.firstName} ${userInfo.lastName}`,
+        });
+
+        await dispatch(createNotification({ values: notificationData }));
+
         setOpenRestoreModal(false);
       })
       .catch((error) => {
@@ -151,6 +190,148 @@ const InvoicesArchive = () => {
 
   const handleCloseRestoreModal = () => {
     setOpenRestoreModal(false);
+  };
+
+  const handleFileUpload = async (event) => {
+    try {
+      setIsLoading(true);
+      const file = event.target.files[0];
+      const reader = new FileReader();
+
+      reader.onload = async (e) => {
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, { type: "array" });
+        const sheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[sheetName];
+        const jsonData = XLSX.utils.sheet_to_json(worksheet);
+
+        // Process and upload each row
+        for (const row of jsonData) {
+          // Extract driverId from the "Driver ID (DO NOT EDIT)" column
+          const driverId = row["Driver ID (DO NOT EDIT)"] || row["driverId"];
+
+          if (!driverId) {
+            console.log("Skipping row - no driverId:", row);
+            continue;
+          }
+
+          // Parse and format the date correctly
+          let formattedDate;
+          if (row.invoiceDate) {
+            try {
+              // Check if the date is a string that needs splitting
+              if (
+                typeof row.invoiceDate === "string" &&
+                row.invoiceDate.includes("/")
+              ) {
+                const [month, day, year] = row.invoiceDate.split("/");
+                formattedDate = `${year}-${month.padStart(
+                  2,
+                  "0"
+                )}-${day.padStart(2, "0")}`;
+              }
+              // Handle Excel date (which might be a number)
+              else if (typeof row.invoiceDate === "number") {
+                // Convert Excel date number to JS Date
+                const excelDate = new Date(
+                  Math.round((row.invoiceDate - 25569) * 86400 * 1000)
+                );
+                formattedDate = excelDate.toISOString().split("T")[0];
+              }
+              // If it's already in YYYY-MM-DD format
+              else if (
+                typeof row.invoiceDate === "string" &&
+                row.invoiceDate.includes("-")
+              ) {
+                formattedDate = row.invoiceDate;
+              } else {
+                // Default to today's date if format is unrecognized
+                formattedDate = new Date().toISOString().split("T")[0];
+              }
+            } catch (error) {
+              console.error("Date parsing error:", error, row.invoiceDate);
+              formattedDate = new Date().toISOString().split("T")[0];
+            }
+          } else {
+            formattedDate = new Date().toISOString().split("T")[0];
+          }
+
+          console.log("Processing row:", {
+            driverId,
+            cash: row.cash,
+            mainOrder: row.mainOrder,
+            additionalOrder: row.additionalOrder,
+            hour: row.hour,
+            invoiceDate: formattedDate,
+          });
+
+          const invoiceData = new FormData();
+          invoiceData.append("driverId", driverId.trim());
+          invoiceData.append("cash", Number(row.cash) || 0);
+          invoiceData.append("mainOrder", Number(row.mainOrder) || 0);
+          invoiceData.append(
+            "additionalOrder",
+            Number(row.additionalOrder) || 0
+          );
+          invoiceData.append("hour", Number(row.hour) || 0);
+          invoiceData.append("invoiceDate", formattedDate);
+
+          try {
+            const response = await dispatch(
+              createDriverInvoice(invoiceData)
+            ).unwrap();
+            console.log("Invoice created:", response);
+          } catch (error) {
+            console.error(
+              `Error uploading invoice for driver ${driverId}:`,
+              error
+            );
+            toast.error(`Failed to upload invoice for driver ${driverId}`);
+          }
+        }
+
+        // Refresh the data
+        await dispatch(fetchInvoices(token));
+        toast.success(t("excelUploadSuccess"));
+      };
+
+      reader.readAsArrayBuffer(file);
+    } catch (error) {
+      console.error("Error uploading excel:", error);
+      toast.error(t("excelUploadError"));
+    } finally {
+      setIsLoading(false);
+      event.target.value = ""; // Reset file input
+    }
+  };
+
+  const downloadExcelTemplate = () => {
+    const driversList = drivers.map((driver) => ({
+      "Driver Name (DO NOT EDIT)": `${driver.firstName} ${driver.lastName}`,
+      "Driver ID (DO NOT EDIT)": driver._id,
+      cash: 0,
+      mainOrder: 0,
+      additionalOrder: 0,
+      hour: 0,
+      invoiceDate: "MM/DD/YYYY",
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(driversList);
+
+    // Set column widths
+    ws["!cols"] = [
+      { wch: 25 }, // Driver Name
+      { wch: 25 }, // Driver ID
+      { wch: 10 }, // cash
+      { wch: 10 }, // mainOrder
+      { wch: 15 }, // additionalOrder
+      { wch: 10 }, // hour
+      { wch: 12 }, // invoiceDate
+    ];
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Invoice Template");
+    XLSX.writeFile(wb, "invoice_template.xlsx");
   };
 
   const columns = [
@@ -264,6 +445,21 @@ const InvoicesArchive = () => {
     dispatch(fetchEmployeeInvoices(token));
     //}
   }, [token, dispatch]);
+
+  // Socket listener for real-time updates
+  useEffect(() => {
+    const socket = io(process.env.REACT_APP_API_URL);
+
+    socket.on("invoicesReset", () => {
+      // Refresh the data when reset event is received
+      dispatch(fetchInvoices(token));
+      toast.info(t("invoicesResetByOtherUser"));
+    });
+
+    return () => {
+      socket.disconnect();
+    };
+  }, [dispatch, token, t]);
 
   pulsar.register();
   if (status === "loading") {
@@ -512,6 +708,7 @@ const InvoicesArchive = () => {
         justifyContent="flex-end"
         sx={{
           "& > div": { gridColumn: isNonMobile ? undefined : "span 5" },
+          gap: "10px",
         }}
       >
         <Button onClick={resetInvoices} color="secondary" variant="contained">
@@ -522,9 +719,33 @@ const InvoicesArchive = () => {
           color="secondary"
           variant="contained"
           startIcon={<RestoreIcon />}
-          sx={{ marginLeft: "10px" }}
         >
           {t("restore")}
+        </Button>
+        <input
+          type="file"
+          accept=".xlsx, .xls"
+          style={{ display: "none" }}
+          id="excel-upload"
+          onChange={handleFileUpload}
+        />
+        <label htmlFor="excel-upload">
+          <Button
+            component="span"
+            color="secondary"
+            variant="contained"
+            startIcon={<UploadIcon />}
+          >
+            {t("uploadExcel")}
+          </Button>
+        </label>
+        <Button
+          color="secondary"
+          variant="outlined"
+          onClick={downloadExcelTemplate}
+          startIcon={<DownloadIcon />}
+        >
+          {t("downloadTemplate")}
         </Button>
       </Box>
       <Box

@@ -61,6 +61,8 @@ i18n
           searchMessagesBySubject: "Search Messages by Subject",
           invoicesArchive: "Invoices Archive",
           invoicesArchiveSubtitle: "List of archived invoices",
+          invoiceDetails: "Invoice Details",
+          invoiceDetailsByDate: "Invoice Details by Date",
           message: "Message",
           send: "Send",
           unknownSender: "Unknown Sender",
@@ -209,6 +211,10 @@ i18n
           additionalOrders: "Additional Orders",
           date: "Date",
           reset: "Reset",
+          uploadExcel: "Upload Excel",
+          downloadTemplate: "Download Template",
+          excelUploadSuccess: "Invoices uploaded successfully",
+          excelUploadError: "Error uploading invoices",
           /////////////
           deductionInvoicesTitle: "Deduction Invoices",
           deductionInvoicesSubtitle: "Deduction Invoices Page",
@@ -248,6 +254,7 @@ i18n
           driversSalary: "Drivers Salary",
           bankStatement: "Bank Statement",
           pettyCash: "Petty Cash",
+          spendName: "Expense Name",
           spendTypes: "Expense Types",
           spendsType: "Expense Type",
           companySpends: "Company Expenses",
@@ -492,6 +499,19 @@ i18n
             "Driver's Invoices are reset successfully!",
           resetSingleDriverInvoiceRejected:
             "Can't reset driver's invoices, you can try later!",
+          updateInvoiceDetailsFulfilled:
+            "Invoice details are updated successfully!",
+          updateInvoiceDetailsRejected: "Failed to update invoice details",
+          resetInvoicesFulfilled: "Invoices have been reset successfully",
+          resetInvoicesRejected: "Failed to reset invoices",
+          invoicesResetByOtherUser: "Invoices have been reset by another user",
+
+          resetInvoicesHeading: "إعادة تعيين الفواتير",
+          resetInvoicesMessage:
+            "بإعادة تعيين جميع الفواتير {{senderName}} ({{senderRole}}) قام",
+          restoreInvoicesHeading: "استرجاع الفواتير",
+          restoreInvoicesMessage:
+            "باسترجاع الفواتير المؤرشفة {{senderName}} ({{senderRole}}) قام",
 
           // Add these new translations
           deductionAddHeading: "{{targetName}} Deduction Alert!",
@@ -695,6 +715,8 @@ i18n
           searchMessagesBySubject: "ابحث عن رسالة بالموضوع",
           invoicesArchive: "أرشيف الفواتير",
           invoicesArchiveSubtitle: "قائمة الفواتير المؤرشفة",
+          invoiceDetails: "تفاصيل الفاتورة",
+          invoiceDetailsByDate: "تفاصيل الفاتورة لتاريخ",
           message: "رسالة",
           send: "ارسال",
           unknownSender: "مرسل غير معروف",
@@ -841,6 +863,10 @@ i18n
           additionalOrders: "الطلبات الإضافية",
           date: "التاريخ",
           reset: "إعادة تعيين",
+          uploadExcel: "رفع Excel",
+          downloadTemplate: "تحميل القالب",
+          excelUploadSuccess: "تم رفع الفواتير بنجاح",
+          excelUploadError: "حدث خطأ ما! يرجى المحاولة لاحقًا",
           /////////////
           deductionInvoicesTitle: "فواتير الخصم",
           deductionInvoicesSubtitle: "صفحة فواتير الخصم",
@@ -879,8 +905,9 @@ i18n
           driversSalary: "رواتب السائقين",
           bankStatement: "كشف الحساب البنكي",
           pettyCash: "العهدة النقدية",
-          spendTypes: "أنواع المصروفات",
-          spendType: "نوع المصروف",
+          spendName: "اسم العهدة",
+          spendTypes: "أنواع العهد النقدية",
+          spendType: "نوع العهدة النقدية",
           companySpends: "مصاريف الشركة",
           profitsAndLosses: "الأرباح والخسائر",
           companyIncome: "دخل الشركة",
@@ -951,9 +978,9 @@ i18n
           requestDate: "تاريخ الطلب",
           spendsDate: "تاريخ المصروفات",
           addNewPettyCash: "إضافة عهدة نقدية جديدة",
-          selectSpendType: "اختر نوع المصروف",
-          spendsReason: "سبب المصروفات",
-          cashAmount: "مبلغ النقدية",
+          selectSpendType: "اختر نوع العهدة النقدية",
+          spendsReason: "سبب العهدة النقدية",
+          cashAmount: "مبلغ العهدة النقدية",
           spendsRemarks: "ملاحظات المصروفات",
           startingBalance: "الرصيد الافتتاحي",
           saveData: "حفظ البيانات",
@@ -1110,6 +1137,12 @@ i18n
             "تمت إعادة تعيين فواتير السائق بنجاح",
           resetSingleDriverInvoiceRejected:
             "لا يمكن إعادة تعيين فواتير السائق، يمكنك المحاولة لاحقًا",
+          updateInvoiceDetailsFulfilled: "تم تحديث تفاصيل الفاتورة بنجاح",
+          updateInvoiceDetailsRejected: "فشل تحديث تفاصيل الفاتورة",
+          invoicesResetByOtherUser:
+            "تم إعادة تعيين الفواتير بواسطة أحد المستخدمين",
+          resetInvoicesFulfilled: "تم إعادة تعيين الفواتير بنجاح",
+          resetInvoicesRejected: "فشل إعادة تعيين الفواتير",
 
           deductionAddHeading: "({{targetName}}) تنبيه الخصم على",
           deductionAddMessage: "{{date}} قدم طلب خصم بتاريخ {{senderName}}",

@@ -4,7 +4,7 @@ const fs = require("fs");
 
 dotenv.config();
 const connectDB = require("./config/db.js");
-const app = require("./app");
+const { app, server } = require("./app");
 const { addAllDriversNotifications } = require("./services/driverService.js");
 const {
   archiveDriverInvoices,
@@ -56,7 +56,7 @@ async function startServer() {
   // Your other app setup code here...
 
   const PORT = process.env.PORT || 5000;
-  app.listen(PORT, () => {
+  server.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
   });
 }

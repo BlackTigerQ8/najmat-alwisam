@@ -45,6 +45,10 @@ const Notifications = () => {
       return `${subType}Expiry`;
     }
 
+    if (type === "Invoice_Action") {
+      return `${subType}Invoices`;
+    }
+
     return "";
   };
 
@@ -54,6 +58,14 @@ const Notifications = () => {
 
     if (!type) return notification.heading;
 
+    // Create a copy of additionalDetails to avoid modifying the original
+    const translatedDetails = { ...additionalDetails };
+
+    // Translate the role if it exists
+    if (translatedDetails.senderRole) {
+      translatedDetails.senderRole = t(translatedDetails.senderRole);
+    }
+
     return t(`${type}Heading`, { ...additionalDetails });
   };
 
@@ -62,6 +74,14 @@ const Notifications = () => {
     const { additionalDetails } = notification;
 
     if (!type) return notification.heading;
+
+    // Create a copy of additionalDetails to avoid modifying the original
+    const translatedDetails = { ...additionalDetails };
+
+    // Translate the role if it exists
+    if (translatedDetails.senderRole) {
+      translatedDetails.senderRole = t(translatedDetails.senderRole);
+    }
 
     return t(`${type}Message`, { ...additionalDetails });
   };

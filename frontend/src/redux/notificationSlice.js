@@ -104,6 +104,23 @@ export const markAllNotificationsRead = createAsyncThunk(
   }
 );
 
+export const buildInvoiceActionNotification = ({
+  actionType, // 'reset' or 'restore'
+  userRole,
+  userName,
+}) => {
+  return {
+    notification_type: "Invoice_Action",
+    additionalDetails: {
+      subType: actionType,
+      senderName: userName || "Unknown",
+      senderRole: userRole || "Unknown",
+      date: new Date().toISOString(),
+    },
+    role: ["Admin", "Manager", "Accountant"], // Roles that should receive this notification
+  };
+};
+
 const notificationSlice = createSlice({
   name: "notifications",
   initialState,

@@ -11,6 +11,8 @@ const {
   getDriverStatsByMonth,
   restoreInvoices,
   cleanupOrphanedInvoices,
+  updateInvoiceDetails,
+  createArchivedDriverInvoice,
   // clearRecentInvoices,
 } = require("../controllers/driverController");
 const { protect, restrictTo } = require("../middleware/authMiddleware");
@@ -28,12 +30,20 @@ router
     createDriverInvoice
   );
 
-router.put(
-  "/invoice/:id",
-  protect,
-  restrictTo("Admin", "Accountant", "Manager"),
-  updateInvoiceStatus
-);
+router
+  .route("/invoice/:id")
+  .get(protect, getAllInvoices)
+  .post(
+    protect,
+    restrictTo("Admin", "Manager", "Employee", "Accountant"),
+    driverInvoicesUpload.single("uploadedFile"),
+    createDriverInvoice
+  )
+  .patch(
+    protect,
+    restrictTo("Admin", "Manager", "Employee", "Accountant"),
+    updateInvoiceDetails
+  );
 
 router.put(
   "/reset/drivers/:driverId",
@@ -47,6 +57,14 @@ router.put(
   protect,
   restrictTo("Admin", "Employee", "Manager"),
   resetInvoices
+);
+
+router.post(
+  "/archive-invoice",
+  protect,
+  restrictTo("Admin", "Manager", "Employee", "Accountant"),
+  driverInvoicesUpload.single("uploadedFile"),
+  createArchivedDriverInvoice
 );
 
 router

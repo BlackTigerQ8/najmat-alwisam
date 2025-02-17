@@ -272,6 +272,67 @@ const createDriverInvoice = async (req, res) => {
   }
 };
 
+const createArchivedDriverInvoice = async (req, res) => {
+  try {
+    const {
+      driverId,
+      hour = 0,
+      mainOrder = 0,
+      additionalOrder = 0,
+      cash = 0,
+      invoiceDate,
+    } = req.body;
+
+    console.log("Creating archived invoice:", {
+      driverId,
+      invoiceDate,
+      cash,
+      mainOrder,
+      additionalOrder,
+      hour,
+    });
+
+    if (!driverId || !invoiceDate) {
+      return res.status(400).json({
+        status: "Error",
+        message: "Driver ID and invoice date are required",
+      });
+    }
+
+    const newInvoice = new DriverInvoice({
+      driver: driverId,
+      mainOrder: Number(mainOrder),
+      additionalOrder: Number(additionalOrder),
+      hour: Number(hour),
+      cash: Number(cash),
+      invoiceDate: invoiceDate,
+      user: req.user.id,
+      status: "visibleToAllArchived",
+      archivedAt: new Date(),
+      archivedBy: req.user.id,
+    });
+
+    await newInvoice.save();
+
+    const savedInvoice = await DriverInvoice.findById(newInvoice._id).populate(
+      "driver"
+    );
+
+    return res.status(201).json({
+      status: "Success",
+      data: {
+        invoice: savedInvoice,
+      },
+    });
+  } catch (error) {
+    console.error("Create archived invoice error:", error);
+    res.status(500).json({
+      status: "Error",
+      message: error.message,
+    });
+  }
+};
+
 const getAllInvoices = async (req, res) => {
   try {
     let status = ["visibleToAll"];
@@ -317,7 +378,9 @@ const getAllInvoices = async (req, res) => {
 
     console.log("Query date range:", { startOfMonth, endOfMonth });
 
-    const driverInvoices = await DriverInvoice.find(query)
+    const driverInvoices = await DriverInvoice.find({
+      status: "visibleToAll", // only fetch invoices with visibleToAll status
+    })
       .populate("driver")
       .sort({ invoiceDate: -1 });
 
@@ -389,6 +452,38 @@ const carDriverSalary = (orders, salaryMainOrders, salaryAdditionalOrders) => {
       mainSalary: salaryMainOrders * 0.5,
       additionalSalary: salaryAdditionalOrders * 0.3,
     };
+  }
+};
+
+const updateInvoiceDetails = async (req, res) => {
+  try {
+    const invoiceId = req.params.id;
+    const updates = req.body;
+
+    const updatedInvoice = await DriverInvoice.findByIdAndUpdate(
+      invoiceId,
+      updates,
+      { new: true }
+    );
+
+    if (!updatedInvoice) {
+      return res.status(404).json({
+        status: "Error",
+        message: "Invoice not found",
+      });
+    }
+
+    res.status(200).json({
+      status: "Success",
+      data: {
+        invoice: updatedInvoice,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: "Error",
+      message: error.message,
+    });
   }
 };
 
@@ -751,15 +846,27 @@ const resetInvoices = async (req, res) => {
   try {
     // Instead of deleting, just update the status to visibleToAllArchived
     const result = await DriverInvoice.updateMany(
-      { status: "visibleToAll" },
-      { $set: { status: "visibleToAllArchived" } }
+      { status: "visibleToAll" }, // only update invoices with "visibleToAll" status
+      {
+        $set: {
+          status: "visibleToAllArchived",
+          archivedAt: new Date(),
+          archivedBy: req.user._id,
+        },
+      }
     );
 
-    res.status(200).json({
+    // Get the updated list of current visible invoices (should be empty after reset)
+    const currentInvoices = await DriverInvoice.find({
+      status: "visibleToAll",
+    }).populate("driver");
+
+    return res.status(200).json({
       status: "Success",
       message: "Invoices reset successfully",
       data: {
         modifiedCount: result.modifiedCount,
+        driverInvoices: currentInvoices,
       },
     });
   } catch (error) {
@@ -1297,6 +1404,7 @@ module.exports = {
   updateDriver,
   deleteDriver,
   createDriverInvoice,
+  createArchivedDriverInvoice,
   getAllInvoices,
   getDriverSalaries,
   overrideDriverSalary,
@@ -1312,5 +1420,6 @@ module.exports = {
   getDriverStatsByMonth,
   restoreInvoices,
   cleanupOrphanedInvoices,
+  updateInvoiceDetails,
   // clearRecentInvoices,
 };

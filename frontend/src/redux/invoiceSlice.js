@@ -2,7 +2,9 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 import { toast } from "react-toastify";
 import i18next from "i18next";
+import { io } from "socket.io-client";
 
+const socket = io(process.env.REACT_APP_API_URL);
 const API_URL = process.env.REACT_APP_API_URL;
 
 const initialState = {
@@ -125,6 +127,35 @@ export const createDriverInvoice = createAsyncThunk(
   }
 );
 
+export const createArchivedDriverInvoice = createAsyncThunk(
+  "invoice/createArchivedDriverInvoice",
+  async (invoiceData, { rejectWithValue }) => {
+    try {
+      const token = localStorage.getItem("token");
+
+      console.log("Creating archived invoice with data:", {
+        date: invoiceData.get("invoiceDate"),
+        driver: invoiceData.get("driverId"),
+      });
+
+      const response = await axios.post(
+        `${API_URL}/driver-invoice/archive-invoice`,
+        invoiceData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data || error.message);
+    }
+  }
+);
+
 export const updateDriverInvoice = createAsyncThunk(
   "invoice/updateDriverInvoice",
   async ({ values }) => {
@@ -146,9 +177,30 @@ export const updateDriverInvoice = createAsyncThunk(
   }
 );
 
+export const updateInvoiceDetails = createAsyncThunk(
+  "invoice/updateInvoiceDetails",
+  async ({ invoiceId, modifications }) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.patch(
+        `${API_URL}/driver-invoice/invoice/${invoiceId}`,
+        modifications,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.message || error.message);
+    }
+  }
+);
+
 export const resetDriverInvoices = createAsyncThunk(
   "invoice/resetDriverInvoices",
-  async () => {
+  async (_, { dispatch }) => {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.put(
@@ -160,9 +212,16 @@ export const resetDriverInvoices = createAsyncThunk(
           },
         }
       );
+
+      // Immediately fetch the updated invoices
+      await dispatch(fetchInvoices(token));
+
+      // Emit socket event to notify other users
+      socket.emit("invoicesReset", { timestamp: new Date() });
+
       return response.data;
     } catch (error) {
-      throw new Error(error.response.data.message || error.message);
+      throw error;
     }
   }
 );
@@ -353,6 +412,25 @@ const driverInvoiceSlice = createSlice({
         state.status = "failed";
         state.error = action.error.message;
         dispatchToast(i18next.t("updateDriverInvoiceRejected"), "error");
+      });
+    builder
+      .addCase(updateInvoiceDetails.pending, (state) => {
+        state.status = "loading";
+      })
+      .addCase(updateInvoiceDetails.fulfilled, (state, action) => {
+        state.status = "succeeded";
+        const updatedInvoice = action.payload.data.invoice;
+        // Update the invoice in the archivedDriverInvoices array
+        state.archivedDriverInvoices = state.archivedDriverInvoices.map(
+          (invoice) =>
+            invoice._id === updatedInvoice._id ? updatedInvoice : invoice
+        );
+        dispatchToast(i18next.t("updateInvoiceDetailsFulfilled"), "success");
+      })
+      .addCase(updateInvoiceDetails.rejected, (state, action) => {
+        state.status = "failed";
+        state.error = action.error.message;
+        dispatchToast(i18next.t("updateInvoiceDetailsRejected"), "error");
       })
       .addCase(updateEmployeeInvoice.pending, (state) => {
         state.employeeInvoicesStatus = "loading";
@@ -377,13 +455,12 @@ const driverInvoiceSlice = createSlice({
       .addCase(resetDriverInvoices.fulfilled, (state, action) => {
         state.status = "succeeded";
         state.driverInvoices = [];
-        state.error = null;
-        dispatchToast(i18next.t("resetDriverInvoicesFulfilled"), "success");
+        dispatchToast(i18next.t("resetInvoicesFulfilled"), "success");
       })
       .addCase(resetDriverInvoices.rejected, (state, action) => {
         state.status = "failed";
-        state.error = action.error.message;
-        dispatchToast(i18next.t("resetDriverInvoicesRejected"), "error");
+        state.error = action.payload || "Reset failed";
+        dispatchToast(i18next.t("resetInvoicesRejected"), "error");
       })
       .addCase(resetSingleDriverInvoice.pending, (state) => {
         state.status = "loading";
@@ -431,6 +508,18 @@ const driverInvoiceSlice = createSlice({
         state.status = "failed";
         state.error = action.error.message;
         dispatchToast(i18next.t("restoreInvoicesRejected"), "error");
+      });
+    builder
+      .addCase(createArchivedDriverInvoice.pending, (state) => {
+        state.status = "loading";
+      })
+      .addCase(createArchivedDriverInvoice.fulfilled, (state, action) => {
+        state.status = "succeeded";
+        // Handle success if needed
+      })
+      .addCase(createArchivedDriverInvoice.rejected, (state, action) => {
+        state.status = "failed";
+        state.error = action.error.message;
       });
   },
 });

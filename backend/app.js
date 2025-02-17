@@ -14,8 +14,18 @@ const spendTypeRoutes = require("./routes/spendTypeRoutes");
 const companyFilesRoutes = require("./routes/companyFilesRoutes");
 const archiveRoutes = require("./routes/archiveRoutes");
 const path = require("path");
+const http = require("http");
+const { Server } = require("socket.io");
 
 const app = express();
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: {
+    origin: process.env.FRONTEND_URL || "http://localhost:3000",
+    methods: ["GET", "POST"],
+  },
+});
+
 app.use(cors());
 app.use(helmet());
 app.use(express.json());
@@ -45,8 +55,22 @@ app.use("/api/company-files", companyFilesRoutes);
 app.use("/api/archives", archiveRoutes);
 app.use("/api/uploads", express.static(path.join(__dirname, "uploads")));
 
+// Socket.io connection handling
+io.on("connection", (socket) => {
+  console.log("A user connected");
+
+  socket.on("invoicesReset", (data) => {
+    // Broadcast the reset event to all connected clients except sender
+    socket.broadcast.emit("invoicesReset", data);
+  });
+
+  socket.on("disconnect", () => {
+    console.log("User disconnected");
+  });
+});
+
 app.get("/api/health", (req, res) => {
   res.status(200).json({ status: "ok", timestamp: new Date().toISOString() });
 });
 
-module.exports = app;
+module.exports = { app, server };
