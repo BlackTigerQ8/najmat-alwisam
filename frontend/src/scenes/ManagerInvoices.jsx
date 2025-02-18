@@ -99,6 +99,7 @@ const ManagerInvoices = () => {
         additionalSalary: userInvoice.additionalSalary,
         companyDeductionAmount: userInvoice.companyDeductionAmount,
         deductionReason: userInvoice.deductionReason,
+        deductionDate: userInvoice.deductionDate,
         talabatDeductionAmount: 0,
         type: "user",
         ...userInvoice.user,
@@ -158,6 +159,21 @@ const ManagerInvoices = () => {
       field: "companyDeductionAmount",
       headerName: t("companyDeductionAmount"),
       flex: 1,
+    },
+    {
+      field: "deductionDate",
+      headerName: t("deductionDate"),
+      align: "center",
+      headerAlign: "center",
+      flex: 1,
+      valueFormatter: (params) => {
+        if (!params.value) return "";
+        const date = new Date(params.value);
+        const formattedDate = `${date.getDate()}/${
+          date.getMonth() + 1
+        }/${date.getFullYear()}`;
+        return formattedDate;
+      },
     },
     {
       field: "deductionReason",

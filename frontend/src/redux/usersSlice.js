@@ -210,7 +210,24 @@ export const fetchSentMessages = createAsyncThunk(
   async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.get(`${API_URL}/users/messages`, {
+      const response = await axios.get(`${API_URL}/users/messages/sent`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response.data.message || error.message);
+    }
+  }
+);
+
+export const fetchReceivedMessages = createAsyncThunk(
+  "user/fetchReceivedMessages",
+  async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.get(`${API_URL}/users/messages/received`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -337,7 +354,7 @@ const usersSlice = createSlice({
         state.error = action.error.message;
         dispatchToast(i18next.t("sendMessageRejected"), "error");
       });
-    // Fetch Messages
+    // Fetch Sent Messages
     builder
       .addCase(fetchSentMessages.pending, (state) => {
         state.status = "loading";
@@ -347,6 +364,19 @@ const usersSlice = createSlice({
         state.sentMessages = action.payload.data.messages;
       })
       .addCase(fetchSentMessages.rejected, (state, action) => {
+        state.status = "failed";
+        state.error = action.error.message;
+      });
+    // Fetch Received Messages
+    builder
+      .addCase(fetchReceivedMessages.pending, (state) => {
+        state.status = "loading";
+      })
+      .addCase(fetchReceivedMessages.fulfilled, (state, action) => {
+        state.status = "succeeded";
+        state.receivedMessages = action.payload.data.messages;
+      })
+      .addCase(fetchReceivedMessages.rejected, (state, action) => {
         state.status = "failed";
         state.error = action.error.message;
       });

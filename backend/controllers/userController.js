@@ -139,6 +139,50 @@ const updateUser = async (req, res) => {
   }
 };
 
+// @desc    Update user profile image
+// @route   PATCH /api/users/:id/profile-image
+// @access  Private
+const updateProfileImage = async (req, res) => {
+  try {
+    const uploadedFile = req.file;
+    if (!uploadedFile) {
+      return res.status(400).json({
+        status: "Error",
+        message: "No file uploaded",
+      });
+    }
+
+    const user = await User.findByIdAndUpdate(
+      req.params.id,
+      { image: uploadedFile.path },
+      {
+        new: true,
+        runValidators: true,
+      }
+    );
+
+    if (!user) {
+      return res.status(404).json({
+        status: "Error",
+        message: "User not found",
+      });
+    }
+
+    res.status(200).json({
+      status: "Success",
+      file: uploadedFile.path,
+      data: {
+        user,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: "Error",
+      message: error.message,
+    });
+  }
+};
+
 // @desc    Delete user
 // @route   DELETE /api/users/:id
 // @access  Private/Admin
@@ -446,6 +490,7 @@ const createEmployeeDeductionInvoice = async (req, res) => {
       selectedUser: userId,
       deductionReason = "",
       companyDeductionAmount = 0,
+      deductionDate = null,
     } = req.body;
 
     const uploadedFile = req.file;
@@ -485,6 +530,7 @@ const createEmployeeDeductionInvoice = async (req, res) => {
       companyDeductionAmount,
       deductionReason,
       invoiceDate,
+      deductionDate,
       invoiceAddedBy: req.user.id,
       status,
       file: filePath,
@@ -586,13 +632,39 @@ const sendMessage = async (req, res) => {
   }
 };
 
-// @desc    Fetch messages for the currently logged-in user
-// @route   GET /api/messages
+// @desc    Fetch sent messages for the currently logged-in user
+// @route   GET /api/messages/sent
 // @access  Private
-const fetchMessages = async (req, res) => {
+const fetchSentMessages = async (req, res) => {
   try {
-    // Fetch messages from the database where the receiver is the currently logged-in user
-    const messages = await Message.find({ receivers: req.user.id });
+    // Fetch messages where the current user is the sender
+    const messages = await Message.find({
+      sender: req.user.id,
+    }).populate("receivers", "firstName lastName");
+
+    res.status(200).json({
+      status: "Success",
+      data: {
+        messages,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: "Error",
+      message: error.message,
+    });
+  }
+};
+
+// @desc    Fetch received messages for the currently logged-in user
+// @route   GET /api/messages/received
+// @access  Private
+const fetchReceivedMessages = async (req, res) => {
+  try {
+    // Fetch messages where the current user is in the receivers array
+    const messages = await Message.find({
+      receivers: req.user.id,
+    }).populate("sender", "firstName lastName");
 
     res.status(200).json({
       status: "Success",
@@ -689,8 +761,10 @@ module.exports = {
   updateEmployeeSalary,
   createEmployeeDeductionInvoice,
   sendMessage,
-  fetchMessages,
+  fetchSentMessages,
   getAllInvoices,
   updateInvoiceStatus,
   removeProfileImage,
+  fetchReceivedMessages,
+  updateProfileImage,
 };

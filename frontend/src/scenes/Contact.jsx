@@ -37,7 +37,7 @@ const messageSchema = yup.object().shape({
     .required("required"),
   title: yup.string().required("required"),
   message: yup.string().required("required"),
-  file: yup.mixed(),
+  file: yup.mixed().nullable(),
 });
 
 const Contact = () => {
@@ -86,7 +86,11 @@ const Contact = () => {
     setIsSubmitting(true);
     try {
       const formData = new FormData();
-      formData.append("file", values.file);
+
+      if (values.file) {
+        formData.append("file", values.file);
+      }
+
       formData.append("selectedUsers", JSON.stringify(values.selectedUsers));
 
       Object.keys(values).forEach((key) => {

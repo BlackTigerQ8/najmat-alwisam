@@ -27,7 +27,7 @@ router
   .get(protect, getAllDrivers)
   .post(
     protect,
-    restrictTo("Admin", "Manager", "Employee"),
+    restrictTo("Admin", "Manager", "Accountant", "Employee"),
     driverContractUpload.single("uploadedFile"),
     createDriver
   );

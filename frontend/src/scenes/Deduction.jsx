@@ -29,6 +29,10 @@ import { createUserInvoice } from "../redux/userSlice";
 import { useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
+// import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
+// import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+// import { DatePicker } from "@mui/x-date-pickers/DatePicker";
+
 const initialValues = {
   deductionReason: "",
   talabatDeductionAmount: "",
@@ -37,6 +41,7 @@ const initialValues = {
   selectedUser: "",
   file: "",
   uploadedFile: null,
+  deductionDate: null,
 };
 
 const Deduction = () => {
@@ -73,6 +78,7 @@ const Deduction = () => {
         .test("fileType", t("fileTypeMustBePdf"), (value) => {
           return value && value.type === "application/pdf";
         }),
+      // deductionDate: yup.date().required(t("deductionDateRequired")),
     })
     .test({
       name: "selectedFieldsRequired",
@@ -298,7 +304,7 @@ const Deduction = () => {
                 <TextField
                   fullWidth
                   variant="filled"
-                  type=""
+                  type="text"
                   label={t("reasonOfDeduction")}
                   onBlur={handleBlur}
                   onChange={handleChange}
@@ -306,8 +312,23 @@ const Deduction = () => {
                   name="deductionReason"
                   error={!!touched.deductionReason && !!errors.deductionReason}
                   helperText={touched.deductionReason && errors.deductionReason}
-                  sx={{ gridColumn: "span 4" }}
+                  sx={{ gridColumn: "span 2" }}
                 />
+
+                <TextField
+                  fullWidth
+                  variant="filled"
+                  type="date"
+                  label={t("deductionDate")}
+                  onBlur={handleBlur}
+                  onChange={handleChange}
+                  value={values.deductionDate}
+                  name="deductionDate"
+                  error={!!touched.deductionDate && !!errors.deductionDate}
+                  helperText={touched.deductionDate && errors.deductionDate}
+                  sx={{ gridColumn: "span 2" }}
+                />
+
                 <TextField
                   fullWidth
                   variant="filled"

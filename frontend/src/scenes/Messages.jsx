@@ -8,13 +8,18 @@ import {
   Accordion,
   AccordionSummary,
   AccordionDetails,
+  Button,
 } from "@mui/material";
 import Header from "../components/Header";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import SearchIcon from "@mui/icons-material/Search";
 import { tokens } from "../theme";
 import { useSelector, useDispatch } from "react-redux";
-import { fetchSentMessages, fetchUsers } from "../redux/usersSlice";
+import {
+  fetchSentMessages,
+  fetchUsers,
+  fetchReceivedMessages,
+} from "../redux/usersSlice";
 import { pulsar } from "ldrs";
 import { useTranslation } from "react-i18next";
 import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
@@ -27,17 +32,24 @@ const Messages = () => {
   const token = localStorage.getItem("token");
   const users = useSelector((state) => state.users.users);
   const sentMessages = useSelector((state) => state.users.sentMessages);
+  const receivedMessages = useSelector((state) => state.users.receivedMessages);
   const status = useSelector((state) => state.users.status);
   const error = useSelector((state) => state.users.error);
   // const userInfo = useSelector((state) => state.user.userInfo);
   const { t } = useTranslation();
   const REACT_APP_API_URL = process.env.REACT_APP_API_URL;
   const [searchQuery, setSearchQuery] = useState("");
+  const [messageType, setMessageType] = useState("received");
 
   // Filter messages based on search query
-  const filteredMessages = sentMessages?.filter((message) =>
-    message.title.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredMessages =
+    messageType === "sent"
+      ? sentMessages?.filter((message) =>
+          message.title.toLowerCase().includes(searchQuery.toLowerCase())
+        )
+      : receivedMessages?.filter((message) =>
+          message.title.toLowerCase().includes(searchQuery.toLowerCase())
+        );
 
   // const getUserInfo = useCallback(
   //   (userId) => users.find((user) => user._id === userId),
@@ -47,6 +59,7 @@ const Messages = () => {
   useEffect(() => {
     dispatch(fetchUsers(token));
     dispatch(fetchSentMessages());
+    dispatch(fetchReceivedMessages());
   }, [dispatch, token]);
 
   pulsar.register();
@@ -108,6 +121,47 @@ const Messages = () => {
     <Box m="20px">
       <Header title={t("MESSAGES")} subtitle={t("messagesSubtitle")} />
 
+      {/* Message type toggle buttons */}
+      <Box mb="20px" display="flex" gap="10px" justifyContent="flex-end">
+        <Button
+          variant={messageType === "received" ? "contained" : "outlined"}
+          onClick={() => setMessageType("received")}
+          sx={{
+            backgroundColor:
+              messageType === "received"
+                ? colors.greenAccent[600]
+                : "transparent",
+            color:
+              messageType === "received" ? "white" : colors.greenAccent[600],
+            "&:hover": {
+              backgroundColor:
+                messageType === "received"
+                  ? colors.greenAccent[700]
+                  : "transparent",
+            },
+          }}
+        >
+          {t("receivedMessages")}
+        </Button>
+        <Button
+          variant={messageType === "sent" ? "contained" : "outlined"}
+          onClick={() => setMessageType("sent")}
+          sx={{
+            backgroundColor:
+              messageType === "sent" ? colors.greenAccent[600] : "transparent",
+            color: messageType === "sent" ? "white" : colors.greenAccent[600],
+            "&:hover": {
+              backgroundColor:
+                messageType === "sent"
+                  ? colors.greenAccent[700]
+                  : "transparent",
+            },
+          }}
+        >
+          {t("sentMessages")}
+        </Button>
+      </Box>
+
       {/* Search field */}
       <Box mb="20px">
         <TextField
@@ -136,6 +190,7 @@ const Messages = () => {
         />
       </Box>
 
+      {/* Messages display */}
       {filteredMessages && filteredMessages.length > 0 ? (
         [...filteredMessages].reverse().map((message, index) => (
           <Accordion defaultExpanded key={index}>
@@ -166,6 +221,24 @@ const Messages = () => {
 
             <AccordionDetails>
               <Typography>{message.message}</Typography>
+              {/* Show sender for received messages */}
+              {messageType === "received" && message.sender && (
+                <Typography variant="body2" color="textSecondary">
+                  {t("from")}: {message.sender.firstName}{" "}
+                  {message.sender.lastName}
+                </Typography>
+              )}
+              {/* Show receivers for sent messages */}
+              {messageType === "sent" && message.receivers && (
+                <Typography variant="body2" color="textSecondary">
+                  {t("to")}:{" "}
+                  {message.receivers
+                    .map(
+                      (receiver) => `${receiver.firstName} ${receiver.lastName}`
+                    )
+                    .join(", ")}
+                </Typography>
+              )}
               <Typography
                 variant="body2"
                 color="textSecondary"

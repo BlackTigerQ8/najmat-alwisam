@@ -66,7 +66,7 @@ const Notifications = () => {
       translatedDetails.senderRole = t(translatedDetails.senderRole);
     }
 
-    return t(`${type}Heading`, { ...additionalDetails });
+    return t(`deductionRejectHeading`, { ...translatedDetails });
   };
 
   const getNotificationMessage = (notification) => {
@@ -83,7 +83,7 @@ const Notifications = () => {
       translatedDetails.senderRole = t(translatedDetails.senderRole);
     }
 
-    return t(`${type}Message`, { ...additionalDetails });
+    return t(`deductionRejectMessage`, { ...translatedDetails });
   };
   return (
     <Box m="20px">

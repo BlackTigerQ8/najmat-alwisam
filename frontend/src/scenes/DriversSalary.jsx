@@ -228,19 +228,17 @@ const DriversSalary = () => {
   const columns = [
     {
       field: "sequenceNumber",
-      headerName: "NO.",
+      headerName: t("no."),
       flex: 0.2,
       renderCell: (params) => {
         if (params.row._id === "sum-row") {
           return "";
         }
-        // Get the current row's position in the grid
         const currentIndex = rowsWithSum.findIndex(
           (row) => row._id === params.row._id
         );
         return currentIndex + 1;
       },
-      // Disable sorting for sequence column
       sortable: false,
     },
     {

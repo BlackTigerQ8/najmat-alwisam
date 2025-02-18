@@ -61,6 +61,7 @@ import CompanyFiles from "./scenes/CompanyFiles";
 import DeactivatedDrivers from "./scenes/DeactivatedDrivers";
 import ArchiveForm from "./scenes/ArchiveForm";
 import SearchArchive from "./scenes/SearchArchive";
+import SalaryReport from "./scenes/SalaryReport";
 import LandingPage from "./scenes/global/LandingPage";
 
 const lngs = {
@@ -161,6 +162,8 @@ function App() {
     { path: "/archive-form", element: <ArchiveForm /> },
     { path: "/deactivated-drivers", element: <DeactivatedDrivers /> },
     { path: "/searching-archive", element: <SearchArchive /> },
+    { path: "/invoices-archive", element: <InvoicesArchive /> },
+    { path: "/salary-report", element: <SalaryReport /> },
   ];
 
   const employeeRoutes = [

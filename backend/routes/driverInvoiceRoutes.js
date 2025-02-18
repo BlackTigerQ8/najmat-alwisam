@@ -39,6 +39,11 @@ router
     driverInvoicesUpload.single("uploadedFile"),
     createDriverInvoice
   )
+  .put(
+    protect,
+    restrictTo("Admin", "Manager", "Employee", "Accountant"),
+    updateInvoiceDetails
+  )
   .patch(
     protect,
     restrictTo("Admin", "Manager", "Employee", "Accountant"),

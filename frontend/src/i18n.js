@@ -50,6 +50,9 @@ i18n
           deductionForm: "Deduction Form",
           contact: "Contact",
           messages: "Messages",
+          receivedMessages: "Received Messages",
+          sentMessages: "Sent Messages",
+          noSearchResults: "No search results found",
           attachFile: "Attach File",
           noFileAvailable: "No file available",
           viewFile: "View File",
@@ -95,10 +98,19 @@ i18n
           mainSalary: "Main Salary",
           accessLevel: "Access Level",
           actions: "Actions",
-          deductionReject: "Deduction Rejected",
+          deductionReject: {
+            Heading: "Deduction Rejected",
+            Message: "Deduction request has been rejected",
+          },
+          "deductionReject Heading": "Deduct Salary - {{targetName}}",
+          "deductionReject Message":
+            "Deduction request rejected from {{senderName}} on {{date}}",
           deductionApprove: "Deduction Approved",
           Heading: "Heading",
           Message: "Message",
+          deductionRejectHeading: "{{targetName}} Deduction Alert",
+          deductionRejectMessage:
+            "{{senderName}} has rejected deduction request on {{date}}",
           /////////////
           required: "required",
           firstName: "First Name",
@@ -155,6 +167,8 @@ i18n
           companyDeductionAmount: "Company Deduction Amount",
           pettyCashDeductionAmount: "Petty Cash Deduction",
           deductionReason: "Deduction Reason",
+          deductionDate: "Deduction Date",
+          deductionDateRequired: "Deduction date is required",
           preview: "Preview",
           uploadNewFile: "Upload a New File",
           /////////////
@@ -278,6 +292,7 @@ i18n
           companySpendsTitle: "COMPANY EXPENSES",
           companySpendsSubtitle: "Company Expenses Page",
           from: "From",
+          to: "To",
           cashSpends: "Cash Expenses",
           deductedFrom: "Deducted From",
           deductFromUser: "Deduct From User",
@@ -603,6 +618,10 @@ i18n
           invoiceManagementDesc:
             "Efficiently manage and track all delivery invoices, payments, and financial records in one centralized system.",
           uploadExcel: "Upload Excel",
+          createArchivedDriverInvoiceRejected:
+            "Can't add a driver invoice, you can try later!",
+          createArchivedDriverInvoiceFulfilled:
+            "Driver invoice is added successfully!",
           confirmResetInvoices: "Are you sure you want to reset all invoices?",
           confirmResetMessage:
             "This action will reset all invoices and cannot be undone.",
@@ -665,6 +684,12 @@ i18n
           clear: "Clear",
           initialize: "Initialize",
           excelColumnNote: "Excel file must have a 'spendType' column",
+          /////////////////
+          salaryReportTitle: "Salary Report",
+          salaryReportSubtitle: "Salary report for all employees and drivers",
+          bankName: "Bank Name",
+          position: "Position",
+          salary: "Salary",
         },
       },
       ar: {
@@ -704,6 +729,9 @@ i18n
           deductionForm: "نموذج الخصم",
           contact: "التواصل",
           messages: "الرسائل",
+          receivedMessages: "الرسائل المستلمة",
+          sentMessages: "الرسائل المرسلة",
+          noSearchResults: "لا يوجد نتائج للبحث",
           attachFile: "إرفاق ملف",
           noFileAvailable: "لا يوجد ملف مرفوع",
           viewFile: "عرض الملف",
@@ -749,10 +777,20 @@ i18n
           mainSalary: "الراتب الأساسي",
           accessLevel: "مستوى الوصول",
           actions: "الاجراءات",
-          deductionReject: "تم رفض الخصم",
+          deductionReject: {
+            Heading: "تم رفض الخصم",
+            Message: "تم رفض طلب الخصم",
+          },
+          "deductionReject Heading": "خصم راتب - {{targetName}}",
+          "deductionReject Message":
+            "تم رفض طلب الخصم من {{senderName}} في {{date}}",
+
           deductionApprove: "تمت الموافقة على الخصم",
           Heading: "العنوان",
           Message: "الرسالة",
+          deductionRejectHeading: "خصم راتب الموظف - {{targetName}}",
+          deductionRejectMessage:
+            "{{senderName}} تم رفض طلب الخصم المطلوب من قبل {{date}}",
           /////////////
           required: "مطلوب",
           firstName: "الاسم الأول",
@@ -808,6 +846,8 @@ i18n
           companyDeductionAmount: "خصم الشركة",
           pettyCashDeductionAmount: "خصم المصروفات الصغيرة",
           deductionReason: "سبب الخصم",
+          deductionDate: "تاريخ الخصم",
+          deductionDateRequired: "تاريخ الخصم مطلوب",
           preview: "معاينة",
           uploadNewFile: "ارفع ملف جديد",
           /////////////
@@ -928,6 +968,7 @@ i18n
           companySpendsTitle: "مصاريف الشركة",
           companySpendsSubtitle: "صفحة مصاريف الشركة",
           from: "من",
+          to: "إلى",
           cashSpends: "المصاريف النقدية",
           deductedFrom: "مخصومة من",
           deductFromUser: "خصم من الموظف",
@@ -1151,10 +1192,6 @@ i18n
           deductionApproveMessage:
             "{{date}} وافق على طلب الاستقطاع بتاريخ {{senderName}}",
 
-          deductionRejectHeading: "({{targetName}}) تنبيه رفض الخصم",
-          deductionRejectMessage:
-            "{{date}} رفض طلب الاستقطاع بتاريخ {{senderName}}",
-
           deactivationHeading: "({{targetName}}) تنبيه التعطيل",
           deactivationMessage:
             "{{date}} قام بتعطيل السائق بتاريخ {{senderName}}",
@@ -1235,6 +1272,9 @@ i18n
           invoiceManagementDesc:
             "إدارة وتتبع جميع فواتير التوصيل والمدفوعات والسجلات المالية بكفاءة في نظام مركزي واحد.",
           uploadExcel: "Excel تحميل ملف",
+          createArchivedDriverInvoiceRejected:
+            "لا يمكن إضافة فواتير السائق، يمكنك المحاولة لاحقًا",
+          createArchivedDriverInvoiceFulfilled: "تم إضافة فواتير السائق بنجاح",
           confirmResetMessage: "هل أنت متاكد من إعادة تعيين الفواتير؟",
           confirmReset: "تأكيد",
           confirmDeleteMessage: "هل أنت متاكد من حذف هذا الملف؟",
@@ -1288,6 +1328,12 @@ i18n
           clear: "مسح",
           initialize: "تصفير",
           excelColumnNote: "sepndType يجب أن يحتوي الملف على عامود باسم",
+          //////////////////
+          salaryReportTitle: "تقرير الرواتب",
+          salaryReportSubtitle: "تقرير الرواتب لجميع الموظفين والسائقين",
+          bankName: "اسم البنك",
+          position: "المسمى الوظيفي",
+          salary: "الراتب",
         },
       },
     },

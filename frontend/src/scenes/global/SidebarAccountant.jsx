@@ -358,6 +358,14 @@ const SidebarA = () => {
                 setSelected={setSelected}
                 isCollapsed={isCollapsed}
               />
+              <Item
+                title={t("salaryReport")}
+                to="/salary-report"
+                icon={<PaymentsOutlinedIcon />}
+                selected={selected}
+                setSelected={setSelected}
+                isCollapsed={isCollapsed}
+              />
               <Typography
                 variant="h6"
                 color={colors.greenAccent[500]}

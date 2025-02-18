@@ -34,14 +34,17 @@ export const fetchInvoices = createAsyncThunk(
   "invoice/fetchInvoices",
   async (token) => {
     try {
+      console.log("Fetching invoices...");
       const response = await axios.get(`${API_URL}/driver-invoice/invoice`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
+      console.log("Fetched invoices:", response.data);
       return response.data;
     } catch (error) {
-      throw new Error(error.response.data.message || error.message);
+      console.error("Fetch error:", error);
+      throw error;
     }
   }
 );
@@ -515,11 +518,18 @@ const driverInvoiceSlice = createSlice({
       })
       .addCase(createArchivedDriverInvoice.fulfilled, (state, action) => {
         state.status = "succeeded";
-        // Handle success if needed
+        dispatchToast(
+          i18next.t("createArchivedDriverInvoiceFulfilled"),
+          "success"
+        );
       })
       .addCase(createArchivedDriverInvoice.rejected, (state, action) => {
         state.status = "failed";
         state.error = action.error.message;
+        dispatchToast(
+          i18next.t("createArchivedDriverInvoiceRejected"),
+          "error"
+        );
       });
   },
 });

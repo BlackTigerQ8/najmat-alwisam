@@ -13,6 +13,7 @@ const invoiceStatus = [
 
 const employeeInvoice = new mongoose.Schema({
   invoiceDate: { type: Date },
+  deductionDate: { type: Date },
   additionalSalary: { type: Number, default: 0 },
   deductionReason: { type: String, default: "" },
   companyDeductionAmount: { type: Number, default: 0 },

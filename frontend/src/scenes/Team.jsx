@@ -45,16 +45,30 @@ const Team = () => {
   const [openModal, setOpenModal] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const rowsWithSum = [...users];
 
   const columns = [
     {
       field: "sequenceNumber",
-      headerName: "ID",
+      headerName: t("no"),
+      flex: 0.2,
+      renderCell: (params) => {
+        if (params.row._id === "sum-row") {
+          return "";
+        }
+        const currentIndex = rowsWithSum.findIndex(
+          (row) => row._id === params.row._id
+        );
+        return currentIndex + 1;
+      },
+      sortable: false,
     },
     {
       field: "name",
       headerName: t("name"),
-      flex: 0.75,
+      flex: 1,
+      align: "center",
+      headerAlign: "center",
       cellClassName: "name-column--cell",
       renderCell: ({ row: { firstName, lastName } }) => {
         return (
@@ -74,32 +88,40 @@ const Team = () => {
       field: "email",
       headerName: t("email"),
       flex: 1,
+      align: "center",
+      headerAlign: "center",
     },
     {
       field: "phone",
       headerName: t("phone"),
       flex: 1,
+      align: "center",
+      headerAlign: "center",
     },
-    {
-      field: "identification",
-      headerName: t("civilId"),
-      type: Number,
-      headerAlign: "left",
-      align: "left",
-    },
-    {
-      field: "passport",
-      headerName: t("passport"),
-    },
+    // {
+    //   field: "identification",
+    //   headerName: t("civilId"),
+    //   type: Number,
+    //   headerAlign: "left",
+    //   align: "left",
+    // },
+    // {
+    //   field: "passport",
+    //   headerName: t("passport"),
+    // },
     {
       field: "mainSalary",
       headerName: t("mainSalary"),
       type: Number,
+      align: "center",
+      headerAlign: "center",
+      flex: 1,
     },
     {
       field: "role",
       headerName: t("accessLevel"),
       flex: 1,
+      align: "center",
       headerAlign: "center",
       renderCell: ({ row: { role } }) => {
         return (

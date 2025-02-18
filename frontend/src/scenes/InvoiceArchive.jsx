@@ -11,6 +11,7 @@ import {
   IconButton,
   Modal,
   Typography,
+  Backdrop,
 } from "@mui/material";
 import ClearIcon from "@mui/icons-material/Clear";
 import InfoIcon from "@mui/icons-material/Info";
@@ -68,6 +69,7 @@ const Invoices = () => {
     (state) => state.invoice.archivedDriverInvoices || []
   );
 
+  const [isUploading, setIsUploading] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [editRowsModel, setEditRowsModel] = useState({});
   const [selectedDriver, setSelectedDriver] = useState(null);
@@ -590,7 +592,7 @@ const Invoices = () => {
 
   const handleFileUpload = async (event) => {
     try {
-      setIsLoading(true);
+      setIsUploading(true);
       const file = event.target.files[0];
       const reader = new FileReader();
 
@@ -693,13 +695,27 @@ const Invoices = () => {
       console.error("Error uploading excel:", error);
       toast.error(t("excelUploadError"));
     } finally {
-      setIsLoading(false);
+      setIsUploading(false);
       event.target.value = ""; // Reset file input
     }
   };
 
   return (
     <Box m="20px">
+      <Backdrop
+        sx={{
+          color: "#fff",
+          zIndex: (theme) => theme.zIndex.drawer + 1,
+          backgroundColor: "rgba(0, 0, 0, 0.7)",
+        }}
+        open={isUploading}
+      >
+        <l-pulsar
+          size="70"
+          speed="1.75"
+          color={colors.greenAccent[500]}
+        ></l-pulsar>
+      </Backdrop>
       <Header
         title={t("invoicesArchive")}
         subtitle={t("invoicesArchiveSubtitle")}

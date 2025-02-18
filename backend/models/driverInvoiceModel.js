@@ -19,6 +19,7 @@ const driverInvoiceSchema = new mongoose.Schema({
     ref: "Driver",
   },
   invoiceDate: { type: Date },
+  deductionDate: { type: Date },
   mainOrder: { type: Number, default: 0 },
   additionalOrder: { type: Number, default: 0 },
   hour: { type: Number, default: 0 },

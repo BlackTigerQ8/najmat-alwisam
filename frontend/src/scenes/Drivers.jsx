@@ -44,16 +44,31 @@ const Drivers = () => {
   const [driverToDelete, setDriverToDelete] = useState(null);
   const [driverToDeactivate, setDriverToDeactivate] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
+  const rowsWithSum = [...drivers];
   const columns = [
     {
       field: "sequenceNumber",
-      headerName: "NO.",
+      headerName: t("no"),
+      flex: 0.2,
+      align: "center",
+      headerAlign: "center",
+      renderCell: (params) => {
+        if (params.row._id === "sum-row") {
+          return "";
+        }
+        const currentIndex = rowsWithSum.findIndex(
+          (row) => row._id === params.row._id
+        );
+        return currentIndex + 1;
+      },
+      sortable: false,
     },
     {
       field: "name",
       headerName: t("name"),
       flex: 1,
+      align: "center",
+      headerAlign: "center",
       cellClassName: "name-column--cell",
       renderCell: ({ row: { firstName, lastName } }) => {
         return (
@@ -66,21 +81,31 @@ const Drivers = () => {
     {
       field: "phone",
       headerName: t("phone"),
+      flex: 1,
+      headerAlign: "center",
+      align: "center",
     },
     {
       field: "idNumber",
       headerName: t("civilId"),
       type: Number,
-      headerAlign: "left",
-      align: "left",
+      headerAlign: "center",
+      align: "center",
+      flex: 1,
     },
     {
       field: "carPlateNumber",
       headerName: t("carPlateNumber"),
+      flex: 1,
+      align: "center",
+      headerAlign: "center",
     },
     {
       field: "contractType",
       headerName: t("contractType"),
+      flex: 1,
+      align: "center",
+      headerAlign: "center",
     },
     {
       field: "actions",

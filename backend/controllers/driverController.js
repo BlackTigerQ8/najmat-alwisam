@@ -177,6 +177,7 @@ const createDriverInvoice = async (req, res) => {
       deductionReason = "",
       talabatDeductionAmount = 0,
       companyDeductionAmount = 0,
+      deductionDate = null,
     } = req.body;
 
     let status = "visibleToAll";
@@ -230,6 +231,7 @@ const createDriverInvoice = async (req, res) => {
       companyDeductionAmount,
       deductionReason,
       invoiceDate,
+      deductionDate,
       user: req.user.id,
       status,
       file: filePath,
@@ -379,7 +381,7 @@ const getAllInvoices = async (req, res) => {
     console.log("Query date range:", { startOfMonth, endOfMonth });
 
     const driverInvoices = await DriverInvoice.find({
-      status: "visibleToAll", // only fetch invoices with visibleToAll status
+      status: { $in: status },
     })
       .populate("driver")
       .sort({ invoiceDate: -1 });
@@ -403,7 +405,12 @@ const getAllInvoices = async (req, res) => {
 };
 
 const getDriverInvoices = async (
-  status = ["visibleToAll", "approved"],
+  status = [
+    "visibleToAll",
+    "approved",
+    "pendingAdminReview",
+    "pendingManagerReview",
+  ],
   optionalDates
 ) => {
   const { startDate, endDate } = getMonthDateRange();
@@ -419,6 +426,15 @@ const getDriverInvoices = async (
     endDateForFilter.setHours(23, 59, 59, 0);
   }
 
+  // Add a console.log to debug the query
+  console.log("Fetching driver invoices with query:", {
+    status,
+    dateRange: {
+      start: startDateForFilter,
+      end: endDateForFilter,
+    },
+  });
+
   const driverInvoices = await DriverInvoice.find({
     status: { $in: status },
     invoiceDate: {
@@ -427,30 +443,96 @@ const getDriverInvoices = async (
     },
   }).populate("driver");
 
+  // Add a console.log to see what's being returned
+  console.log("Found driver invoices:", driverInvoices.length);
+
   return driverInvoices;
 };
 
 // Salary calculations based on the number of main and additional orders for CAR drivers
 const carDriverSalary = (orders, salaryMainOrders, salaryAdditionalOrders) => {
-  if (orders <= 399) {
+  if (orders < 420) {
     return {
       mainSalary: salaryMainOrders * 0.3,
-      additionalSalary: salaryAdditionalOrders * 0.3,
+      additionalSalary: 0,
     };
-  } else if (orders >= 400 && orders <= 449) {
+  } else if (orders >= 420 && orders <= 449) {
     return {
       mainSalary: 140,
-      additionalSalary: salaryAdditionalOrders * 0.3,
+      additionalSalary: 0,
     };
-  } else if (orders >= 450 && orders <= 599) {
+  } else if (orders >= 450 && orders <= 499) {
     return {
-      mainSalary: salaryMainOrders * 0.45,
-      additionalSalary: salaryAdditionalOrders * 0.3,
+      mainSalary: salaryMainOrders,
+      additionalSalary: salaryAdditionalOrders,
+      totalSalary: (salaryMainOrders + salaryAdditionalOrders) * 0.45,
+    };
+  } else if (orders == 500) {
+    return {
+      mainSalary: salaryMainOrders,
+      additionalSalary: salaryAdditionalOrders,
+      totalSalary: (salaryMainOrders + salaryAdditionalOrders) * 0.45,
+    };
+  } else if (orders > 500 && orders <= 599) {
+    return {
+      mainSalary: salaryMainOrders,
+      additionalSalary: salaryAdditionalOrders,
+      totalSalary: (salaryMainOrders + salaryAdditionalOrders) * 0.5,
     };
   } else if (orders >= 600) {
     return {
-      mainSalary: salaryMainOrders * 0.5,
-      additionalSalary: salaryAdditionalOrders * 0.3,
+      mainSalary: salaryMainOrders,
+      additionalSalary: salaryAdditionalOrders,
+      totalSalary: (salaryMainOrders + salaryAdditionalOrders) * 0.5,
+    };
+  }
+};
+
+// Salary calculations based on the number of main and additional orders for BIKE drivers
+const bikeDriverSalary = (
+  orders = 0,
+  salaryMainOrders = 0,
+  salaryAdditionalOrders = 0
+) => {
+  // Special case for "حاكيكات"
+  if (driverId === "6772c32da62e5d54cb6ea8dc") {
+    if (orders >= 350 && orders <= 500) {
+      return {
+        mainSalary: orders * 0.5,
+        additionalSalary: 0,
+      };
+    } else if (orders > 500) {
+      return {
+        mainSalary: orders * 0.55,
+        additionalSalary: 0,
+      };
+    }
+  }
+
+  if (orders <= 200) {
+    return {
+      mainSalary: 50,
+      additionalSalary: 0,
+    };
+  } else if (orders <= 300) {
+    return {
+      mainSalary: 100,
+      additionalSalary: 0,
+    };
+  } else if (orders >= 300 && orders <= 349) {
+    return {
+      mainSalary: 150,
+      additionalSalary: 0,
+    };
+  } else if (orders >= 350 && orders <= 419) {
+    return {
+      mainSalary: orders * 0.45,
+      additionalSalary: 0,
+    };
+  } else if (orders >= 420) {
+    return {
+      mainSalary: orders * 0.5,
+      additionalSalary: 0,
     };
   }
 };
@@ -484,40 +566,6 @@ const updateInvoiceDetails = async (req, res) => {
       status: "Error",
       message: error.message,
     });
-  }
-};
-
-// Salary calculations based on the number of main and additional orders for BIKE drivers
-const bikeDriverSalary = (
-  orders = 0,
-  salaryMainOrders = 0,
-  salaryAdditionalOrders = 0
-) => {
-  if (orders <= 200) {
-    return {
-      mainSalary: 50,
-      additionalSalary: salaryAdditionalOrders * 0.3,
-    };
-  } else if (orders <= 300) {
-    return {
-      mainSalary: 100,
-      additionalSalary: salaryAdditionalOrders * 0.3,
-    };
-  } else if (orders >= 300 && orders <= 349) {
-    return {
-      mainSalary: 150,
-      additionalSalary: salaryAdditionalOrders * 0.3,
-    };
-  } else if (orders >= 350 && orders <= 419) {
-    return {
-      mainSalary: salaryMainOrders * 0.45,
-      additionalSalary: salaryAdditionalOrders * 0.3,
-    };
-  } else if (orders >= 420) {
-    return {
-      mainSalary: salaryMainOrders * 0.5,
-      additionalSalary: salaryAdditionalOrders * 0.3,
-    };
   }
 };
 
@@ -639,7 +687,8 @@ const getDriverSalaries = async (req, res) => {
           : bikeDriverSalary(
               totalOrders,
               driver.mainOrder,
-              driver.additionalOrder
+              driver.additionalOrder,
+              driver._id.toString()
             );
 
       driver.salaryMainOrders = salaryCalculation.mainSalary;

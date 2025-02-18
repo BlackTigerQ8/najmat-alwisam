@@ -245,4 +245,5 @@ module.exports = {
   companyFilesUpload,
   archiveUpload,
   messageAttachmentsUpload,
+  imageUpload,
 };

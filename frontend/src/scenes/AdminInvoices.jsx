@@ -74,10 +74,17 @@ const AdminInvoices = () => {
       if (
         !driverInvoice.additionalSalary &&
         !driverInvoice.companyDeductionAmount &&
-        !driverInvoice.talabatDeductionAmount
+        !driverInvoice.talabatDeductionAmount &&
+        !driverInvoice.deductionDate
       ) {
+        console.log(
+          "Skipping invoice due to filter conditions:",
+          driverInvoice
+        );
         continue;
       }
+
+      const driverData = driverInvoice.driver || {};
 
       combinedInvoices.push({
         id: driverInvoice._id,
@@ -85,8 +92,9 @@ const AdminInvoices = () => {
         additionalSalary: driverInvoice.additionalSalary,
         companyDeductionAmount: driverInvoice.companyDeductionAmount,
         deductionReason: driverInvoice.deductionReason,
+        deductionDate: driverInvoice.deductionDate,
         talabatDeductionAmount: driverInvoice.talabatDeductionAmount,
-        ...driverInvoice.driver,
+        ...driverData,
         type: "driver",
         file: driverInvoice.file,
       });
@@ -107,6 +115,7 @@ const AdminInvoices = () => {
         sequenceNumber,
         additionalSalary: userInvoice.additionalSalary,
         companyDeductionAmount: userInvoice.companyDeductionAmount,
+        deductionDate: userInvoice.deductionDate,
         deductionReason: userInvoice.deductionReason,
         talabatDeductionAmount: 0,
         type: "user",
@@ -170,6 +179,21 @@ const AdminInvoices = () => {
       field: "companyDeductionAmount",
       headerName: t("companyDeductionAmount"),
       flex: 1,
+    },
+    {
+      field: "deductionDate",
+      headerName: t("deductionDate"),
+      align: "center",
+      headerAlign: "center",
+      flex: 1,
+      valueFormatter: (params) => {
+        if (!params.value) return "";
+        const date = new Date(params.value);
+        const formattedDate = `${date.getDate()}/${
+          date.getMonth() + 1
+        }/${date.getFullYear()}`;
+        return formattedDate;
+      },
     },
     {
       field: "deductionReason",
@@ -320,7 +344,7 @@ const AdminInvoices = () => {
               status: selectedInvoice.status,
             },
           })
-        );
+        ).unwrap(); // Add .unwrap() to properly catch errors
       } else if (selectedInvoice.type === "user") {
         await dispatch(
           updateEmployeeInvoice({
@@ -329,7 +353,7 @@ const AdminInvoices = () => {
               status: selectedInvoice.status,
             },
           })
-        );
+        ).unwrap();
       }
     } catch (error) {
       console.error("Error updating invoice:", error);

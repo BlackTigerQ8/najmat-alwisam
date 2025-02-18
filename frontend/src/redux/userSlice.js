@@ -70,20 +70,26 @@ export const loginUser = createAsyncThunk(
 // Thunk action for profile image upload
 export const profileImage = createAsyncThunk(
   "user/profileImage",
-  async (imageFile) => {
+  async (imageFile, { getState }) => {
     const token = localStorage.getItem("token");
+    const userId = getState().user.userInfo._id;
     const formData = new FormData();
     formData.append("file", imageFile);
+
     try {
-      const response = await axios.post(`${API_URL}/upload/images`, formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await axios.post(
+        `${API_URL}/users/${userId}/profile-image`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
       return response.data;
     } catch (error) {
-      throw new Error(error.response.data.message || error.message);
+      throw new Error(error.response?.data?.message || error.message);
     }
   }
 );

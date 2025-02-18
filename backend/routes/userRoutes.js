@@ -11,16 +11,19 @@ const {
   updateEmployeeSalary,
   createEmployeeDeductionInvoice,
   sendMessage,
-  fetchMessages,
+  fetchSentMessages,
   getAllInvoices,
   updateInvoiceStatus,
   removeProfileImage,
+  fetchReceivedMessages,
+  updateProfileImage,
 } = require("../controllers/userController");
 const { protect, restrictTo } = require("../middleware/authMiddleware");
 const {
   contractUpload,
   userInvoicesUpload,
   messageAttachmentsUpload,
+  imageUpload,
 } = require("./uploadRoutes");
 
 const router = express.Router();
@@ -48,8 +51,10 @@ router
 
 router
   .route("/messages")
-  .post(protect, messageAttachmentsUpload.single("file"), sendMessage)
-  .get(protect, fetchMessages);
+  .post(protect, messageAttachmentsUpload.single("file"), sendMessage);
+
+router.route("/messages/sent").get(protect, fetchSentMessages);
+router.route("/messages/received").get(protect, fetchReceivedMessages);
 
 router.get(
   "/invoices",
@@ -86,7 +91,10 @@ router
   )
   .delete(protect, restrictTo("Admin", "Manager"), deleteUser);
 
-router.delete("/:id/profile-image", protect, removeProfileImage);
+router
+  .route("/:id/profile-image")
+  .delete(protect, removeProfileImage)
+  .post(protect, imageUpload.single("file"), updateProfileImage);
 
 router.post("/logout", protect, logoutUser);
 router.post("/login", loginUser);

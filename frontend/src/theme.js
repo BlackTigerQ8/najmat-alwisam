@@ -198,7 +198,7 @@ export const ColorModeContext = createContext({
 
 export const useMode = () => {
   const prefersDarkMode = window.matchMedia(
-    "(prefers-color-scheme: light)"
+    "(prefers-color-scheme: dark)"
   ).matches;
   const [mode, setMode] = useState(prefersDarkMode ? "dark" : "light");
 
@@ -206,7 +206,7 @@ export const useMode = () => {
   useEffect(() => {
     const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
     const handleChange = (e) => {
-      setMode(e.matches ? "light" : "dark");
+      setMode(e.matches ? "dark" : "light");
     };
 
     mediaQuery.addEventListener("change", handleChange);
