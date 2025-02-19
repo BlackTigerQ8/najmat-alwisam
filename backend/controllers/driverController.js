@@ -492,7 +492,8 @@ const carDriverSalary = (orders, salaryMainOrders, salaryAdditionalOrders) => {
 const bikeDriverSalary = (
   orders = 0,
   salaryMainOrders = 0,
-  salaryAdditionalOrders = 0
+  salaryAdditionalOrders = 0,
+  driverId = null
 ) => {
   // Special case for "حاكيكات"
   if (driverId === "6772c32da62e5d54cb6ea8dc") {

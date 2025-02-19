@@ -10,6 +10,7 @@ import {
   FormControl,
   TextField,
   Input,
+  FormHelperText,
 } from "@mui/material";
 import Header from "../components/Header";
 import { tokens } from "../theme";
@@ -21,6 +22,7 @@ import { updateDriver } from "../redux/driversSlice";
 import { useNavigate, useParams } from "react-router-dom";
 import * as Yup from "yup";
 import { useTranslation } from "react-i18next";
+import { BANK_NAMES, DRIVER_POSITIONS } from "../utils/userConstants";
 
 const DriverProfile = () => {
   const isNonMobile = useMediaQuery("(min-width: 600px)");
@@ -489,6 +491,55 @@ const DriverProfile = () => {
                 }
                 sx={{ gridColumn: "span 2" }}
               />
+              <FormControl
+                fullWidth
+                variant="filled"
+                sx={{ gridColumn: "span 2" }}
+              >
+                <InputLabel htmlFor="bankName">{t("bankName")}</InputLabel>
+                <Select
+                  label={t("bankName")}
+                  value={values.bankName}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  name="bankName"
+                  error={!!touched.bankName && !!errors.bankName}
+                >
+                  {BANK_NAMES.map((pos) => (
+                    <MenuItem key={pos} value={pos}>
+                      {t(pos)}
+                    </MenuItem>
+                  ))}
+                </Select>
+                {touched.bankName && errors.bankName && (
+                  <FormHelperText error>{errors.bankName}</FormHelperText>
+                )}
+              </FormControl>
+
+              <FormControl
+                fullWidth
+                variant="filled"
+                sx={{ gridColumn: "span 2" }}
+              >
+                <InputLabel htmlFor="position">{t("position")}</InputLabel>
+                <Select
+                  label={t("position")}
+                  value={values.position}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  name="position"
+                  error={!!touched.position && !!errors.position}
+                >
+                  {DRIVER_POSITIONS.map((pos) => (
+                    <MenuItem key={pos} value={pos}>
+                      {t(pos)}
+                    </MenuItem>
+                  ))}
+                </Select>
+                {touched.position && errors.position && (
+                  <FormHelperText error>{errors.position}</FormHelperText>
+                )}
+              </FormControl>
               <TextField
                 fullWidth
                 variant="filled"

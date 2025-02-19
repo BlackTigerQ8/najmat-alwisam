@@ -34,13 +34,12 @@ export const fetchInvoices = createAsyncThunk(
   "invoice/fetchInvoices",
   async (token) => {
     try {
-      console.log("Fetching invoices...");
       const response = await axios.get(`${API_URL}/driver-invoice/invoice`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
-      console.log("Fetched invoices:", response.data);
+
       return response.data;
     } catch (error) {
       console.error("Fetch error:", error);

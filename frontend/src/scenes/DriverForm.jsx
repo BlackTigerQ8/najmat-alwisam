@@ -11,6 +11,7 @@ import {
   Typography,
   useTheme,
   Backdrop,
+  FormHelperText,
 } from "@mui/material";
 
 import { ErrorMessage, Formik } from "formik";
@@ -22,6 +23,7 @@ import { registerDriver, checkPhoneExists } from "../redux/driversSlice";
 import { tokens } from "../theme";
 import { pulsar } from "ldrs";
 import { useTranslation } from "react-i18next";
+import { BANK_NAMES, DRIVER_POSITIONS } from "../utils/userConstants";
 
 const formatDate = (date) => {
   const formattedDate = new Date(date);
@@ -43,12 +45,15 @@ const initialValues = {
   contractExpiryDate: "",
   driverLicenseExpiryDate: "",
   carPlateNumber: "",
+  carRegisteration: "",
   carRegisterationExpiryDate: "",
   workPass: "",
   gasCard: 0,
   healthInsuranceExpiryDate: "",
   carType: "",
   iban: "",
+  bankName: "",
+  position: "",
   vehicle: "",
   contractType: "",
   talabatId: "",
@@ -89,6 +94,7 @@ const DriverForm = () => {
       .date()
       .required(t("driverLicenseExpiryDateRequired")),
     carPlateNumber: yup.string().required(t("carPlateNumberRequired")),
+    carRegisteration: yup.string().required(t("carRegisterationRequired")),
     carRegisterationExpiryDate: yup
       .date()
       .required(t("carRegisterationExpiryDateRequired")),
@@ -102,6 +108,8 @@ const DriverForm = () => {
       .string()
       .required(t("employeeCompanyNumberRequired")),
     iban: yup.string().required(t("ibanRequired")),
+    bankName: yup.string().required(t("bankNameRequired")),
+    position: yup.string().required(t("positionRequired")),
     vehicle: yup.string().required(t("vehicleRequired")),
     contractType: yup.string().required(t("contractTypeRequired")),
     talabatId: yup.string().required(t("talabatIdRequired")),
@@ -354,6 +362,19 @@ const DriverForm = () => {
               <TextField
                 fullWidth
                 variant="filled"
+                type="text"
+                label={t("carRegisteration")}
+                onBlur={handleBlur}
+                onChange={handleChange}
+                value={values.carRegisteration}
+                name="carRegisteration"
+                error={!!touched.carRegisteration && !!errors.carRegisteration}
+                helperText={touched.carRegisteration && errors.carRegisteration}
+                sx={{ gridColumn: "span 2" }}
+              />
+              <TextField
+                fullWidth
+                variant="filled"
                 type="date"
                 label={t("carRegisterationExpiryDate")}
                 onBlur={handleBlur}
@@ -472,6 +493,56 @@ const DriverForm = () => {
                 helperText={touched.iban && errors.iban}
                 sx={{ gridColumn: "span 2" }}
               />
+              <FormControl
+                fullWidth
+                variant="filled"
+                sx={{ gridColumn: "span 2" }}
+              >
+                <InputLabel htmlFor="bankName">{t("bankName")}</InputLabel>
+                <Select
+                  label={t("bankName")}
+                  value={values.bankName}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  name="bankName"
+                  error={!!touched.bankName && !!errors.bankName}
+                >
+                  {BANK_NAMES.map((pos) => (
+                    <MenuItem key={pos} value={pos}>
+                      {t(pos)}
+                    </MenuItem>
+                  ))}
+                </Select>
+                {touched.bankName && errors.bankName && (
+                  <FormHelperText error>{errors.bankName}</FormHelperText>
+                )}
+              </FormControl>
+
+              <FormControl
+                fullWidth
+                variant="filled"
+                sx={{ gridColumn: "span 2" }}
+              >
+                <InputLabel htmlFor="position">{t("position")}</InputLabel>
+                <Select
+                  label={t("position")}
+                  value={values.position}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  name="position"
+                  error={!!touched.position && !!errors.position}
+                >
+                  {DRIVER_POSITIONS.map((pos) => (
+                    <MenuItem key={pos} value={pos}>
+                      {t(pos)}
+                    </MenuItem>
+                  ))}
+                </Select>
+                {touched.position && errors.position && (
+                  <FormHelperText error>{errors.position}</FormHelperText>
+                )}
+              </FormControl>
+
               <TextField
                 fullWidth
                 variant="filled"

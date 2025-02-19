@@ -26,6 +26,7 @@ const SalaryReport = () => {
   const colors = tokens(theme.palette.mode);
   const dispatch = useDispatch();
   const { t } = useTranslation();
+  const componentRef = useRef();
 
   const {
     status: driversStatus,
@@ -37,17 +38,29 @@ const SalaryReport = () => {
     users,
     error: usersError,
   } = useSelector((state) => state.users);
+  const filteredUsers = users.filter((user) => user.role !== "Admin");
 
   const driversAndUsers = useMemo(() => {
-    if (!drivers || !users) return [];
-    return [...drivers, ...users];
-  }, [drivers, users]);
+    if (!drivers || !filteredUsers) return [];
+    return [...drivers, ...filteredUsers];
+  }, [drivers, filteredUsers]);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
     dispatch(fetchDrivers(token));
     dispatch(fetchUsers(token));
   }, [dispatch]);
+
+  const handlePrint = useReactToPrint({
+    content: () => componentRef.current,
+    documentTitle: "Salary Report",
+  });
+
+  const totalSalary = useMemo(() => {
+    return driversAndUsers.reduce((total, employee) => {
+      return total + Number(employee.mainSalary || 0);
+    }, 0);
+  }, [driversAndUsers]);
 
   const columns = useMemo(
     () => [
@@ -97,6 +110,9 @@ const SalaryReport = () => {
         flex: 1,
         align: "center",
         headerAlign: "center",
+        renderCell: (params) => {
+          return t(params.value);
+        },
       },
       {
         field: "position",
@@ -104,18 +120,13 @@ const SalaryReport = () => {
         flex: 1,
         align: "center",
         headerAlign: "center",
+        renderCell: (params) => {
+          return t(params.value);
+        },
       },
     ],
     [t]
   );
-
-  const isNonMobile = useMediaQuery("(min-width: 600px)");
-
-  const [modalOpen, setModalOpen] = useState(false);
-  const [selectedSpendType, setSelectedSpendType] = useState(null);
-  const [isSearchActive, setIsSearchActive] = useState(false);
-
-  const token = localStorage.getItem("token");
 
   pulsar.register();
   if (driversStatus === "loading" || usersStatus === "loading") {
@@ -155,10 +166,22 @@ const SalaryReport = () => {
 
   return (
     <Box m="20px">
-      <Header
-        title={t("salaryReportTitle")}
-        subtitle={t("salaryReportSubtitle")}
-      />
+      <Box display="flex" justifyContent="space-between" alignItems="center">
+        <Header
+          title={t("salaryReportTitle")}
+          subtitle={t("salaryReportSubtitle")}
+        />
+        <Button
+          variant="contained"
+          onClick={handlePrint}
+          sx={{
+            backgroundColor: colors.blueAccent[600],
+            "&:hover": { backgroundColor: colors.blueAccent[500] },
+          }}
+        >
+          {t("print")}
+        </Button>
+      </Box>
       <Box
         mt="40px"
         height="75vh"
@@ -189,6 +212,48 @@ const SalaryReport = () => {
           rows={Array.isArray(driversAndUsers) ? driversAndUsers : []}
           columns={columns}
           getRowId={(row) => row._id}
+        />
+
+        {/* Summary section */}
+        <Box mt="20px" className={styles.notes}>
+          <Box
+            mt={4}
+            p={3}
+            bgcolor={colors.primary[400]}
+            borderRadius="4px"
+            display="flex"
+            justifyContent="center"
+            alignItems="center"
+          >
+            <Box
+              display="flex"
+              flexDirection="column"
+              alignItems="center"
+              justifyContent="center"
+              textAlign="center"
+              padding="20px"
+              borderRadius="8px"
+              width="50%"
+            >
+              <Typography variant="h6" color={colors.greenAccent[500]}>
+                {t("totalMonthlySalary")}
+              </Typography>
+              <Typography variant="h4">
+                {(totalSalary || 0).toFixed(3)} {t("kd")}
+              </Typography>
+            </Box>
+          </Box>
+        </Box>
+
+        {/* PrintableTable component */}
+        <PrintableTable
+          rows={driversAndUsers}
+          columns={columns}
+          ref={componentRef}
+          orientation="portrait"
+          summary={{
+            totalSalary,
+          }}
         />
       </Box>
     </Box>

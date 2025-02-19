@@ -66,7 +66,8 @@ const Notifications = () => {
       translatedDetails.senderRole = t(translatedDetails.senderRole);
     }
 
-    return t(`deductionRejectHeading`, { ...translatedDetails });
+    // Use the dynamic type to get the correct translation key
+    return t(`${type}Heading`, { ...translatedDetails });
   };
 
   const getNotificationMessage = (notification) => {
@@ -83,7 +84,7 @@ const Notifications = () => {
       translatedDetails.senderRole = t(translatedDetails.senderRole);
     }
 
-    return t(`deductionRejectMessage`, { ...translatedDetails });
+    return t(`${type}Message`, { ...translatedDetails });
   };
   return (
     <Box m="20px">

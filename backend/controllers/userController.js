@@ -7,12 +7,20 @@ const Notification = require("../models/notificationModel");
 const { getMonthDateRange } = require("../utils/date");
 const { uniq } = require("lodash");
 
+// Utility function for sanitizing user data
+const sanitizeUserData = (user) => {
+  if (!user) return null;
+  const userData = user.toObject();
+  delete userData.password;
+  return userData;
+};
+
 // @desc    Get all users
 // @route   GET /api/users
 // @access  Private/Admin
 const getAllUsers = async (req, res) => {
   try {
-    const users = await User.find();
+    const users = await User.find({}, { password: 0 });
     res.status(200).json({
       status: "Success",
       data: {
@@ -32,7 +40,15 @@ const getAllUsers = async (req, res) => {
 // @access  Private
 const getUser = async (req, res) => {
   try {
-    const user = await User.findById(req.params.id);
+    // Validate ID format
+    if (!req.params.id.match(/^[0-9a-fA-F]{24}$/)) {
+      return res.status(400).json({
+        status: "Error",
+        message: "Invalid user ID format",
+      });
+    }
+
+    const user = await User.findById(req.params.id).select("-password");
 
     // Check if the user exists
     if (!user) {
@@ -75,7 +91,25 @@ const createUser = async (req, res) => {
     const uploadedFile = req.file;
     const filePath = uploadedFile ? uploadedFile.path : null;
 
-    const newUser = await User.create({ ...req.body, file: filePath });
+    const userData = {
+      firstName: req.body.firstName,
+      lastName: req.body.lastName,
+      email: req.body.email,
+      phone: req.body.phone,
+      identification: req.body.identification,
+      passport: req.body.passport,
+      contractExpiryDate: req.body.contractExpiryDate,
+      iban: req.body.iban,
+      bankName: req.body.bankName,
+      position: req.body.position,
+      role: req.body.role,
+      mainSalary: req.body.mainSalary,
+      password: req.body.password,
+      confirmPassword: req.body.confirmPassword,
+      file: filePath,
+    };
+
+    const newUser = await User.create(userData);
     res.status(201).json({
       status: "Success",
       data: {
@@ -95,7 +129,15 @@ const createUser = async (req, res) => {
 // @access  Private
 const updateUser = async (req, res) => {
   try {
-    // Check if the user is accessing their own data or is an admin
+    // Validate ID format
+    if (!req.params.id.match(/^[0-9a-fA-F]{24}$/)) {
+      return res.status(400).json({
+        status: "Error",
+        message: "Invalid user ID format",
+      });
+    }
+
+    // Check authorization
     if (
       req.user.id !== req.params.id &&
       req.user.role !== "Admin" &&
@@ -103,15 +145,43 @@ const updateUser = async (req, res) => {
     ) {
       return res.status(403).json({
         status: "Error",
-        message: "You do not have permission to perform this action",
+        message: "Not authorized to update this user",
       });
     }
 
     const uploadedFile = req.file;
     const filePath = uploadedFile ? uploadedFile.path : null;
 
+    // Sanitize and validate update data
+    const updateData = {
+      firstName: req.body.firstName?.trim(),
+      lastName: req.body.lastName?.trim(),
+      email: req.body.email?.toLowerCase().trim(),
+      phone: req.body.phone?.toString().trim(),
+      identification: req.body.identification
+        ?.toString()
+        .replace(/[^0-9]/g, ""),
+      passport: req.body.passport?.trim(),
+      contractExpiryDate: req.body.contractExpiryDate
+        ? new Date(req.body.contractExpiryDate)
+        : undefined,
+      iban: req.body.iban?.trim().replace(/\s/g, ""),
+      bankName: req.body.bankName?.trim(),
+      position: req.body.position?.trim(),
+      role: req.body.role?.trim(),
+      mainSalary: req.body.mainSalary
+        ? parseFloat(req.body.mainSalary)
+        : undefined,
+      file: filePath ?? req.body.file,
+    };
+
+    // Remove undefined fields
+    Object.keys(updateData).forEach(
+      (key) => updateData[key] === undefined && delete updateData[key]
+    );
+
     // Prepare the updated data
-    const updateData = { ...req.body, file: filePath ?? req.body.file };
+    // const updateData = { ...req.body, file: filePath ?? req.body.file };
 
     // Check if password is included in the request body and hash it
     if (req.body.password) {
@@ -120,10 +190,29 @@ const updateUser = async (req, res) => {
       updateData.password = hashedPassword;
     }
 
+    // Validate role if being updated
+    if (updateData.role) {
+      const validRoles = ["Admin", "Manager", "Employee", "Accountant"];
+      if (!validRoles.includes(updateData.role)) {
+        return res.status(400).json({
+          status: "Error",
+          message: "Invalid role specified",
+        });
+      }
+    }
+
     const user = await User.findByIdAndUpdate(req.params.id, updateData, {
       new: true,
       runValidators: true,
+      select: "-password",
     });
+
+    if (!user) {
+      return res.status(404).json({
+        status: "Error",
+        message: "User not found",
+      });
+    }
 
     res.status(200).json({
       status: "Success",
@@ -270,13 +359,25 @@ const loginUser = async (req, res) => {
 // @route   POST /api/users/logout
 // @access  Public
 const logoutUser = (req, res) => {
-  res.cookie("jwt", "", {
-    httpOnly: true,
-    expires: new Date(0),
-  });
-  res
-    .status(200)
-    .json({ status: "Success", message: "Logged out successfully" });
+  try {
+    res.cookie("jwt", "", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      expires: new Date(0),
+      sameSite: "strict",
+    });
+
+    res.status(200).json({
+      status: "Success",
+      message: "Logged out successfully",
+    });
+  } catch (error) {
+    console.error("Logout error:", error);
+    res.status(500).json({
+      status: "Error",
+      message: "Logout failed",
+    });
+  }
 };
 
 const getAllInvoices = async (req, res) => {

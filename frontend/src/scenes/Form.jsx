@@ -11,6 +11,7 @@ import {
   Typography,
   useTheme,
   Backdrop,
+  FormHelperText,
 } from "@mui/material";
 
 import { ErrorMessage, Formik } from "formik";
@@ -30,6 +31,7 @@ import { useNavigate } from "react-router-dom";
 import { tokens } from "../theme";
 import { pulsar } from "ldrs";
 import { useTranslation } from "react-i18next";
+import { USER_POSITIONS, USER_ROLES } from "../utils/userConstants";
 
 const initialValues = {
   firstName: "",
@@ -39,45 +41,15 @@ const initialValues = {
   identification: "",
   passport: "",
   contractExpiryDate: "",
+  iban: "",
+  bankName: "",
+  position: "",
   role: "",
   uploadedFile: "",
   password: "",
   confirmPassword: "",
   mainSalary: "",
 };
-
-const phoneRegExp =
-  /^((\+[1-9]{1,4}[ -]?)|(\([0-9]{2,3}\)[ -]?)|([0-9]{2,4})[ -]?)*?[0-9]{3,4}[ -]?[0-9]{3,4}$/;
-
-// const userSchema = yup.object().shape({
-//   firstName: yup.string().required("required"),
-//   lastName: yup.string().required("required"),
-//   email: yup.string().email("Invalid email!"),
-//   phone: yup
-//     .string()
-//     .matches(phoneRegExp, "Phone number is not valid!")
-//     .required("required"),
-//   identification: yup.string().required("required"),
-//   passport: yup.string().required("required"),
-//   contractExpiryDate: yup.string().required("required"),
-//   role: yup.string().required("required"),
-//   mainSalary: yup.number().required("required"),
-//   password: yup
-//     .string()
-//     .min(6, "Password must be at least 6 characters")
-//     .required("Password is required"),
-//   confirmPassword: yup
-//     .string()
-//     .oneOf([yup.ref("password"), null], "Passwords must match")
-//     .required("Confirm Password is required"),
-//   uploadedFile: yup
-//     .mixed()
-//     .required("required")
-//     .test("fileType", "Only PDF files are allowed", (value) => {
-//       if (!value) return true;
-//       return value && value.type === "application/pdf";
-//     }),
-// });
 
 const Form = () => {
   const isNonMobile = useMediaQuery("(min-width: 600px)");
@@ -96,6 +68,9 @@ const Form = () => {
     const storedUserRole = localStorage.getItem("userRole", userRole);
     // const savedUser = JSON.parse(localStorage.getItem("userInfo"));
   }, []);
+
+  // const phoneRegExp =
+  //   /^((\+[1-9]{1,4}[ -]?)|(\([0-9]{2,3}\)[ -]?)|([0-9]{2,4})[ -]?)*?[0-9]{3,4}[ -]?[0-9]{3,4}$/;
 
   const validationSchema = yup.object().shape({
     firstName: yup.string().required(t("required")),
@@ -133,9 +108,18 @@ const Form = () => {
         const result = await dispatch(checkPassportExists(value));
         return !result.payload;
       }),
-    role: yup.string().required(t("required")),
+    role: yup
+      .string()
+      .oneOf(USER_ROLES, t("invalidRole"))
+      .required(t("roleRequired")),
     mainSalary: yup.number().required(t("required")),
     contractExpiryDate: yup.date().required(t("required")),
+    iban: yup.string().required(t("required")),
+    bankName: yup.string().required(t("required")),
+    position: yup
+      .string()
+      .oneOf(USER_POSITIONS, t("invalidPosition"))
+      .required(t("positionRequired")),
     password: yup
       .string()
       .required(t("required"))
@@ -342,30 +326,55 @@ const Form = () => {
                 }
                 sx={{ gridColumn: "span 2" }}
               />
-              <FormControl fullWidth sx={{ gridColumn: "span 2" }}>
-                <InputLabel shrink htmlFor="uploadedFile">
-                  {t("uploadFile")}
-                </InputLabel>
-                <Input
-                  id="uploadedFile"
-                  type="file"
-                  name={values.firstName + values.lastName}
+              <TextField
+                fullWidth
+                variant="filled"
+                type="text"
+                label={t("iban")}
+                onBlur={handleBlur}
+                onChange={handleChange}
+                value={values.iban}
+                name="iban"
+                error={!!touched.iban && !!errors.iban}
+                helperText={touched.iban && errors.iban}
+                sx={{ gridColumn: "span 2" }}
+              />
+              <TextField
+                fullWidth
+                variant="filled"
+                type="text"
+                label={t("bankName")}
+                onBlur={handleBlur}
+                onChange={handleChange}
+                value={values.bankName}
+                name="bankName"
+                error={!!touched.bankName && !!errors.bankName}
+                helperText={touched.bankName && errors.bankName}
+                sx={{ gridColumn: "span 2" }}
+              />
+              <FormControl
+                fullWidth
+                variant="filled"
+                sx={{ gridColumn: "span 2" }}
+              >
+                <InputLabel htmlFor="position">{t("position")}</InputLabel>
+                <Select
+                  label={t("position")}
+                  value={values.position}
+                  onChange={handleChange}
                   onBlur={handleBlur}
-                  onChange={(event) => {
-                    // Setting file to Formik state
-                    setFieldValue("uploadedFile", event.currentTarget.files[0]);
-                  }}
-                  error={!!touched.uploadedFile && !!errors.uploadedFile}
-                  helperText={touched.uploadedFile && errors.uploadedFile}
-                />
-                <ErrorMessage
-                  name="uploadedFile"
-                  render={(msg) => (
-                    <Typography variant="caption" color="error">
-                      {msg}
-                    </Typography>
-                  )}
-                />
+                  name="position"
+                  error={!!touched.position && !!errors.position}
+                >
+                  {USER_POSITIONS.map((pos) => (
+                    <MenuItem key={pos} value={pos}>
+                      {t(pos)}
+                    </MenuItem>
+                  ))}
+                </Select>
+                {touched.position && errors.position && (
+                  <FormHelperText error>{errors.position}</FormHelperText>
+                )}
               </FormControl>
 
               <FormControl
@@ -375,7 +384,7 @@ const Form = () => {
               >
                 <InputLabel htmlFor="role">{t("role")}</InputLabel>
                 <Select
-                  label="Role"
+                  label={t("role")}
                   value={values.role}
                   onChange={handleChange}
                   onBlur={handleBlur}
@@ -419,6 +428,32 @@ const Form = () => {
                 helperText={touched.confirmPassword && errors.confirmPassword}
                 sx={{ gridColumn: "span 2" }}
               />
+
+              <FormControl fullWidth sx={{ gridColumn: "span 2" }}>
+                <InputLabel shrink htmlFor="uploadedFile">
+                  {t("uploadFile")}
+                </InputLabel>
+                <Input
+                  id="uploadedFile"
+                  type="file"
+                  name={values.firstName + values.lastName}
+                  onBlur={handleBlur}
+                  onChange={(event) => {
+                    // Setting file to Formik state
+                    setFieldValue("uploadedFile", event.currentTarget.files[0]);
+                  }}
+                  error={!!touched.uploadedFile && !!errors.uploadedFile}
+                  helperText={touched.uploadedFile && errors.uploadedFile}
+                />
+                <ErrorMessage
+                  name="uploadedFile"
+                  render={(msg) => (
+                    <Typography variant="caption" color="error">
+                      {msg}
+                    </Typography>
+                  )}
+                />
+              </FormControl>
             </Box>
             <Box display="flex" justifyContent="end" mt="20px">
               <Button type="submit" color="secondary" variant="contained">

@@ -80,6 +80,14 @@ const driverSchema = new mongoose.Schema({
     type: String,
     required: [true, "IBAN is required"],
   },
+  bankName: {
+    type: String,
+    required: [true, "Bank name is required"],
+  },
+  position: {
+    type: String,
+    required: [true, "Position is required"],
+  },
   vehicle: {
     type: String,
     enum: ["Car", "Bike"],

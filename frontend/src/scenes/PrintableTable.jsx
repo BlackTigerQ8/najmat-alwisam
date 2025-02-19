@@ -103,8 +103,15 @@ const PrintableTable = forwardRef(
     };
 
     if (page === "bankStatement") {
+      // Filter rows to only include existing accounts
+      const validRows = rows.filter((row) =>
+        availableAccounts?.some(
+          (account) => account.accountNumber === row.bankAccountNumber
+        )
+      );
+
       // Group rows by bank account
-      const accountGroups = rows.reduce((groups, row) => {
+      const accountGroups = validRows.reduce((groups, row) => {
         const accountNumber = row.bankAccountNumber;
         if (!groups[accountNumber]) {
           groups[accountNumber] = [];
@@ -120,15 +127,17 @@ const PrintableTable = forwardRef(
             orientation === "landscape" ? styles.printLandscape : ""
           }`}
         >
-          {/* Map through all accounts and create a section for each */}
+          {/* Map through only available accounts */}
           {Object.entries(accountGroups).map(([accountNumber, accountRows]) => {
             // Find account name from available accounts
             const account = availableAccounts?.find(
               (acc) => acc.accountNumber === Number(accountNumber)
             );
-            const accountName = account
-              ? t(account.accountName)
-              : accountNumber;
+
+            // Skip if account doesn't exist
+            if (!account) return null;
+
+            const accountName = t(account.accountName);
 
             // Calculate account totals
             const accountTotals = {
@@ -267,171 +276,186 @@ const PrintableTable = forwardRef(
         </table>
 
         {/* Summary Section */}
-        {summary && (
-          <div className={styles.summary}>
-            <div className={styles.summaryBox}>
-              {/* For CoSpends main summary */}
-              {page === "coSpends" && (
-                <>
-                  <div className={styles.summaryItem}>
-                    <span>{t("totalAmountOnWorkers")}: </span>
-                    <strong>
-                      {summary.totalAmountOnWorker}
-                      <span> {t("kd")} </span>
-                    </strong>
-                  </div>
-                  <div className={styles.summaryItem}>
-                    <span>{t("totalAmountOnCompany")}: </span>
-                    <strong>
-                      {summary.totalAmountOnCompany}
-                      <span> {t("kd")} </span>
-                    </strong>
-                  </div>
-                  <div className={styles.summaryItem}>
-                    <span>{t("totalSpends")}: </span>
-                    <strong>
-                      {summary.totalSpends}
-                      <span> {t("kd")} </span>
-                    </strong>
-                  </div>
-                </>
-              )}
+        <div className={styles.bottomSection}>
+          {summary && (
+            <div className={styles.summary}>
+              <div className={styles.summaryBox}>
+                {/* Add Salary Report summary section */}
+                {summary.totalSalary !== undefined && (
+                  <>
+                    <div className={styles.summaryItem}>
+                      <span>{t("totalSalary")}: </span>
+                      <strong>
+                        {Number(summary.totalSalary || 0).toFixed(3)}
+                        <span> {t("kd")} </span>
+                      </strong>
+                    </div>
+                  </>
+                )}
 
-              {/* For CoSpends details */}
-              {page === "coSpendsDetails" && (
-                <>
-                  <div className={styles.summaryItem}>
-                    <span>{t("spendType")}: </span>
-                    <strong>{summary.spendTypeName}</strong>
-                  </div>
-                  <div className={styles.summaryItem}>
-                    <span>{t("totalAmount")}: </span>
-                    <strong>
-                      {summary.totalAmount}
-                      <span> {t("kd")} </span>
-                    </strong>
-                  </div>
-                </>
-              )}
+                {/* For CoSpends main summary */}
+                {page === "coSpends" && (
+                  <>
+                    <div className={styles.summaryItem}>
+                      <span>{t("totalAmountOnWorkers")}: </span>
+                      <strong>
+                        {summary.totalAmountOnWorker}
+                        <span> {t("kd")} </span>
+                      </strong>
+                    </div>
+                    <div className={styles.summaryItem}>
+                      <span>{t("totalAmountOnCompany")}: </span>
+                      <strong>
+                        {summary.totalAmountOnCompany}
+                        <span> {t("kd")} </span>
+                      </strong>
+                    </div>
+                    <div className={styles.summaryItem}>
+                      <span>{t("totalSpends")}: </span>
+                      <strong>
+                        {summary.totalSpends}
+                        <span> {t("kd")} </span>
+                      </strong>
+                    </div>
+                  </>
+                )}
 
-              {/* For BankStatement page */}
-              {page === "bankStatement" && (
-                <>
-                  <div className={styles.summaryItem}>
-                    <span>{t("totalWithdrawals")}: </span>
-                    <strong>
-                      {summary.totalSpends}
-                      <span> {t("kd")} </span>
-                    </strong>
-                  </div>
-                  <div className={styles.summaryItem}>
-                    <span>{t("totalDeposits")}: </span>
-                    <strong>
-                      {summary.totalDeposits}
-                      <span> {t("kd")} </span>
-                    </strong>
-                  </div>
-                  <div className={styles.summaryItem}>
-                    <span>{t("currentBalance")}: </span>
-                    <strong>
-                      {summary.totalBalance}
-                      <span> {t("kd")} </span>
-                    </strong>
-                  </div>
-                </>
-              )}
+                {/* For CoSpends details */}
+                {page === "coSpendsDetails" && (
+                  <>
+                    <div className={styles.summaryItem}>
+                      <span>{t("spendType")}: </span>
+                      <strong>{summary.spendTypeName}</strong>
+                    </div>
+                    <div className={styles.summaryItem}>
+                      <span>{t("totalAmount")}: </span>
+                      <strong>
+                        {summary.totalAmount}
+                        <span> {t("kd")} </span>
+                      </strong>
+                    </div>
+                  </>
+                )}
 
-              {/* For PettyCash page */}
-              {page === "pettyCash" && (
-                <>
-                  <div className={styles.summaryItem}>
-                    <span>{t("totalAmountOnWorkers")}: </span>
-                    <strong>
-                      {summary.totalAmountOnWorker}
-                      <span> {t("kd")} </span>
-                    </strong>
-                  </div>
-                  <div className={styles.summaryItem}>
-                    <span>{t("totalAmountOnCompany")}: </span>
-                    <strong>
-                      {summary.totalAmountOnCompany}
-                      <span> {t("kd")} </span>
-                    </strong>
-                  </div>
-                  <div className={styles.summaryItem}>
-                    <span>{t("totalSpends")}: </span>
-                    <strong>
-                      {summary.totalSpends}
-                      <span> {t("kd")} </span>
-                    </strong>
-                  </div>
-                </>
-              )}
-              {/* For EmployeesSalary page */}
-              {summary.netEmployeesSalaries !== undefined && (
-                <div className={styles.summaryItem}>
-                  <span>{t("employeesTotalNetSalary")}: </span>
-                  <strong>
-                    {summary.netEmployeesSalaries}
-                    <span> {t("kd")} </span>
-                  </strong>
-                </div>
-              )}
+                {/* For BankStatement page */}
+                {page === "bankStatement" && (
+                  <>
+                    <div className={styles.summaryItem}>
+                      <span>{t("totalWithdrawals")}: </span>
+                      <strong>
+                        {summary.totalSpends}
+                        <span> {t("kd")} </span>
+                      </strong>
+                    </div>
+                    <div className={styles.summaryItem}>
+                      <span>{t("totalDeposits")}: </span>
+                      <strong>
+                        {summary.totalDeposits}
+                        <span> {t("kd")} </span>
+                      </strong>
+                    </div>
+                    <div className={styles.summaryItem}>
+                      <span>{t("currentBalance")}: </span>
+                      <strong>
+                        {summary.totalBalance}
+                        <span> {t("kd")} </span>
+                      </strong>
+                    </div>
+                  </>
+                )}
 
-              {/* For DriversSalary page */}
-              {summary.totalMonthlySalary !== undefined && (
-                <>
+                {/* For PettyCash page */}
+                {page === "pettyCash" && (
+                  <>
+                    <div className={styles.summaryItem}>
+                      <span>{t("totalAmountOnWorkers")}: </span>
+                      <strong>
+                        {summary.totalAmountOnWorker}
+                        <span> {t("kd")} </span>
+                      </strong>
+                    </div>
+                    <div className={styles.summaryItem}>
+                      <span>{t("totalAmountOnCompany")}: </span>
+                      <strong>
+                        {summary.totalAmountOnCompany}
+                        <span> {t("kd")} </span>
+                      </strong>
+                    </div>
+                    <div className={styles.summaryItem}>
+                      <span>{t("totalSpends")}: </span>
+                      <strong>
+                        {summary.totalSpends}
+                        <span> {t("kd")} </span>
+                      </strong>
+                    </div>
+                  </>
+                )}
+                {/* For EmployeesSalary page */}
+                {summary.netEmployeesSalaries !== undefined && (
                   <div className={styles.summaryItem}>
-                    <span>{t("carDriversTotalNetSalary")}: </span>
+                    <span>{t("employeesTotalNetSalary")}: </span>
                     <strong>
-                      {summary.netCarDriversSalary.toFixed(3)}
+                      {summary.netEmployeesSalaries}
                       <span> {t("kd")} </span>
                     </strong>
                   </div>
-                  <div className={styles.summaryItem}>
-                    <span>{t("bikeDriversTotalNetSalary")}: </span>
-                    <strong>
-                      {summary.netBikeDriversSalary.toFixed(3)}
-                      <span> {t("kd")} </span>
-                    </strong>
-                  </div>
-                  <div className={styles.summaryItem}>
-                    <span>{t("totalMonthlySalary")}: </span>
-                    <strong>
-                      {summary.totalMonthlySalary.toFixed(3)}
-                      <span> {t("kd")} </span>
-                    </strong>
-                  </div>
-                  <div className={styles.summaryItem}>
-                    <span>{t("totalMonthlyDeduction")}: </span>
-                    <strong>
-                      {summary.totalMonthlyDeduction.toFixed(3)}
-                      <span> {t("kd")} </span>
-                    </strong>
-                  </div>
-                  <div className={styles.summaryItem}>
-                    <span>{t("totalNetSalary")}: </span>
-                    <strong>
-                      {summary.totalNetSalary.toFixed(3)}
-                      <span> {t("kd")} </span>
-                    </strong>
-                  </div>
-                </>
-              )}
-            </div>
-          </div>
-        )}
+                )}
 
-        {/* Signatures Section */}
-        <div className={styles.signatures}>
-          {signatures.map((signature, index) => (
-            <div key={index} className={styles.signature}>
-              <div className={styles.signatureLine}></div>
-              <div>
-                {t("currentLanguage") === "ar" ? signature.ar : signature.en}
+                {/* For DriversSalary page */}
+                {summary.totalMonthlySalary !== undefined && (
+                  <>
+                    <div className={styles.summaryItem}>
+                      <span>{t("carDriversTotalNetSalary")}: </span>
+                      <strong>
+                        {summary.netCarDriversSalary.toFixed(3)}
+                        <span> {t("kd")} </span>
+                      </strong>
+                    </div>
+                    <div className={styles.summaryItem}>
+                      <span>{t("bikeDriversTotalNetSalary")}: </span>
+                      <strong>
+                        {summary.netBikeDriversSalary.toFixed(3)}
+                        <span> {t("kd")} </span>
+                      </strong>
+                    </div>
+                    <div className={styles.summaryItem}>
+                      <span>{t("totalMonthlySalary")}: </span>
+                      <strong>
+                        {summary.totalMonthlySalary.toFixed(3)}
+                        <span> {t("kd")} </span>
+                      </strong>
+                    </div>
+                    <div className={styles.summaryItem}>
+                      <span>{t("totalMonthlyDeduction")}: </span>
+                      <strong>
+                        {summary.totalMonthlyDeduction.toFixed(3)}
+                        <span> {t("kd")} </span>
+                      </strong>
+                    </div>
+                    <div className={styles.summaryItem}>
+                      <span>{t("totalNetSalary")}: </span>
+                      <strong>
+                        {summary.totalNetSalary.toFixed(3)}
+                        <span> {t("kd")} </span>
+                      </strong>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
-          ))}
+          )}
+
+          {/* Signatures Section */}
+          <div className={styles.signatures}>
+            {signatures.map((signature, index) => (
+              <div key={index} className={styles.signature}>
+                <div className={styles.signatureLine}></div>
+                <div>
+                  {t("currentLanguage") === "ar" ? signature.ar : signature.en}
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     );

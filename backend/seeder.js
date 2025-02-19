@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
 const { User } = require("./models/userModel");
+const Driver = require("./models/driverModel");
 const { faker } = require("@faker-js/faker");
 const connectDB = require("./config/db.js");
 
@@ -110,5 +111,66 @@ const createRandomUsers = async () => {
   }
 };
 
+const updateDriversPositionsAndBank = async () => {
+  try {
+    await connectDB(); // Ensure DB connection is established
+    console.log("Starting driver updates...");
+
+    // Get all drivers using the destructured Driver model
+    const drivers = await Driver.find({});
+
+    if (!drivers || drivers.length === 0) {
+      console.log("No drivers found in the database");
+      return;
+    }
+
+    console.log(`Found ${drivers.length} drivers to update`);
+
+    // Counter for tracking updates
+    let updatedCount = 0;
+
+    for (const driver of drivers) {
+      try {
+        const updates = {
+          // Set position based on vehicle type
+          position:
+            driver.vehicle === "Car" ? "Car Driver" : "Motorcycle Driver",
+          // Set bank name to KFH for all drivers
+          bankName: "Kuwait Finance House (KFH)",
+        };
+
+        // Update the driver
+        await Driver.findByIdAndUpdate(driver._id, updates);
+        updatedCount++;
+        console.log(`Updated driver: ${driver.firstName} ${driver.lastName}`);
+      } catch (updateError) {
+        console.error(`Error updating driver ${driver._id}:`, updateError);
+      }
+    }
+
+    console.log(`Successfully updated ${updatedCount} drivers`);
+  } catch (error) {
+    console.error("Error updating drivers:", error);
+  } finally {
+    await mongoose.connection.close();
+    console.log("Database connection closed");
+  }
+};
+
+const runSeeder = async () => {
+  try {
+    await connectDB();
+    // Comment/uncomment the function you want to run
+    // await createAdmin();
+    // await createRandomUsers();
+    await updateDriversPositionsAndBank();
+  } catch (error) {
+    console.error("Seeder error:", error);
+  } finally {
+    mongoose.connection.close();
+  }
+};
+
 // createRandomUsers();
-createAdmin();
+// createAdmin();
+runSeeder();

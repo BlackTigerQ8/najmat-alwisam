@@ -11,6 +11,7 @@ import {
   Input,
   Typography,
   Tooltip,
+  FormHelperText,
 } from "@mui/material";
 import Header from "../components/Header";
 import { tokens } from "../theme";
@@ -24,6 +25,8 @@ import { fetchUsers, updateUser } from "../redux/usersSlice";
 import { useParams } from "react-router-dom";
 import * as Yup from "yup";
 import { useTranslation } from "react-i18next";
+import { BANK_NAMES, USER_POSITIONS, USER_ROLES } from "../utils/userConstants";
+import { getUserRoleFromToken } from "./global/getUserRoleFromToken";
 
 const UserProfile = () => {
   const isNonMobile = useMediaQuery("(min-width: 600px)");
@@ -38,7 +41,10 @@ const UserProfile = () => {
     localStorage.getItem("token");
   const userInfo = users.find((d) => d._id === params.id);
   const userRole = userInfo?.role;
-  const canEdit = userRole === "Admin" || userRole === "Manager";
+  const loggedInUserRole =
+    useSelector((state) => state.user.userRole) || getUserRoleFromToken();
+  const canEdit =
+    loggedInUserRole === "Admin" || loggedInUserRole === "Manager";
 
   const status = useSelector((state) => state.users.status);
   const error = useSelector((state) => state.users.error);
@@ -51,6 +57,9 @@ const UserProfile = () => {
     email: "",
     identification: "",
     contractExpiryDate: "",
+    iban: "",
+    position: "",
+    bankName: "",
     role: "",
     passport: "",
     password: "",
@@ -241,22 +250,22 @@ const UserProfile = () => {
                   sx={{ gridColumn: "span 2" }}
                 />
               )}
-              {renderField(
-                <TextField
-                  fullWidth
-                  variant="filled"
-                  type="text"
-                  label={t("email")}
-                  onBlur={handleBlur}
-                  onChange={handleChange}
-                  value={values.email}
-                  name="email"
-                  disabled={!canEdit}
-                  error={!!touched.email && !!errors.email}
-                  helperText={touched.email && errors.email}
-                  sx={{ gridColumn: "span 2" }}
-                />
-              )}
+
+              <TextField
+                fullWidth
+                variant="filled"
+                type="text"
+                label={t("email")}
+                onBlur={handleBlur}
+                onChange={handleChange}
+                value={values.email}
+                name="email"
+                // disabled={!canEdit}
+                error={!!touched.email && !!errors.email}
+                helperText={touched.email && errors.email}
+                sx={{ gridColumn: "span 2" }}
+              />
+
               {renderField(
                 <TextField
                   fullWidth
@@ -348,6 +357,75 @@ const UserProfile = () => {
                   helperText={touched.mainSalary && errors.mainSalary}
                   sx={{ gridColumn: "span 2" }}
                 />
+              )}
+              {renderField(
+                <TextField
+                  fullWidth
+                  variant="filled"
+                  type="text"
+                  label={t("iban")}
+                  onBlur={handleBlur}
+                  onChange={handleChange}
+                  value={values.iban}
+                  name="iban"
+                  disabled={!canEdit}
+                  error={!!touched.iban && !!errors.iban}
+                  helperText={touched.iban && errors.iban}
+                  sx={{ gridColumn: "span 2" }}
+                />
+              )}
+              {renderField(
+                <FormControl
+                  fullWidth
+                  variant="filled"
+                  sx={{ gridColumn: "span 2" }}
+                >
+                  <InputLabel htmlFor="bankName">{t("bankName")}</InputLabel>
+                  <Select
+                    label={t("bankName")}
+                    value={values.bankName}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                    name="bankName"
+                    error={!!touched.bankName && !!errors.bankName}
+                  >
+                    {BANK_NAMES.map((pos) => (
+                      <MenuItem key={pos} value={pos}>
+                        {t(pos)}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                  {touched.bankName && errors.bankName && (
+                    <FormHelperText error>{errors.bankName}</FormHelperText>
+                  )}
+                </FormControl>
+              )}
+              {renderField(
+                <FormControl
+                  fullWidth
+                  variant="filled"
+                  sx={{ gridColumn: "span 2" }}
+                >
+                  <InputLabel htmlFor="position">{t("position")}</InputLabel>
+                  <Select
+                    label={t("position")}
+                    value={values.position}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                    name="position"
+                    disabled={!canEdit}
+                    error={!!touched.position && !!errors.position}
+                  >
+                    {USER_POSITIONS.map((pos) => (
+                      <MenuItem key={pos} value={pos}>
+                        {t(pos)}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                  {touched.position && errors.position && (
+                    <FormHelperText error>{errors.position}</FormHelperText>
+                  )}
+                </FormControl>
               )}
               <TextField
                 fullWidth

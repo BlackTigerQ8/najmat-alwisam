@@ -2,6 +2,41 @@ const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
 
 const USER_ROLES = ["Admin", "Manager", "Employee", "Accountant"];
+const USER_POSITIONS = [
+  "Administrative",
+  "Engineer",
+  "Accountant",
+  "Representative",
+  "MarketingManager",
+  "SalesManager",
+  "HRManager",
+  "ProjectManager",
+  "ProductManager",
+  "BusinessAnalyst",
+  "SoftwareEngineer",
+  "WebDeveloper",
+  "GraphicDesigner",
+  "ContentWriter",
+  "CustomerSupportRepresentative",
+  "DataAnalyst",
+  "OperationsManager",
+  "AdminAssistant",
+  "TeamLeader",
+  "MarketingSpecialist",
+  "LegalAdvisor",
+  "ITSupportSpecialist",
+  "Receptionist",
+  "Intern",
+  "MarketingSpecialist",
+  "LegalAdvisor",
+  "ITSupportSpecialist",
+  "Receptionist",
+  "Intern",
+  "Representative",
+  "Administrative",
+  "Engineer",
+  "Accountant",
+];
 
 const userSchema = new mongoose.Schema({
   sequenceNumber: {
@@ -49,6 +84,19 @@ const userSchema = new mongoose.Schema({
   contractExpiryDate: {
     type: Date,
     required: [true, "Contract expiry date is required"],
+  },
+  iban: {
+    type: String,
+    required: [true, "IBAN is required"],
+  },
+  bankName: {
+    type: String,
+    required: [true, "Bank name is required"],
+  },
+  position: {
+    type: String,
+    enum: USER_POSITIONS,
+    required: [true, "Position is required"],
   },
   image: {
     type: String,
@@ -120,4 +168,8 @@ userSchema.pre("save", async function (next) {
   }
 });
 
-module.exports = { User: mongoose.model("User", userSchema), USER_ROLES };
+module.exports = {
+  User: mongoose.model("User", userSchema),
+  USER_ROLES,
+  USER_POSITIONS,
+};

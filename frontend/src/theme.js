@@ -200,7 +200,7 @@ export const useMode = () => {
   const prefersDarkMode = window.matchMedia(
     "(prefers-color-scheme: dark)"
   ).matches;
-  const [mode, setMode] = useState(prefersDarkMode ? "dark" : "light");
+  const [mode, setMode] = useState("light");
 
   // Event listener for system theme changes
   useEffect(() => {
@@ -208,6 +208,9 @@ export const useMode = () => {
     const handleChange = (e) => {
       setMode(e.matches ? "dark" : "light");
     };
+
+    // Initial sync with system theme
+    setMode(prefersDarkMode ? "dark" : "light");
 
     mediaQuery.addEventListener("change", handleChange);
     return () => mediaQuery.removeEventListener("change", handleChange);
