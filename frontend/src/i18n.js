@@ -134,6 +134,8 @@ i18n
           vehicle: "Vehicle",
           car: "Car",
           bike: "Bike",
+          Car: "Car",
+          Bike: "Bike",
           contractType: "Contract Type",
           talabat: "Talabat",
           others: "Others",
@@ -734,6 +736,31 @@ i18n
           "Kuwait International Bank": "Kuwait International Bank",
           "Warba Bank": "Warba Bank",
           "Industrial Bank of Kuwait": "Industrial Bank of Kuwait",
+          /////////////////
+          salaryConfigurationTitle: "Salary Configuration",
+          salaryConfigurationSubtitle:
+            "Configure the salary for the employees and drivers",
+          salaryConfig: "Salary Configuration",
+          minimumOrders: "Minimum Orders",
+          maximumOrders: "Maximum Orders",
+          multiplier: "Multiplier",
+          fixedAmount: "Fixed Amount",
+          saveChanges: "Save Changes",
+          addRule: "Add Rule",
+          noRulesExist: "No rules exist",
+          invalidNumbersInRules:
+            "Invalid numbers found in rules. Please check all values are valid numbers.",
+          overlapError:
+            "Overlap found between rules: {{rule1}} and {{rule2}}. Rules cannot overlap.",
+          gapError:
+            "Gap found between {{rule1}} and {{rule2}}. Rules must be continuous.",
+          validationSuccess: "Rules validation successful!",
+          createSalaryConfigFulfilled: "Rules are created successfully!",
+          createSalaryConfigRejected: "Can't create rules, you can try later!",
+          updateSalaryConfigFulfilled: "Rules are updated successfully!",
+          updateSalaryConfigRejected: "Can't update rules, you can try later!",
+          deleteSalaryConfigFulfilled: "Rules are deleted successfully!",
+          deleteSalaryConfigRejected: "Can't delete rules, you can try later!",
         },
       },
       ar: {
@@ -858,6 +885,8 @@ i18n
           vehicle: "المركبة",
           car: "سيارة",
           bike: "دراجة",
+          Car: "سيارة",
+          Bike: "دراجة",
           contractType: "نوع العقد",
           talabat: "طلبات",
           others: "أخرى",
@@ -1424,6 +1453,33 @@ i18n
           "Kuwait International Bank": "بنك الكويت الدولي",
           "Warba Bank": "بنك وربة",
           "Industrial Bank of Kuwait": "بنك الكويت الصناعي",
+          ///////////////////
+          salaryConfigurationTitle: "إدارة الرواتب",
+          salaryConfigurationSubtitle: "إدارة رواتب السائقين",
+          salaryConfig: "إدارة الرواتب",
+          minimumOrders: "الطلبات الأدنى",
+          maximumOrders: "الطلبات الأقصى",
+          multiplier: "المضاعف",
+          fixedAmount: "المبلغ الثابت",
+          saveChanges: "حفظ التغييرات",
+          addRule: "إضافة سياسة",
+          noRulesExist: "لا يوجد قواعد",
+          invalidNumbersInRules:
+            "تم العثور على أرقام غير صالحة في القواعد. يرجى التحقق من صحة جميع القيم.",
+          overlapError:
+            "تم العثور على تداخل بين القواعد: {{rule1}} و {{rule2}}. لا يمكن أن تتداخل القواعد.",
+          gapError:
+            "تم العثور على فجوة بين {{rule1}} و {{rule2}}. يجب أن تكون القواعد متصلة.",
+          validationSuccess: "تم التحقق من صحة القواعد بنجاح!",
+          createSalaryConfigFulfilled: "تم إضافة القواعد بنجاح",
+          createSalaryConfigRejected:
+            "لم يتم إضافة القواعد، يرجى المحاولة لاحقاً",
+          updateSalaryConfigFulfilled: "تم تحديث القواعد بنجاح",
+          updateSalaryConfigRejected:
+            "لم يتم تحديث القواعد، يرجى المحاولة لاحقاً",
+          deleteSalaryConfigFulfilled: "تم حذف القواعد بنجاح",
+          deleteSalaryConfigRejected:
+            "لم يتم حذف القواعد، يرجى المحاولة لاحقاً",
         },
       },
     },

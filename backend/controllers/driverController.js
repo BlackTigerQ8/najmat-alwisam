@@ -3,6 +3,7 @@ const DriverInvoice = require("../models/driverInvoiceModel");
 const Notification = require("../models/notificationModel");
 const ReadNotification = require("../models/readNotificationModel");
 const { User, USER_ROLES } = require("../models/userModel");
+const SalaryConfig = require("../models/salaryConfigModel");
 const {
   addSingleDriverNotifications,
   filterDriversByStatus,
@@ -449,90 +450,140 @@ const getDriverInvoices = async (
   return driverInvoices;
 };
 
+const getSalaryRules = async (vehicleType) => {
+  const config = await SalaryConfig.findOne({ vehicleType });
+  if (!config) {
+    throw new Error(`No salary configuration found for ${vehicleType}`);
+  }
+  return config.rules;
+};
+
 // Salary calculations based on the number of main and additional orders for CAR drivers
-const carDriverSalary = (orders, salaryMainOrders, salaryAdditionalOrders) => {
-  if (orders < 420) {
+const carDriverSalary = async (
+  orders,
+  salaryMainOrders,
+  salaryAdditionalOrders,
+  driverId = null
+) => {
+  try {
+    // Special case for specific driver
+    if (driverId === "6769923ba62e5d54cb6ea18c") {
+      const rules = await getSalaryRules("Car");
+      const rule = rules.find(
+        (r) => orders >= r.minOrders && orders <= r.maxOrders
+      );
+
+      if (!rule) {
+        return {
+          mainSalary: 26,
+          additionalSalary: 0,
+          totalSalary: 26, // Add this line
+        };
+      }
+
+      if (rule.fixedAmount > 0) {
+        const totalAmount = rule.fixedAmount + 26;
+        return {
+          mainSalary: totalAmount, // Change this
+          additionalSalary: 0,
+          totalSalary: totalAmount, // Add this
+        };
+      }
+
+      const totalAmount =
+        (salaryMainOrders + salaryAdditionalOrders) * rule.multiplier + 26;
+      return {
+        mainSalary: totalAmount, // Change this
+        additionalSalary: 0,
+        totalSalary: totalAmount,
+      };
+    }
+
+    // Regular case for other drivers
+    const rules = await getSalaryRules("Car");
+    const rule = rules.find(
+      (r) => orders >= r.minOrders && orders <= r.maxOrders
+    );
+
+    if (!rule) {
+      return {
+        mainSalary: 0,
+        additionalSalary: 0,
+      };
+    }
+
+    if (rule.fixedAmount > 0) {
+      return {
+        mainSalary: rule.fixedAmount,
+        additionalSalary: 0,
+      };
+    }
+
+    const totalOrders = salaryMainOrders + salaryAdditionalOrders;
     return {
-      mainSalary: salaryMainOrders * 0.3,
+      mainSalary: salaryMainOrders,
+      additionalSalary: salaryAdditionalOrders,
+      totalSalary: totalOrders * rule.multiplier,
+    };
+  } catch (error) {
+    console.error("Error calculating car driver salary:", error);
+    return {
+      mainSalary: 0,
       additionalSalary: 0,
-    };
-  } else if (orders >= 420 && orders <= 449) {
-    return {
-      mainSalary: 140,
-      additionalSalary: 0,
-    };
-  } else if (orders >= 450 && orders <= 499) {
-    return {
-      mainSalary: salaryMainOrders,
-      additionalSalary: salaryAdditionalOrders,
-      totalSalary: (salaryMainOrders + salaryAdditionalOrders) * 0.45,
-    };
-  } else if (orders == 500) {
-    return {
-      mainSalary: salaryMainOrders,
-      additionalSalary: salaryAdditionalOrders,
-      totalSalary: (salaryMainOrders + salaryAdditionalOrders) * 0.45,
-    };
-  } else if (orders > 500 && orders <= 599) {
-    return {
-      mainSalary: salaryMainOrders,
-      additionalSalary: salaryAdditionalOrders,
-      totalSalary: (salaryMainOrders + salaryAdditionalOrders) * 0.5,
-    };
-  } else if (orders >= 600) {
-    return {
-      mainSalary: salaryMainOrders,
-      additionalSalary: salaryAdditionalOrders,
-      totalSalary: (salaryMainOrders + salaryAdditionalOrders) * 0.5,
     };
   }
 };
 
 // Salary calculations based on the number of main and additional orders for BIKE drivers
-const bikeDriverSalary = (
+const bikeDriverSalary = async (
   orders = 0,
   salaryMainOrders = 0,
   salaryAdditionalOrders = 0,
   driverId = null
 ) => {
-  // Special case for "حاكيكات"
-  if (driverId === "6772c32da62e5d54cb6ea8dc") {
-    if (orders >= 350 && orders <= 500) {
+  try {
+    // Special case for specific driver
+    if (driverId === "6772c32da62e5d54cb6ea8dc") {
+      if (orders >= 350 && orders <= 500) {
+        return {
+          mainSalary: orders * 0.5,
+          additionalSalary: 0,
+        };
+      } else if (orders > 500) {
+        return {
+          mainSalary: orders * 0.55,
+          additionalSalary: 0,
+        };
+      }
+    }
+
+    const rules = await getSalaryRules("Bike");
+    const rule = rules.find(
+      (r) => orders >= r.minOrders && orders <= r.maxOrders
+    );
+
+    if (!rule) {
       return {
-        mainSalary: orders * 0.5,
-        additionalSalary: 0,
-      };
-    } else if (orders > 500) {
-      return {
-        mainSalary: orders * 0.55,
+        mainSalary: 0,
         additionalSalary: 0,
       };
     }
-  }
 
-  if (orders <= 200) {
+    if (rule.fixedAmount > 0) {
+      return {
+        mainSalary: rule.fixedAmount,
+        additionalSalary: 0,
+      };
+    }
+
     return {
-      mainSalary: 50,
+      mainSalary: orders * rule.multiplier,
       additionalSalary: 0,
     };
-  } else if (orders <= 300) {
+  } catch (error) {
+    console.error("Error calculating bike driver salary:", error);
     return {
-      mainSalary: 100,
-      additionalSalary: 0,
-    };
-  } else if (orders >= 300 && orders <= 349) {
-    return {
-      mainSalary: 150,
-      additionalSalary: 0,
-    };
-  } else if (orders >= 350 && orders <= 419) {
-    return {
-      mainSalary: orders * 0.45,
-      additionalSalary: 0,
-    };
-  } else if (orders >= 420) {
-    return {
-      mainSalary: orders * 0.5,
+      mainSalary: 0,
       additionalSalary: 0,
     };
   }
@@ -593,6 +644,7 @@ const getDriverSalaries = async (req, res) => {
         firstName: driver.firstName,
         lastName: driver.lastName,
         vehicle: driver.vehicle,
+        mainSalary: driver.mainSalary,
         sequenceNumber: driver.sequenceNumber,
         mainOrder: 0,
         additionalOrder: 0,
@@ -607,19 +659,53 @@ const getDriverSalaries = async (req, res) => {
       };
     }
 
-    // Fetch invoices for the date range
-    const invoices = await DriverInvoice.find({
+    // Fetch regular invoices for the date range
+    const regularInvoices = await DriverInvoice.find({
       invoiceDate: {
+        $gte: parsedStartDate,
+        $lte: parsedEndDate,
+      },
+      deductionDate: null, // Only get regular invoices
+      status: { $in: ["approved", "visibleToAll", "visibleToAllArchived"] },
+    }).populate("driver");
+
+    // Fetch deduction invoices for the date range based on deductionDate
+    const deductionInvoices = await DriverInvoice.find({
+      deductionDate: {
         $gte: parsedStartDate,
         $lte: parsedEndDate,
       },
       status: { $in: ["approved", "visibleToAll", "visibleToAllArchived"] },
     }).populate("driver");
 
-    const allPettyCash = await PettyCash.find({
-      deductedFromDriver: { $exists: true, $ne: null },
+    // Process regular invoices
+    regularInvoices.forEach((invoice) => {
+      if (invoice.driver && driversData[invoice.driver._id.toString()]) {
+        const driverData = driversData[invoice.driver._id.toString()];
+        driverData.mainOrder += invoice.mainOrder || 0;
+        driverData.additionalOrder += invoice.additionalOrder || 0;
+        driverData.salaryMainOrders += invoice.salaryMainOrders || 0;
+        driverData.salaryAdditionalOrders +=
+          invoice.salaryAdditionalOrders || 0;
+        driverData.remarks = invoice.remarks || "";
+      }
     });
-    console.log("All petty cash records:", allPettyCash);
+
+    // Process deduction invoices separately
+    deductionInvoices.forEach((invoice) => {
+      if (invoice.driver && driversData[invoice.driver._id.toString()]) {
+        const driverData = driversData[invoice.driver._id.toString()];
+        driverData.talabatDeductionAmount +=
+          invoice.talabatDeductionAmount || 0;
+        driverData.companyDeductionAmount +=
+          invoice.companyDeductionAmount || 0;
+        if (invoice.remarks) {
+          driverData.remarks = driverData.remarks
+            ? `${driverData.remarks}; ${invoice.remarks}`
+            : invoice.remarks;
+        }
+      }
+    });
 
     // Fetch petty cash records for the date range
     const pettyCashDeductions = await PettyCash.aggregate([
@@ -641,34 +727,12 @@ const getDriverSalaries = async (req, res) => {
       },
     ]);
 
-    console.log("Found petty cash deductions:", pettyCashDeductions);
-
-    // Process invoices
-    invoices.forEach((invoice) => {
-      if (invoice.driver && driversData[invoice.driver._id.toString()]) {
-        const driverData = driversData[invoice.driver._id.toString()];
-        driverData.mainOrder += invoice.mainOrder || 0;
-        driverData.additionalOrder += invoice.additionalOrder || 0;
-        driverData.salaryMainOrders += invoice.salaryMainOrders || 0;
-        driverData.salaryAdditionalOrders +=
-          invoice.salaryAdditionalOrders || 0;
-        driverData.talabatDeductionAmount +=
-          invoice.talabatDeductionAmount || 0;
-        driverData.companyDeductionAmount +=
-          invoice.companyDeductionAmount || 0;
-        driverData.remarks = invoice.remarks || "";
-      }
-    });
-
     // Apply petty cash deductions
     pettyCashDeductions.forEach((deduction) => {
       const driverId = deduction._id.toString();
       if (driversData[driverId]) {
         driversData[driverId].pettyCashDeductionAmount =
           deduction.totalDeduction;
-        console.log(
-          `Applied deduction ${deduction.totalDeduction} to driver ${driverId}`
-        );
       }
     });
 
@@ -680,12 +744,13 @@ const getDriverSalaries = async (req, res) => {
       // Calculate salary based on vehicle type and total orders
       const salaryCalculation =
         driver.vehicle === "Car"
-          ? carDriverSalary(
+          ? await carDriverSalary(
               totalOrders,
               driver.mainOrder,
-              driver.additionalOrder
+              driver.additionalOrder,
+              driver._id.toString()
             )
-          : bikeDriverSalary(
+          : await bikeDriverSalary(
               totalOrders,
               driver.mainOrder,
               driver.additionalOrder,
@@ -695,10 +760,13 @@ const getDriverSalaries = async (req, res) => {
       driver.salaryMainOrders = salaryCalculation.mainSalary;
       driver.salaryAdditionalOrders = salaryCalculation.additionalSalary;
 
+      const baseSalary =
+        salaryCalculation.totalSalary ||
+        driver.salaryMainOrders + driver.salaryAdditionalOrders;
+
       // Calculate net salary
       driver.netSalary =
-        driver.salaryMainOrders +
-        driver.salaryAdditionalOrders -
+        baseSalary -
         driver.talabatDeductionAmount -
         driver.companyDeductionAmount -
         driver.pettyCashDeductionAmount;

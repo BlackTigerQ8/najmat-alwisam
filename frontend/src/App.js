@@ -63,6 +63,7 @@ import ArchiveForm from "./scenes/ArchiveForm";
 import SearchArchive from "./scenes/SearchArchive";
 import SalaryReport from "./scenes/SalaryReport";
 import LandingPage from "./scenes/global/LandingPage";
+import SalaryConfig from "./scenes/SalaryConfig";
 
 const lngs = {
   en: { nativeName: "English" },
@@ -136,6 +137,7 @@ function App() {
     { path: "/deactivated-drivers", element: <DeactivatedDrivers /> },
     { path: "/invoices-archive", element: <InvoicesArchive /> },
     { path: "/searching-archive", element: <SearchArchive /> },
+    { path: "/salary-config", element: <SalaryConfig /> },
   ];
 
   const managerRoutes = [

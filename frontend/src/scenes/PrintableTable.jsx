@@ -407,35 +407,35 @@ const PrintableTable = forwardRef(
                     <div className={styles.summaryItem}>
                       <span>{t("carDriversTotalNetSalary")}: </span>
                       <strong>
-                        {summary.netCarDriversSalary.toFixed(3)}
+                        {(summary.netCarDriversSalary || 0).toFixed(3)}
                         <span> {t("kd")} </span>
                       </strong>
                     </div>
                     <div className={styles.summaryItem}>
                       <span>{t("bikeDriversTotalNetSalary")}: </span>
                       <strong>
-                        {summary.netBikeDriversSalary.toFixed(3)}
+                        {(summary.netBikeDriversSalary || 0).toFixed(3)}
                         <span> {t("kd")} </span>
                       </strong>
                     </div>
                     <div className={styles.summaryItem}>
                       <span>{t("totalMonthlySalary")}: </span>
                       <strong>
-                        {summary.totalMonthlySalary.toFixed(3)}
+                        {(summary.totalMonthlySalary || 0).toFixed(3)}
                         <span> {t("kd")} </span>
                       </strong>
                     </div>
                     <div className={styles.summaryItem}>
                       <span>{t("totalMonthlyDeduction")}: </span>
                       <strong>
-                        {summary.totalMonthlyDeduction.toFixed(3)}
+                        {(summary.totalMonthlyDeduction || 0).toFixed(3)}
                         <span> {t("kd")} </span>
                       </strong>
                     </div>
                     <div className={styles.summaryItem}>
                       <span>{t("totalNetSalary")}: </span>
                       <strong>
-                        {summary.totalNetSalary.toFixed(3)}
+                        {(summary.totalNetSalary || 0).toFixed(3)}
                         <span> {t("kd")} </span>
                       </strong>
                     </div>

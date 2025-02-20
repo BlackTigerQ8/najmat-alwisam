@@ -76,7 +76,7 @@ router
   .route("/archived/search")
   .post(
     protect,
-    restrictTo("Employee", "Admin", "Manager"),
+    restrictTo("Employee", "Admin", "Manager", "Accountant"),
     filterArchivedInvoices
   );
 
@@ -84,7 +84,7 @@ router
   .route("/archived")
   .get(
     protect,
-    restrictTo("Employee", "Admin", "Manager"),
+    restrictTo("Employee", "Admin", "Manager", "Accountant"),
     fetchArchivedInvoices
   );
 

@@ -68,6 +68,7 @@ const Deduction = () => {
     .object()
     .shape({
       deductionReason: yup.string().required(t("deductionReasonRequired")),
+      deductionDate: yup.date().required(t("deductionDateRequired")),
       talabatDeductionAmount: yup.string(),
       companyDeductionAmount: yup.string(),
       selectedDriver: yup.string(),
@@ -78,7 +79,6 @@ const Deduction = () => {
         .test("fileType", t("fileTypeMustBePdf"), (value) => {
           return value && value.type === "application/pdf";
         }),
-      // deductionDate: yup.date().required(t("deductionDateRequired")),
     })
     .test({
       name: "selectedFieldsRequired",
@@ -132,16 +132,12 @@ const Deduction = () => {
         dispatch(createUserInvoice(formData));
       }
 
-      resetForm();
-
-      // TODO: Uncomment this later
-
-      // dispatch(createNotification(buildNotificationAlert({
-      //   driverId: values.selectedDriver,
-      //   talabatDeductionAmount: values.talabatDeductionAmount,
-      //   companyDeductionAmount: values.companyDeductionAmount,
-      //   role: userInfo.role
-      // })));
+      resetForm({
+        values: {
+          ...initialValues,
+          deductionDate: "",
+        },
+      });
     } catch (error) {
       console.error("Row does not have a valid _id field:");
     } finally {

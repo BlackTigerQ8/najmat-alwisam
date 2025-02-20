@@ -22,6 +22,7 @@ import spendTypeReducer from "./spendTypeSlice";
 import companyFilesReducer from "./companyFilesSlice";
 import archiveReducer from "./archiveSlice";
 import i18nReducer from "./i18nSlice";
+import salaryConfigReducer from "./salaryConfigSlice";
 
 const persistConfig = {
   key: "root",
@@ -40,6 +41,7 @@ const rootReducer = combineReducers({
   companyIncome: companyIncomeReducer,
   companyFiles: companyFilesReducer,
   archive: archiveReducer,
+  salaryConfig: salaryConfigReducer,
   i18n: i18nReducer,
 });
 

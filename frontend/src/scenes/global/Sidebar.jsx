@@ -16,7 +16,7 @@ import PeopleOutlinedIcon from "@mui/icons-material/PeopleOutlined";
 // import ContactsOutlinedIcon from "@mui/icons-material/ContactsOutlined";
 import FolderCopyOutlinedIcon from "@mui/icons-material/FolderCopyOutlined";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
-import SendAndArchiveOutlinedIcon from "@mui/icons-material/SendAndArchiveOutlined";
+import BorderColorOutlinedIcon from "@mui/icons-material/BorderColorOutlined";
 import ForumOutlinedIcon from "@mui/icons-material/ForumOutlined";
 import MoneyOffIcon from "@mui/icons-material/MoneyOff";
 import ReceiptOutlinedIcon from "@mui/icons-material/ReceiptOutlined";
@@ -289,6 +289,14 @@ const Sidebar = () => {
                 title={t("dashboard")}
                 to="/"
                 icon={<HomeOutlinedIcon />}
+                selected={selected}
+                setSelected={setSelected}
+                isCollapsed={isCollapsed}
+              />
+              <Item
+                title={t("salaryConfig")}
+                to="/salary-config"
+                icon={<BorderColorOutlinedIcon />}
                 selected={selected}
                 setSelected={setSelected}
                 isCollapsed={isCollapsed}

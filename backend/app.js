@@ -13,6 +13,7 @@ const bankStatement = require("./routes/bankStatementRoutes");
 const spendTypeRoutes = require("./routes/spendTypeRoutes");
 const companyFilesRoutes = require("./routes/companyFilesRoutes");
 const archiveRoutes = require("./routes/archiveRoutes");
+const salaryConfigRoutes = require("./routes/salaryConfigRoutes");
 const path = require("path");
 const http = require("http");
 const { Server } = require("socket.io");
@@ -53,6 +54,7 @@ app.use("/api/spend-types", spendTypeRoutes);
 app.use("/api/company-income", companyIncomeRoutes);
 app.use("/api/company-files", companyFilesRoutes);
 app.use("/api/archives", archiveRoutes);
+app.use("/api/salary-config", salaryConfigRoutes);
 app.use("/api/uploads", express.static(path.join(__dirname, "uploads")));
 
 // Socket.io connection handling

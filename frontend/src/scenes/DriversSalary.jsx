@@ -37,13 +37,16 @@ const DriversSalary = () => {
     localStorage.getItem("token");
   const [startMonth, setStartMonth] = useState(new Date().getMonth());
   const [startYear, setStartYear] = useState(new Date().getFullYear());
-  const [endMonth, setEndMonth] = useState(new Date().getMonth());
-  const [endYear, setEndYear] = useState(new Date().getFullYear());
+  // const [endMonth, setEndMonth] = useState(new Date().getMonth());
+  // const [endYear, setEndYear] = useState(new Date().getFullYear());
   const componentRef = useRef();
   const [editRowsModel, setEditRowsModel] = useState({});
   const [rowModifications, setRowModifications] = useState({});
   const [editedRows, setEditedRows] = useState({});
   const [rows, setRows] = useState([]);
+
+  const salaries = useSelector((state) => state.drivers.salaries);
+  console.log("Salaries from Redux:", salaries); // Add this debug line
 
   const handlePrint = useReactToPrint({
     content: () => componentRef.current,
@@ -58,13 +61,13 @@ const DriversSalary = () => {
     setStartYear(event.target.value);
   };
 
-  const handleEndMonthChange = (event) => {
-    setEndMonth(event.target.value);
-  };
+  // const handleEndMonthChange = (event) => {
+  //   setEndMonth(event.target.value);
+  // };
 
-  const handleEndYearChange = (event) => {
-    setEndYear(event.target.value);
-  };
+  // const handleEndYearChange = (event) => {
+  //   setEndYear(event.target.value);
+  // };
 
   const netCarDriversSalary = useMemo(() => {
     const carDrivers = driversSalaries.filter(
@@ -74,6 +77,7 @@ const DriversSalary = () => {
     return carDrivers.reduce((total, driver) => {
       return (
         total +
+        Number(driver?.mainSalary) +
         Number(driver?.salaryMainOrders) +
         Number(driver?.salaryAdditionalOrders) -
         Number(driver?.talabatDeductionAmount) -
@@ -91,11 +95,12 @@ const DriversSalary = () => {
     return carDrivers.reduce((total, driver) => {
       return (
         total +
-        Number(driver.salaryMainOrders) +
-        Number(driver.salaryAdditionalOrders) -
-        Number(driver.talabatDeductionAmount) -
-        Number(driver.companyDeductionAmount) -
-        Number(driver.pettyCashDeductionAmount)
+        Number(driver?.mainSalary) +
+        Number(driver?.salaryMainOrders) +
+        Number(driver?.salaryAdditionalOrders) -
+        Number(driver?.talabatDeductionAmount) -
+        Number(driver?.companyDeductionAmount) -
+        Number(driver?.pettyCashDeductionAmount)
       );
     }, 0);
   }, [driversSalaries]);
@@ -104,8 +109,9 @@ const DriversSalary = () => {
     return driversSalaries.reduce((total, driver) => {
       return (
         total +
-        Number(driver.salaryMainOrders) +
-        Number(driver.salaryAdditionalOrders)
+        Number(driver?.mainSalary) +
+        Number(driver?.salaryMainOrders) +
+        Number(driver?.salaryAdditionalOrders)
       );
     }, 0);
   }, [driversSalaries]);
@@ -114,9 +120,9 @@ const DriversSalary = () => {
     return driversSalaries.reduce((total, driver) => {
       return (
         total +
-        Number(driver.talabatDeductionAmount) +
-        Number(driver.companyDeductionAmount) +
-        Number(driver.pettyCashDeductionAmount)
+        Number(driver?.talabatDeductionAmount) +
+        Number(driver?.companyDeductionAmount) +
+        Number(driver?.pettyCashDeductionAmount)
       );
     }, 0);
   }, [driversSalaries]);
@@ -176,8 +182,6 @@ const DriversSalary = () => {
         return;
       }
 
-      console.log("Sending modifications:", modifications);
-
       // Only send the modified fields
       const values = {
         driverId: row._id,
@@ -228,7 +232,7 @@ const DriversSalary = () => {
   const columns = [
     {
       field: "sequenceNumber",
-      headerName: t("no."),
+      headerName: t("no"),
       flex: 0.2,
       renderCell: (params) => {
         if (params.row._id === "sum-row") {
@@ -259,9 +263,22 @@ const DriversSalary = () => {
     {
       field: "vehicle",
       headerName: t("vehicle"),
-      flex: 0.75,
+      flex: 1,
       headerAlign: "center",
       align: "center",
+      renderCell: (params) => {
+        return t(params.value);
+      },
+    },
+    {
+      field: "mainSalary",
+      headerName: t("mainSalary"),
+      flex: 1,
+      headerAlign: "center",
+      align: "center",
+      valueFormatter: (params) => {
+        return params.value ? Number(params.value).toFixed(3) : "0.000";
+      },
     },
     {
       field: "mainOrder",
@@ -296,23 +313,21 @@ const DriversSalary = () => {
     {
       field: "salaryMainOrders",
       headerName: t("salaryMainOrders"),
-      //editable: true,
       flex: 1,
       headerAlign: "center",
       align: "center",
       valueFormatter: (params) => {
-        return Number(params.value).toFixed(3);
+        return params.value ? Number(params.value).toFixed(3) : "0.000";
       },
     },
     {
       field: "salaryAdditionalOrders",
       headerName: t("salaryAdditionalOrders"),
-      //editable: true,
       flex: 1,
       headerAlign: "center",
       align: "center",
       valueFormatter: (params) => {
-        return Number(params.value).toFixed(3);
+        return params.value ? Number(params.value).toFixed(3) : "0.000";
       },
     },
     {
@@ -320,11 +335,15 @@ const DriversSalary = () => {
       headerName: t("finalSalary"),
       headerAlign: "center",
       align: "center",
-      renderCell: ({ row: { salaryAdditionalOrders, salaryMainOrders } }) => {
+      renderCell: ({
+        row: { salaryAdditionalOrders, salaryMainOrders, mainSalary },
+      }) => {
         return (
           <Box display="flex" justifyContent="center" borderRadius="4px">
             {(
-              Number(salaryMainOrders) + Number(salaryAdditionalOrders)
+              Number(mainSalary || 0) +
+              Number(salaryMainOrders || 0) +
+              Number(salaryAdditionalOrders || 0)
             ).toFixed(3)}
           </Box>
         );
@@ -338,7 +357,7 @@ const DriversSalary = () => {
       headerAlign: "center",
       align: "center",
       valueFormatter: (params) => {
-        return params.value?.toFixed(3);
+        return params.value ? Number(params.value).toFixed(3) : "0.000";
       },
     },
     {
@@ -349,7 +368,7 @@ const DriversSalary = () => {
       headerAlign: "center",
       align: "center",
       valueFormatter: (params) => {
-        return params.value?.toFixed(3);
+        return params.value ? Number(params.value).toFixed(3) : "0.000";
       },
     },
     {
@@ -360,7 +379,7 @@ const DriversSalary = () => {
       headerAlign: "center",
       align: "center",
       valueFormatter: (params) => {
-        return params.value?.toFixed(3);
+        return params.value ? Number(params.value).toFixed(3) : "0.000";
       },
     },
     {
@@ -375,17 +394,21 @@ const DriversSalary = () => {
           pettyCashDeductionAmount,
           companyDeductionAmount,
           talabatDeductionAmount,
+          mainSalary,
         },
       }) => {
+        const netSalary = (
+          Number(salaryMainOrders || 0) +
+          Number(salaryAdditionalOrders || 0) -
+          Number(pettyCashDeductionAmount || 0) -
+          Number(companyDeductionAmount || 0) -
+          Number(talabatDeductionAmount || 0) +
+          Number(mainSalary || 0)
+        ).toFixed(3);
+
         return (
           <Box display="flex" justifyContent="center" borderRadius="4px">
-            {parseFloat(
-              Number(salaryMainOrders) +
-                Number(salaryAdditionalOrders) -
-                Number(pettyCashDeductionAmount) -
-                Number(companyDeductionAmount) -
-                Number(talabatDeductionAmount)
-            ).toFixed(3)}
+            {netSalary}
           </Box>
         );
       },
@@ -457,7 +480,7 @@ const DriversSalary = () => {
     additionalOrder: calculateColumnSum("additionalOrder"),
     salaryMainOrders: calculateColumnSum("salaryMainOrders"),
     salaryAdditionalOrders: calculateColumnSum("salaryAdditionalOrders"),
-
+    mainSalary: calculateColumnSum("mainSalary"),
     talabatDeductionAmount: calculateColumnSum("talabatDeductionAmount"),
     companyDeductionAmount: calculateColumnSum("companyDeductionAmount"),
     pettyCashDeductionAmount: calculateColumnSum("pettyCashDeductionAmount"),
@@ -481,6 +504,7 @@ const DriversSalary = () => {
       additionalOrder: calculateColumnSum("additionalOrder"),
       salaryMainOrders: calculateColumnSum("salaryMainOrders"),
       salaryAdditionalOrders: calculateColumnSum("salaryAdditionalOrders"),
+      mainSalary: calculateColumnSum("mainSalary"),
       talabatDeductionAmount: calculateColumnSum("talabatDeductionAmount"),
       companyDeductionAmount: calculateColumnSum("companyDeductionAmount"),
       pettyCashDeductionAmount: calculateColumnSum("pettyCashDeductionAmount"),
@@ -544,7 +568,8 @@ const DriversSalary = () => {
 
   const onSearchSubmit = () => {
     const startDate = new Date(startYear, startMonth, 1);
-    const endDate = new Date(endYear, endMonth + 1, 0);
+    const endDate = new Date(startYear, startMonth + 1, 0);
+    // const endDate = new Date(endYear, endMonth + 1, 0);
 
     dispatch(
       fetchSalaries({
@@ -584,7 +609,7 @@ const DriversSalary = () => {
           onChange={handleStartYearChange}
           sx={{ width: 100, mr: 2 }}
         />
-        <FormControl sx={{ minWidth: 120, mr: 2 }}>
+        {/* <FormControl sx={{ minWidth: 120, mr: 2 }}>
           <InputLabel>{t("endMonth")}</InputLabel>
           <Select
             value={endMonth}
@@ -606,7 +631,7 @@ const DriversSalary = () => {
           value={endYear}
           onChange={handleEndYearChange}
           sx={{ width: 100 }}
-        />
+        /> */}
         <Box display="flex" sx={{ gridColumn: "span 1" }} marginLeft={"20px"}>
           <Button
             onClick={onSearchSubmit}
@@ -732,7 +757,7 @@ const DriversSalary = () => {
                       fontSize: { xs: "1.2rem", sm: "1.4rem", md: "1.6rem" },
                     }}
                   >
-                    {netCarDriversSalary.toFixed(3)}
+                    {(netCarDriversSalary || 0).toFixed(3)}
                     <span style={{ fontSize: "0.8em" }}> {t("kd")}</span>
                   </Typography>
                 </Grid>
@@ -755,7 +780,7 @@ const DriversSalary = () => {
                       fontSize: { xs: "1.2rem", sm: "1.4rem", md: "1.6rem" },
                     }}
                   >
-                    {netBikeDriversSalary.toFixed(3)}
+                    {(netBikeDriversSalary || 0).toFixed(3)}
                     <span style={{ fontSize: "0.8em" }}> {t("kd")}</span>
                   </Typography>
                 </Grid>
@@ -778,7 +803,7 @@ const DriversSalary = () => {
                       fontSize: { xs: "1.2rem", sm: "1.4rem", md: "1.6rem" },
                     }}
                   >
-                    {totalMonthlySalary.toFixed(3)}
+                    {(totalMonthlySalary || 0).toFixed(3)}
                     <span style={{ fontSize: "0.8em" }}> {t("kd")}</span>
                   </Typography>
                 </Grid>
@@ -797,7 +822,7 @@ const DriversSalary = () => {
                       fontSize: { xs: "1.2rem", sm: "1.4rem", md: "1.6rem" },
                     }}
                   >
-                    {totalMonthlyDeduction.toFixed(3)}
+                    {(totalMonthlyDeduction || 0).toFixed(3)}
                     <span style={{ fontSize: "0.8em" }}> {t("kd")}</span>
                   </Typography>
                 </Grid>
@@ -820,7 +845,7 @@ const DriversSalary = () => {
                       fontSize: { xs: "1.2rem", sm: "1.4rem", md: "1.6rem" },
                     }}
                   >
-                    {totalNetSalary.toFixed(3)}
+                    {(totalNetSalary || 0).toFixed(3)}
                     <span style={{ fontSize: "0.8em" }}> {t("kd")}</span>
                   </Typography>
                 </Grid>

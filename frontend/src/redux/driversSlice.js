@@ -366,7 +366,6 @@ const driversSlice = createSlice({
         state.salariesStatus = "succeeded";
         state.salaries = Object.values(action.payload.data.driverSalaries);
         state.salariesError = null;
-        console.log(state.salaries);
       })
       .addCase(fetchSalaries.rejected, (state, action) => {
         state.salariesStatus = "failed";
