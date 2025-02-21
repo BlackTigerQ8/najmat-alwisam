@@ -761,6 +761,13 @@ i18n
           updateSalaryConfigRejected: "Can't update rules, you can try later!",
           deleteSalaryConfigFulfilled: "Rules are deleted successfully!",
           deleteSalaryConfigRejected: "Can't delete rules, you can try later!",
+          ////////////
+          driversSalaryDetailsTitle: "Drivers Salary Details",
+          driversSalaryDetailsSubtitle:
+            "Drivers salary details for all drivers",
+          driversSalaryDetails: "Drivers Salary Details",
+          cashSalary: "Cash Payment",
+          netSalaryAfterDeductions: "Bank Transfer",
         },
       },
       ar: {
@@ -1480,6 +1487,12 @@ i18n
           deleteSalaryConfigFulfilled: "تم حذف القواعد بنجاح",
           deleteSalaryConfigRejected:
             "لم يتم حذف القواعد، يرجى المحاولة لاحقاً",
+          ////////////////////
+          driversSalaryDetailsTitle: "تفاصيل الرواتب للسائقين",
+          driversSalaryDetailsSubtitle: "تفاصيل الرواتب لجميع السائقين",
+          driversSalaryDetails: "تفاصيل الرواتب الشهرية للسائقين",
+          cashSalary: "سداد نقدي",
+          netSalaryAfterDeductions: "تحويل بنكي",
         },
       },
     },

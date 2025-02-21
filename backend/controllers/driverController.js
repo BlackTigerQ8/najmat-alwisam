@@ -338,66 +338,61 @@ const createArchivedDriverInvoice = async (req, res) => {
 
 const getAllInvoices = async (req, res) => {
   try {
-    let status = ["visibleToAll"];
-    switch (req.user.role) {
-      case "Admin":
-        status = ["pendingAdminReview"];
-        break;
-      case "Manager":
-        status = ["pendingManagerReview"];
-        break;
-      case "Accountant":
-        status = ["approved"];
-        break;
-    }
-
     // Get current month's date range
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
     endOfMonth.setHours(23, 59, 59, 999);
 
-    // Build the query to include both current and archived invoices for the current month
-    const query = {
-      $or: [
-        // Include both visibleToAll and visibleToAllArchived status
-        {
-          status: { $in: ["visibleToAll", "visibleToAllArchived"] },
-          invoiceDate: {
-            $gte: startOfMonth,
-            $lte: endOfMonth,
-          },
-        },
-        // Other statuses without date filtering
-        {
-          status: {
-            $in: status.filter(
-              (s) => !["visibleToAll", "visibleToAllArchived"].includes(s)
-            ),
-          },
-        },
-      ],
-    };
+    // Get regular invoices (main orders, additional orders, etc.)
+    const regularInvoices = await DriverInvoice.find({
+      status: { $in: ["visibleToAll"] },
+      invoiceDate: {
+        $gte: startOfMonth,
+        $lte: endOfMonth,
+      },
+    }).populate("driver");
 
-    console.log("Query date range:", { startOfMonth, endOfMonth });
+    // Get deduction invoices based on user role
+    let deductionStatus = [];
+    switch (req.user.role) {
+      case "Admin":
+        deductionStatus = ["pendingAdminReview"];
+        break;
+      case "Manager":
+        deductionStatus = ["pendingManagerReview"];
+        break;
+      case "Accountant":
+        deductionStatus = ["approved"];
+        break;
+    }
 
-    const driverInvoices = await DriverInvoice.find({
-      status: { $in: status },
-    })
-      .populate("driver")
-      .sort({ invoiceDate: -1 });
+    const deductionInvoices =
+      deductionStatus.length > 0
+        ? await DriverInvoice.find({
+            status: { $in: deductionStatus },
+            invoiceDate: {
+              $gte: startOfMonth,
+              $lte: endOfMonth,
+            },
+          }).populate("driver")
+        : [];
 
-    console.log("Found invoices:", driverInvoices.length);
-    console.log("Status filter:", status);
+    // Combine both types of invoices
+    const allInvoices = [...regularInvoices, ...deductionInvoices];
+
+    console.log("Regular invoices:", regularInvoices.length);
+    console.log("Deduction invoices:", deductionInvoices.length);
+    console.log("Total invoices:", allInvoices.length);
 
     res.status(200).json({
       status: "Success",
       data: {
-        driverInvoices,
+        driverInvoices: allInvoices,
       },
     });
   } catch (error) {
-    console.log("Get all invoice", error);
+    console.log("Get all invoice error:", error);
     res.status(500).json({
       status: "Error",
       message: error.message,
@@ -962,7 +957,7 @@ const updateInvoiceStatus = async (req, res) => {
 
 const resetInvoices = async (req, res) => {
   try {
-    // Instead of deleting, just update the status to visibleToAllArchived
+    // Update all visible invoices to archived status
     const result = await DriverInvoice.updateMany(
       { status: "visibleToAll" }, // only update invoices with "visibleToAll" status
       {

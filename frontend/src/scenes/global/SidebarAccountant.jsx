@@ -31,7 +31,7 @@ import ArchiveOutlinedIcon from "@mui/icons-material/ArchiveOutlined";
 import FindInPageOutlinedIcon from "@mui/icons-material/FindInPageOutlined";
 import FolderCopyOutlinedIcon from "@mui/icons-material/FolderCopyOutlined";
 import { useTranslation } from "react-i18next";
-
+import LibraryBooksOutlinedIcon from "@mui/icons-material/LibraryBooksOutlined";
 const Item = ({ title, to, icon, selected, setSelected, isCollapsed }) => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
@@ -362,6 +362,14 @@ const SidebarA = () => {
                 title={t("salaryReport")}
                 to="/salary-report"
                 icon={<PaymentsOutlinedIcon />}
+                selected={selected}
+                setSelected={setSelected}
+                isCollapsed={isCollapsed}
+              />
+              <Item
+                title={t("driversSalaryDetails")}
+                to="/drivers-salary-details"
+                icon={<LibraryBooksOutlinedIcon />}
                 selected={selected}
                 setSelected={setSelected}
                 isCollapsed={isCollapsed}

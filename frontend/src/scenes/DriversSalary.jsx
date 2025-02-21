@@ -23,7 +23,7 @@ import { useReactToPrint } from "react-to-print";
 import PrintableTable from "./PrintableTable";
 import styles from "./Print.module.css";
 import { useTranslation } from "react-i18next";
-
+import { fetchSalaryConfigs } from "../redux/salaryConfigSlice";
 const DriversSalary = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
@@ -32,6 +32,7 @@ const DriversSalary = () => {
   const driversSalaries = useSelector((state) => state.drivers.salaries);
   const status = useSelector((state) => state.drivers.salariesStatus);
   const error = useSelector((state) => state.drivers.salariesError);
+  const configs = useSelector((state) => state.salaryConfig.configs);
   const token =
     useSelector((state) => state.drivers.token) ||
     localStorage.getItem("token");
@@ -44,9 +45,6 @@ const DriversSalary = () => {
   const [rowModifications, setRowModifications] = useState({});
   const [editedRows, setEditedRows] = useState({});
   const [rows, setRows] = useState([]);
-
-  const salaries = useSelector((state) => state.drivers.salaries);
-  console.log("Salaries from Redux:", salaries); // Add this debug line
 
   const handlePrint = useReactToPrint({
     content: () => componentRef.current,
@@ -69,63 +67,130 @@ const DriversSalary = () => {
   //   setEndYear(event.target.value);
   // };
 
-  const netCarDriversSalary = useMemo(() => {
-    const carDrivers = driversSalaries.filter(
-      (driver) => driver.vehicle === "Car"
+  useEffect(() => {
+    dispatch(fetchSalaryConfigs());
+  }, [dispatch]);
+
+  // Add this new function to calculate salary based on rules
+  const calculateSalaryForOrders = (orderCount, vehicleType, configs) => {
+    const config = configs.find((config) => config.vehicleType === vehicleType);
+    if (!config || !config.rules) return 0;
+
+    const applicableRule = config.rules.find(
+      (rule) =>
+        orderCount >= rule.minOrders &&
+        orderCount <=
+          (rule.maxOrders === Infinity
+            ? Number.MAX_SAFE_INTEGER
+            : rule.maxOrders)
     );
 
-    return carDrivers.reduce((total, driver) => {
-      return (
-        total +
-        Number(driver?.mainSalary) +
-        Number(driver?.salaryMainOrders) +
-        Number(driver?.salaryAdditionalOrders) -
-        Number(driver?.talabatDeductionAmount) -
-        Number(driver?.companyDeductionAmount) -
-        Number(driver?.pettyCashDeductionAmount)
+    if (!applicableRule) return 0;
+
+    return applicableRule.multiplier
+      ? orderCount * applicableRule.multiplier
+      : applicableRule.fixedAmount;
+  };
+
+  useEffect(() => {
+    if (driversSalaries.length > 0 && configs.length > 0) {
+      const calculatedRows = driversSalaries.map((driver) => {
+        const mainOrdersSalary = calculateSalaryForOrders(
+          Number(driver.mainOrder || 0),
+          driver.vehicle,
+          configs
+        );
+
+        const additionalOrdersSalary = calculateSalaryForOrders(
+          Number(driver.additionalOrder || 0),
+          driver.vehicle,
+          configs
+        );
+
+        return {
+          ...driver,
+          salaryMainOrders: mainOrdersSalary,
+          salaryAdditionalOrders: additionalOrdersSalary,
+        };
+      });
+
+      setRows(calculatedRows);
+    }
+  }, [driversSalaries, configs]);
+
+  // Calculate total salary for a driver
+  const calculateTotalSalaryForDriver = (driver) => {
+    if (driver._id === "sum-row") return 0;
+
+    const mainOrdersSalary = calculateSalaryForOrders(
+      Number(driver.mainOrder || 0),
+      driver.vehicle,
+      configs
+    );
+    const additionalOrdersSalary = calculateSalaryForOrders(
+      Number(driver.additionalOrder || 0),
+      driver.vehicle,
+      configs
+    );
+
+    return (
+      Number(driver.mainSalary || 0) + mainOrdersSalary + additionalOrdersSalary
+    );
+  };
+
+  // Calculate total deductions for a driver
+  const calculateTotalDeductionsForDriver = (driver) => {
+    if (driver._id === "sum-row") return 0;
+
+    return (
+      Number(driver.talabatDeductionAmount || 0) +
+      Number(driver.companyDeductionAmount || 0) +
+      Number(driver.pettyCashDeductionAmount || 0)
+    );
+  };
+
+  // Summary section calculations using the same logic
+  const netCarDriversSalary = useMemo(() => {
+    return rows
+      .filter((driver) => driver.vehicle === "Car" && driver._id !== "sum-row")
+      .reduce(
+        (total, driver) =>
+          total +
+          calculateTotalSalaryForDriver(driver) -
+          calculateTotalDeductionsForDriver(driver),
+        0
       );
-    }, 0);
-  }, [driversSalaries]);
+  }, [rows, configs]);
 
   const netBikeDriversSalary = useMemo(() => {
-    const carDrivers = driversSalaries.filter(
-      (driver) => driver.vehicle === "Bike"
-    );
-
-    return carDrivers.reduce((total, driver) => {
-      return (
-        total +
-        Number(driver?.mainSalary) +
-        Number(driver?.salaryMainOrders) +
-        Number(driver?.salaryAdditionalOrders) -
-        Number(driver?.talabatDeductionAmount) -
-        Number(driver?.companyDeductionAmount) -
-        Number(driver?.pettyCashDeductionAmount)
+    return rows
+      .filter((driver) => driver.vehicle === "Bike" && driver._id !== "sum-row")
+      .reduce(
+        (total, driver) =>
+          total +
+          calculateTotalSalaryForDriver(driver) -
+          calculateTotalDeductionsForDriver(driver),
+        0
       );
-    }, 0);
-  }, [driversSalaries]);
+  }, [rows, configs]);
 
   const totalMonthlySalary = useMemo(() => {
-    return driversSalaries.reduce((total, driver) => {
-      return (
-        total +
-        Number(driver?.mainSalary) +
-        Number(driver?.salaryMainOrders) +
-        Number(driver?.salaryAdditionalOrders)
+    return rows
+      .filter((driver) => driver._id !== "sum-row")
+      .reduce(
+        (total, driver) => total + calculateTotalSalaryForDriver(driver),
+        0
       );
-    }, 0);
-  }, [driversSalaries]);
+  }, [rows, configs]);
 
   const totalMonthlyDeduction = useMemo(() => {
-    return driversSalaries.reduce((total, driver) => {
-      return (
-        total +
-        Number(driver?.talabatDeductionAmount) +
-        Number(driver?.companyDeductionAmount) +
-        Number(driver?.pettyCashDeductionAmount)
+    return rows
+      .filter((driver) => driver._id !== "sum-row")
+      .reduce(
+        (total, driver) => total + calculateTotalDeductionsForDriver(driver),
+        0
       );
-    }, 0);
-  }, [driversSalaries]);
+  }, [rows]);
 
   const totalNetSalary = useMemo(() => {
     return totalMonthlySalary - totalMonthlyDeduction;
@@ -316,8 +381,17 @@ const DriversSalary = () => {
       flex: 1,
       headerAlign: "center",
       align: "center",
-      valueFormatter: (params) => {
-        return params.value ? Number(params.value).toFixed(3) : "0.000";
+      renderCell: (params) => {
+        const salary = calculateSalaryForOrders(
+          Number(params.row.mainOrder || 0),
+          params.row.vehicle,
+          configs
+        );
+        return (
+          <Box display="flex" justifyContent="center" borderRadius="4px">
+            {salary.toFixed(3)}
+          </Box>
+        );
       },
     },
     {
@@ -326,8 +400,17 @@ const DriversSalary = () => {
       flex: 1,
       headerAlign: "center",
       align: "center",
-      valueFormatter: (params) => {
-        return params.value ? Number(params.value).toFixed(3) : "0.000";
+      renderCell: (params) => {
+        const salary = calculateSalaryForOrders(
+          Number(params.row.additionalOrder || 0),
+          params.row.vehicle,
+          configs
+        );
+        return (
+          <Box display="flex" justifyContent="center" borderRadius="4px">
+            {salary.toFixed(3)}
+          </Box>
+        );
       },
     },
     {
@@ -464,33 +547,110 @@ const DriversSalary = () => {
   ];
 
   const calculateColumnSum = (fieldName) => {
-    const sum = driversSalaries.reduce((total, driver) => {
+    const sum = rows.reduce((total, driver) => {
       return total + Number(driver[fieldName] || 0);
     }, 0);
     return sum;
   };
 
-  const sumRow = {
-    _id: "sum-row",
-    sequenceNumber: t("total"),
-    firstName: t("total"),
-    name: "",
-    vehicle: "",
-    mainOrder: calculateColumnSum("mainOrder"),
-    additionalOrder: calculateColumnSum("additionalOrder"),
-    salaryMainOrders: calculateColumnSum("salaryMainOrders"),
-    salaryAdditionalOrders: calculateColumnSum("salaryAdditionalOrders"),
-    mainSalary: calculateColumnSum("mainSalary"),
-    talabatDeductionAmount: calculateColumnSum("talabatDeductionAmount"),
-    companyDeductionAmount: calculateColumnSum("companyDeductionAmount"),
-    pettyCashDeductionAmount: calculateColumnSum("pettyCashDeductionAmount"),
-    cashAmount: calculateColumnSum("cashAmount"),
-    netSalary: calculateColumnSum("netSalary"),
-    remarks: "",
-    actions: "",
-  };
+  // Calculate sumRow using the same logic as summary section
+  const sumRow = useMemo(
+    () => ({
+      _id: "sum-row",
+      sequenceNumber: t("total"),
+      firstName: t("total"),
+      name: "",
+      vehicle: "",
+      mainOrder: rows.reduce(
+        (total, driver) =>
+          driver._id === "sum-row"
+            ? total
+            : total + Number(driver.mainOrder || 0),
+        0
+      ),
+      additionalOrder: rows.reduce(
+        (total, driver) =>
+          driver._id === "sum-row"
+            ? total
+            : total + Number(driver.additionalOrder || 0),
+        0
+      ),
+      mainSalary: rows.reduce(
+        (total, driver) =>
+          driver._id === "sum-row"
+            ? total
+            : total + Number(driver.mainSalary || 0),
+        0
+      ),
+      salaryMainOrders: rows.reduce((total, driver) => {
+        if (driver._id === "sum-row") return total;
+        return (
+          total +
+          calculateSalaryForOrders(
+            Number(driver.mainOrder || 0),
+            driver.vehicle,
+            configs
+          )
+        );
+      }, 0),
+      salaryAdditionalOrders: rows.reduce((total, driver) => {
+        if (driver._id === "sum-row") return total;
+        return (
+          total +
+          calculateSalaryForOrders(
+            Number(driver.additionalOrder || 0),
+            driver.vehicle,
+            configs
+          )
+        );
+      }, 0),
+      talabatDeductionAmount: rows.reduce(
+        (total, driver) =>
+          driver._id === "sum-row"
+            ? total
+            : total + Number(driver.talabatDeductionAmount || 0),
+        0
+      ),
+      companyDeductionAmount: rows.reduce(
+        (total, driver) =>
+          driver._id === "sum-row"
+            ? total
+            : total + Number(driver.companyDeductionAmount || 0),
+        0
+      ),
+      pettyCashDeductionAmount: rows.reduce(
+        (total, driver) =>
+          driver._id === "sum-row"
+            ? total
+            : total + Number(driver.pettyCashDeductionAmount || 0),
+        0
+      ),
+      finalSalary: rows.reduce(
+        (total, driver) =>
+          driver._id === "sum-row"
+            ? total
+            : total + calculateTotalSalaryForDriver(driver),
+        0
+      ),
+      netSalary: rows.reduce(
+        (total, driver) =>
+          driver._id === "sum-row"
+            ? total
+            : total +
+              calculateTotalSalaryForDriver(driver) -
+              calculateTotalDeductionsForDriver(driver),
+        0
+      ),
+      remarks: "",
+    }),
+    [rows, configs, t]
+  );
 
-  const rowsWithSum = [...driversSalaries, sumRow];
+  // Combine rows with sumRow using useMemo
+  const rowsWithSum = useMemo(() => {
+    if (rows.length === 0) return [];
+    return [...rows.filter((row) => row._id !== "sum-row"), sumRow];
+  }, [rows, sumRow]);
 
   useEffect(() => {
     const baseRows = driversSalaries;
@@ -502,13 +662,32 @@ const DriversSalary = () => {
       vehicle: "",
       mainOrder: calculateColumnSum("mainOrder"),
       additionalOrder: calculateColumnSum("additionalOrder"),
-      salaryMainOrders: calculateColumnSum("salaryMainOrders"),
-      salaryAdditionalOrders: calculateColumnSum("salaryAdditionalOrders"),
+      salaryMainOrders: rows.reduce((total, driver) => {
+        if (driver._id === "sum-row") return total;
+        return (
+          total +
+          calculateSalaryForOrders(
+            Number(driver.mainOrder || 0),
+            driver.vehicle,
+            configs
+          )
+        );
+      }, 0),
+      salaryAdditionalOrders: rows.reduce((total, driver) => {
+        if (driver._id === "sum-row") return total;
+        return (
+          total +
+          calculateSalaryForOrders(
+            Number(driver.additionalOrder || 0),
+            driver.vehicle,
+            configs
+          )
+        );
+      }, 0),
       mainSalary: calculateColumnSum("mainSalary"),
       talabatDeductionAmount: calculateColumnSum("talabatDeductionAmount"),
       companyDeductionAmount: calculateColumnSum("companyDeductionAmount"),
       pettyCashDeductionAmount: calculateColumnSum("pettyCashDeductionAmount"),
-      cashAmount: calculateColumnSum("cashAmount"),
       netSalary: calculateColumnSum("netSalary"),
       remarks: "",
       actions: "",

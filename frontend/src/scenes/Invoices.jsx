@@ -439,27 +439,67 @@ const InvoicesArchive = () => {
   ];
 
   useEffect(() => {
-    //if (status === "succeeded") {
-    dispatch(fetchDrivers(token));
-    dispatch(fetchInvoices(token));
-    dispatch(fetchEmployeeInvoices(token));
-    //}
+    const fetchData = async () => {
+      try {
+        setIsLoading(true);
+        await Promise.all([
+          dispatch(fetchDrivers(token)),
+          dispatch(fetchInvoices(token)),
+          dispatch(fetchEmployeeInvoices(token)),
+        ]);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
   }, [token, dispatch]);
 
   // Socket listener for real-time updates
   useEffect(() => {
-    const socket = io(process.env.REACT_APP_API_URL);
-
-    socket.on("invoicesReset", () => {
-      // Refresh the data when reset event is received
-      dispatch(fetchInvoices(token));
-      toast.info(t("invoicesResetByOtherUser"));
+    // Create socket connection with explicit namespace and full URL
+    const socket = io(`${process.env.REACT_APP_API_URL}/invoices`, {
+      reconnection: true,
+      reconnectionDelay: 1000,
+      reconnectionDelayMax: 5000,
+      reconnectionAttempts: 5,
+      path: "/socket.io",
+      transports: ["websocket", "polling"],
+      auth: {
+        token: localStorage.getItem("token"),
+      },
     });
 
+    socket.on("connect", () => {
+      console.log("Socket connected to invoices namespace");
+    });
+
+    socket.on("connect_error", (error) => {
+      console.error("Socket connection error:", error);
+    });
+
+    socket.on("invoicesReset", async () => {
+      try {
+        const token = localStorage.getItem("token");
+        await dispatch(fetchInvoices(token)).unwrap();
+        toast.info(t("invoicesResetByOtherUser"));
+      } catch (error) {
+        console.error("Error fetching invoices:", error);
+      }
+    });
+
+    // Cleanup on component unmount
     return () => {
-      socket.disconnect();
+      if (socket) {
+        socket.off("connect");
+        socket.off("connect_error");
+        socket.off("invoicesReset");
+        socket.disconnect();
+      }
     };
-  }, [dispatch, token, t]);
+  }, [dispatch, t]);
 
   pulsar.register();
   if (status === "loading") {

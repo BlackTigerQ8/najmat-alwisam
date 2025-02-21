@@ -64,6 +64,7 @@ import SearchArchive from "./scenes/SearchArchive";
 import SalaryReport from "./scenes/SalaryReport";
 import LandingPage from "./scenes/global/LandingPage";
 import SalaryConfig from "./scenes/SalaryConfig";
+import DriversSalaryDetails from "./scenes/DriversSalaryDetails";
 
 const lngs = {
   en: { nativeName: "English" },
@@ -166,6 +167,7 @@ function App() {
     { path: "/searching-archive", element: <SearchArchive /> },
     { path: "/invoices-archive", element: <InvoicesArchive /> },
     { path: "/salary-report", element: <SalaryReport /> },
+    { path: "/drivers-salary-details", element: <DriversSalaryDetails /> },
   ];
 
   const employeeRoutes = [

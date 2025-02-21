@@ -24,6 +24,7 @@ const io = new Server(server, {
   cors: {
     origin: process.env.FRONTEND_URL || "http://localhost:3000",
     methods: ["GET", "POST"],
+    credentials: true,
   },
 });
 
@@ -58,16 +59,17 @@ app.use("/api/salary-config", salaryConfigRoutes);
 app.use("/api/uploads", express.static(path.join(__dirname, "uploads")));
 
 // Socket.io connection handling
-io.on("connection", (socket) => {
-  console.log("A user connected");
+const invoicesNamespace = io.of("/api/invoices");
+
+invoicesNamespace.on("connection", (socket) => {
+  console.log("Client connected to invoices namespace");
 
   socket.on("invoicesReset", (data) => {
-    // Broadcast the reset event to all connected clients except sender
     socket.broadcast.emit("invoicesReset", data);
   });
 
   socket.on("disconnect", () => {
-    console.log("User disconnected");
+    console.log("Client disconnected from invoices namespace");
   });
 });
 
