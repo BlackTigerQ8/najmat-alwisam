@@ -838,7 +838,11 @@ const PettyCash = () => {
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setDeleteDialogOpen(false)} color="primary">
+          <Button
+            onClick={() => setDeleteDialogOpen(false)}
+            color="primary"
+            variant="contained"
+          >
             {t("cancel")}
           </Button>
           <Button

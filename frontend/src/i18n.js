@@ -290,6 +290,11 @@ i18n
           totalMonthlyDeduction: "Total monthly deduction:",
           totalNetSalary: "Total net salary:",
           total: "Total",
+          salaryTotalOrders: "Total orders",
+          totalDeductions: "Total deductions",
+          totalSummary: "Total summary",
+          bikeDrivers: "Bike drivers",
+          carDrivers: "Car drivers",
           /////////////
           companySpendsTitle: "COMPANY EXPENSES",
           companySpendsSubtitle: "Company Expenses Page",
@@ -1044,6 +1049,11 @@ i18n
           totalMonthlyDeduction: "إجمالي الخصم الشهري:",
           totalNetSalary: "إجمالي الراتب الصافي:",
           total: "إجمالي",
+          salaryTotalOrders: "إجمالي الطلبات",
+          bikeDrivers: "سائقون الدراجات",
+          carDrivers: "سائقون السيارات",
+          totalDeductions: "إجمالي الخصومات",
+          totalSummary: "إجمالي الملخص",
           /////////////
           companySpendsTitle: "مصاريف الشركة",
           companySpendsSubtitle: "صفحة مصاريف الشركة",

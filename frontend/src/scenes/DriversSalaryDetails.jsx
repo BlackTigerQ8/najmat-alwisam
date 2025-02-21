@@ -36,6 +36,21 @@ const DriversSalaryDetails = () => {
 
   const columns = [
     {
+      field: "sequenceNumber",
+      headerName: t("no"),
+      flex: 0.2,
+      renderCell: (params) => {
+        if (params.row._id === "sum-row") {
+          return "";
+        }
+        const currentIndex = rows.findIndex(
+          (row) => row._id === params.row._id
+        );
+        return currentIndex + 1;
+      },
+      sortable: false,
+    },
+    {
       field: "name",
       headerName: t("name"),
       flex: 1,
@@ -343,7 +358,10 @@ const DriversSalaryDetails = () => {
               "& .MuiDataGrid-cell": {
                 color: colors.grey[100],
               },
-              borderBottom: `2px solid ${colors.grey[100]}`,
+              "& .MuiDataGrid-columnHeaders": {
+                backgroundColor: colors.blueAccent[700],
+                borderBottom: "none",
+              },
             },
           }}
         />

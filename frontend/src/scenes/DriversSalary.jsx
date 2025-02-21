@@ -1,4 +1,9 @@
 import React, { useEffect, useState, useMemo, useRef } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { useTranslation } from "react-i18next";
+import { useReactToPrint } from "react-to-print";
+import { DataGrid } from "@mui/x-data-grid";
+import { pulsar } from "ldrs";
 import {
   Box,
   Button,
@@ -11,24 +16,52 @@ import {
   TextField,
   Grid,
 } from "@mui/material";
-import { DataGrid } from "@mui/x-data-grid";
+import SaveIcon from "@mui/icons-material/Save";
+
 import { tokens } from "../theme";
 import Header from "../components/Header";
-// import UpdateIcon from "@mui/icons-material/Update";
-import SaveIcon from "@mui/icons-material/Save";
-import { useSelector, useDispatch } from "react-redux";
-import { overrideDriverSalary, fetchSalaries } from "../redux/driversSlice";
-import { pulsar } from "ldrs";
-import { useReactToPrint } from "react-to-print";
 import PrintableTable from "./PrintableTable";
 import styles from "./Print.module.css";
-import { useTranslation } from "react-i18next";
+import { overrideDriverSalary, fetchSalaries } from "../redux/driversSlice";
 import { fetchSalaryConfigs } from "../redux/salaryConfigSlice";
+import {
+  fetchCurrentMonthPettyCash,
+  fetchPettyCash,
+  searchPettyCash,
+} from "../redux/pettyCashSlice";
+
+const initialGridState = {
+  editRowsModel: {},
+  rowModifications: {},
+  editedRows: {},
+  rows: [],
+};
+
+const initialDateRange = {
+  startMonth: new Date().getMonth(),
+  startYear: new Date().getFullYear(),
+};
+
+const calculateColumnSum = (rows, fieldName) => {
+  return rows
+    .filter((row) => row._id !== "sum-row")
+    .reduce((total, row) => total + Number(row[fieldName] || 0), 0);
+};
+
 const DriversSalary = () => {
+  // Theme and Translations
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
-  const dispatch = useDispatch();
   const { t } = useTranslation();
+  const dispatch = useDispatch();
+  const componentRef = useRef();
+
+  // State Management
+  const [dateRange, setDateRange] = useState(initialDateRange);
+  const [gridState, setGridState] = useState(initialGridState);
+
+  // Redux Selectors
+  const { pettyCash } = useSelector((state) => state.pettyCash);
   const driversSalaries = useSelector((state) => state.drivers.salaries);
   const status = useSelector((state) => state.drivers.salariesStatus);
   const error = useSelector((state) => state.drivers.salariesError);
@@ -36,265 +69,298 @@ const DriversSalary = () => {
   const token =
     useSelector((state) => state.drivers.token) ||
     localStorage.getItem("token");
-  const [startMonth, setStartMonth] = useState(new Date().getMonth());
-  const [startYear, setStartYear] = useState(new Date().getFullYear());
-  // const [endMonth, setEndMonth] = useState(new Date().getMonth());
-  // const [endYear, setEndYear] = useState(new Date().getFullYear());
-  const componentRef = useRef();
-  const [editRowsModel, setEditRowsModel] = useState({});
-  const [rowModifications, setRowModifications] = useState({});
-  const [editedRows, setEditedRows] = useState({});
-  const [rows, setRows] = useState([]);
+
+  // Salary Calculation Utilities
+  const calculateSalary = {
+    forOrders: (orderCount, vehicleType) => {
+      const config = configs.find((c) => c.vehicleType === vehicleType);
+      if (!config?.rules) return 0;
+
+      const rule = config.rules.find(
+        (r) =>
+          orderCount >= r.minOrders &&
+          orderCount <=
+            (r.maxOrders === Infinity ? Number.MAX_SAFE_INTEGER : r.maxOrders)
+      );
+
+      return rule
+        ? rule.multiplier
+          ? orderCount * rule.multiplier
+          : rule.fixedAmount
+        : 0;
+    },
+
+    total: (driver) => {
+      if (driver._id === "sum-row") return 0;
+
+      const mainOrdersSalary = calculateSalary.forOrders(
+        Number(driver.mainOrder || 0),
+        driver.vehicle
+      );
+      const additionalOrdersSalary = calculateSalary.forOrders(
+        Number(driver.additionalOrder || 0),
+        driver.vehicle
+      );
+
+      return (
+        Number(driver.mainSalary || 0) +
+        mainOrdersSalary +
+        additionalOrdersSalary
+      );
+    },
+
+    deductions: (driver) => {
+      if (driver._id === "sum-row") return 0;
+
+      return (
+        Number(driver.talabatDeductionAmount || 0) +
+        Number(driver.companyDeductionAmount || 0) +
+        Number(driver.pettyCashDeductionAmount || 0)
+      );
+    },
+
+    net: (driver) => {
+      return calculateSalary.total(driver) - calculateSalary.deductions(driver);
+    },
+  };
+
+  // Summary Calculations
+  const summaryCalculations = useMemo(() => {
+    const carDrivers = gridState.rows.filter(
+      (driver) => driver.vehicle === "Car" && driver._id !== "sum-row"
+    );
+    const bikeDrivers = gridState.rows.filter(
+      (driver) => driver.vehicle === "Bike" && driver._id !== "sum-row"
+    );
+
+    const carDriversData = {
+      finalSalary: carDrivers.reduce(
+        (total, driver) =>
+          total +
+          (Number(driver.mainSalary || 0) +
+            Number(driver.salaryMainOrders || 0) +
+            Number(driver.salaryAdditionalOrders || 0)),
+        0
+      ),
+      totalDeductions: carDrivers.reduce(
+        (total, driver) =>
+          total +
+          (Number(driver.talabatDeductionAmount || 0) +
+            Number(driver.companyDeductionAmount || 0) +
+            Number(driver.pettyCashDeductionAmount || 0)),
+        0
+      ),
+    };
+
+    const bikeDriversData = {
+      finalSalary: bikeDrivers.reduce(
+        (total, driver) =>
+          total +
+          (Number(driver.mainSalary || 0) +
+            Number(driver.salaryMainOrders || 0) +
+            Number(driver.salaryAdditionalOrders || 0)),
+        0
+      ),
+      totalDeductions: bikeDrivers.reduce(
+        (total, driver) =>
+          total +
+          (Number(driver.talabatDeductionAmount || 0) +
+            Number(driver.companyDeductionAmount || 0) +
+            Number(driver.pettyCashDeductionAmount || 0)),
+        0
+      ),
+    };
+
+    return {
+      carDrivers: {
+        finalSalary: carDriversData.finalSalary,
+        totalDeductions: carDriversData.totalDeductions,
+        netSalary: carDriversData.finalSalary - carDriversData.totalDeductions,
+      },
+      bikeDrivers: {
+        finalSalary: bikeDriversData.finalSalary,
+        totalDeductions: bikeDriversData.totalDeductions,
+        netSalary:
+          bikeDriversData.finalSalary - bikeDriversData.totalDeductions,
+      },
+      total: {
+        finalSalary: carDriversData.finalSalary + bikeDriversData.finalSalary,
+        totalDeductions:
+          carDriversData.totalDeductions + bikeDriversData.totalDeductions,
+        netSalary:
+          carDriversData.finalSalary +
+          bikeDriversData.finalSalary -
+          (carDriversData.totalDeductions + bikeDriversData.totalDeductions),
+      },
+    };
+  }, [gridState.rows]);
+
+  // Event Handlers
+  const handleDateChange = (field) => (event) => {
+    setDateRange((prev) => ({
+      ...prev,
+      [field]: event.target.value,
+    }));
+  };
 
   const handlePrint = useReactToPrint({
     content: () => componentRef.current,
     documentTitle: "Drivers Salary Report",
   });
 
-  const handleStartMonthChange = (event) => {
-    setStartMonth(event.target.value);
+  const handleSearch = () => {
+    const startDate = new Date(dateRange.startYear, dateRange.startMonth, 1);
+    const endDate = new Date(dateRange.startYear, dateRange.startMonth + 1, 0);
+    dispatch(fetchSalaries({ startDate, endDate }));
   };
 
-  const handleStartYearChange = (event) => {
-    setStartYear(event.target.value);
-  };
+  const handleUpdate = async (row) => {
+    const modifications = gridState.rowModifications[row._id];
+    if (!modifications || Object.keys(modifications).length === 0) return;
 
-  // const handleEndMonthChange = (event) => {
-  //   setEndMonth(event.target.value);
-  // };
+    try {
+      await dispatch(
+        overrideDriverSalary({
+          values: { driverId: row._id, ...modifications },
+        })
+      );
 
-  // const handleEndYearChange = (event) => {
-  //   setEndYear(event.target.value);
-  // };
+      const startDate = new Date(dateRange.startYear, dateRange.startMonth, 1);
+      const endDate = new Date(
+        dateRange.startYear,
+        dateRange.startMonth + 1,
+        0
+      );
+      await dispatch(fetchSalaries({ startDate, endDate }));
 
-  useEffect(() => {
-    dispatch(fetchSalaryConfigs());
-  }, [dispatch]);
-
-  // Add this new function to calculate salary based on rules
-  const calculateSalaryForOrders = (orderCount, vehicleType, configs) => {
-    const config = configs.find((config) => config.vehicleType === vehicleType);
-    if (!config || !config.rules) return 0;
-
-    const applicableRule = config.rules.find(
-      (rule) =>
-        orderCount >= rule.minOrders &&
-        orderCount <=
-          (rule.maxOrders === Infinity
-            ? Number.MAX_SAFE_INTEGER
-            : rule.maxOrders)
-    );
-
-    if (!applicableRule) return 0;
-
-    return applicableRule.multiplier
-      ? orderCount * applicableRule.multiplier
-      : applicableRule.fixedAmount;
-  };
-
-  useEffect(() => {
-    if (driversSalaries.length > 0 && configs.length > 0) {
-      const calculatedRows = driversSalaries.map((driver) => {
-        const mainOrdersSalary = calculateSalaryForOrders(
-          Number(driver.mainOrder || 0),
-          driver.vehicle,
-          configs
-        );
-
-        const additionalOrdersSalary = calculateSalaryForOrders(
-          Number(driver.additionalOrder || 0),
-          driver.vehicle,
-          configs
-        );
-
-        return {
-          ...driver,
-          salaryMainOrders: mainOrdersSalary,
-          salaryAdditionalOrders: additionalOrdersSalary,
-        };
-      });
-
-      setRows(calculatedRows);
+      setGridState((prev) => ({
+        ...prev,
+        rowModifications: { ...prev.rowModifications, [row._id]: undefined },
+        editedRows: { ...prev.editedRows, [row._id]: undefined },
+      }));
+    } catch (error) {
+      console.error("Error updating row:", error);
     }
-  }, [driversSalaries, configs]);
-
-  // Calculate total salary for a driver
-  const calculateTotalSalaryForDriver = (driver) => {
-    if (driver._id === "sum-row") return 0;
-
-    const mainOrdersSalary = calculateSalaryForOrders(
-      Number(driver.mainOrder || 0),
-      driver.vehicle,
-      configs
-    );
-    const additionalOrdersSalary = calculateSalaryForOrders(
-      Number(driver.additionalOrder || 0),
-      driver.vehicle,
-      configs
-    );
-
-    return (
-      Number(driver.mainSalary || 0) + mainOrdersSalary + additionalOrdersSalary
-    );
   };
 
-  // Calculate total deductions for a driver
-  const calculateTotalDeductionsForDriver = (driver) => {
-    if (driver._id === "sum-row") return 0;
-
-    return (
-      Number(driver.talabatDeductionAmount || 0) +
-      Number(driver.companyDeductionAmount || 0) +
-      Number(driver.pettyCashDeductionAmount || 0)
-    );
-  };
-
-  // Summary section calculations using the same logic
-  const netCarDriversSalary = useMemo(() => {
-    return rows
-      .filter((driver) => driver.vehicle === "Car" && driver._id !== "sum-row")
-      .reduce(
-        (total, driver) =>
-          total +
-          calculateTotalSalaryForDriver(driver) -
-          calculateTotalDeductionsForDriver(driver),
-        0
-      );
-  }, [rows, configs]);
-
-  const netBikeDriversSalary = useMemo(() => {
-    return rows
-      .filter((driver) => driver.vehicle === "Bike" && driver._id !== "sum-row")
-      .reduce(
-        (total, driver) =>
-          total +
-          calculateTotalSalaryForDriver(driver) -
-          calculateTotalDeductionsForDriver(driver),
-        0
-      );
-  }, [rows, configs]);
-
-  const totalMonthlySalary = useMemo(() => {
-    return rows
-      .filter((driver) => driver._id !== "sum-row")
-      .reduce(
-        (total, driver) => total + calculateTotalSalaryForDriver(driver),
-        0
-      );
-  }, [rows, configs]);
-
-  const totalMonthlyDeduction = useMemo(() => {
-    return rows
-      .filter((driver) => driver._id !== "sum-row")
-      .reduce(
-        (total, driver) => total + calculateTotalDeductionsForDriver(driver),
-        0
-      );
-  }, [rows]);
-
-  const totalNetSalary = useMemo(() => {
-    return totalMonthlySalary - totalMonthlyDeduction;
-  }, [totalMonthlySalary, totalMonthlyDeduction]);
-
+  // Grid Configuration
   const processRowUpdate = (newRow, oldRow) => {
-    // Don't process updates for sum row
-    if (newRow._id === "sum-row") {
-      return oldRow;
-    }
+    if (newRow._id === "sum-row") return oldRow;
 
-    const id = newRow._id;
-    const changes = {};
-
-    Object.keys(newRow).forEach((field) => {
-      if (newRow[field] !== oldRow[field]) {
-        changes[field] = newRow[field];
-      }
-    });
+    const changes = Object.entries(newRow).reduce((acc, [key, value]) => {
+      if (value !== oldRow[key]) acc[key] = value;
+      return acc;
+    }, {});
 
     if (Object.keys(changes).length > 0) {
-      // Store changes for save operation
-      setRowModifications((prev) => ({
+      setGridState((prev) => ({
         ...prev,
-        [id]: {
-          ...(prev[id] || {}),
-          ...changes,
+        rowModifications: {
+          ...prev.rowModifications,
+          [newRow._id]: {
+            ...(prev.rowModifications[newRow._id] || {}),
+            ...changes,
+          },
         },
-      }));
-
-      setEditedRows((prev) => ({
-        ...prev,
-        [id]: true,
+        editedRows: { ...prev.editedRows, [newRow._id]: true },
       }));
     }
 
     return newRow;
   };
 
-  // Add this error handler
-  const handleProcessRowUpdateError = (error) => {
-    console.error(error);
-  };
+  // Effects
+  useEffect(() => {
+    dispatch(fetchSalaryConfigs());
+    dispatch(fetchPettyCash());
+  }, [dispatch]);
 
   useEffect(() => {
-    setRows(driversSalaries);
-  }, [driversSalaries]);
+    const startDate = new Date(dateRange.startYear, dateRange.startMonth, 1);
+    const endDate = new Date(dateRange.startYear, dateRange.startMonth + 1, 0);
 
-  const handleUpdate = (row) => {
-    try {
-      const modifications = rowModifications[row._id];
+    dispatch(fetchSalaries({ startDate, endDate }));
+  }, [dispatch, dateRange.startMonth, dateRange.startYear]);
 
-      if (!modifications || Object.keys(modifications).length === 0) {
-        return;
-      }
+  useEffect(() => {
+    // Update rows with petty cash deductions
+    const rowsWithPettyCash = driversSalaries.map((driver) => {
+      // Get start and end date for the selected month
+      const startDate = new Date(dateRange.startYear, dateRange.startMonth, 1);
+      const endDate = new Date(
+        dateRange.startYear,
+        dateRange.startMonth + 1,
+        0
+      );
 
-      // Only send the modified fields
-      const values = {
-        driverId: row._id,
-      };
+      // Filter petty cash entries by driver ID and spend date
+      const driverPettyCashEntries = pettyCash.filter(
+        (entry) =>
+          entry.deductedFromDriver === driver._id &&
+          new Date(entry.spendsDate) >= startDate &&
+          new Date(entry.spendsDate) <= endDate
+      );
 
-      // Add only the modified fields to the values object
-      Object.entries(modifications).forEach(([key, value]) => {
-        // Include empty string values for remarks
-        if (key === "remarks" || value !== undefined) {
-          values[key] = value;
+      // Calculate total deductions
+      const totalPettyCashDeduction = driverPettyCashEntries.reduce(
+        (sum, entry) => sum + Number(entry.cashAmount || 0),
+        0
+      );
+
+      console.log(
+        `Driver ${
+          driver.firstName
+        } petty cash for ${startDate.toLocaleDateString()} - ${endDate.toLocaleDateString()}:`,
+        {
+          driverId: driver._id,
+          entries: driverPettyCashEntries,
+          total: totalPettyCashDeduction,
         }
-      });
+      );
 
-      dispatch(
-        overrideDriverSalary({
-          values,
-        })
-      ).then(() => {
-        // After successful update, refresh the salaries data
-        const startDate = new Date(startYear, startMonth, 1);
-        const endDate = new Date(startYear, startMonth + 1, 0);
+      return {
+        ...driver,
+        pettyCashDeductionAmount: totalPettyCashDeduction,
+      };
+    });
 
-        dispatch(
-          fetchSalaries({
-            startDate,
-            endDate,
-          })
-        );
+    setGridState((prev) => ({ ...prev, rows: rowsWithPettyCash }));
+  }, [driversSalaries, pettyCash, dateRange.startMonth, dateRange.startYear]);
 
-        // Clear modifications for this row
-        setRowModifications((prev) => {
-          const newState = { ...prev };
-          delete newState[row._id];
-          return newState;
-        });
+  // Loading and Error States
+  if (status === "loading") {
+    return (
+      <Box
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+        height="100vh"
+      >
+        <l-pulsar size="70" speed="1.75" color={colors.greenAccent[500]} />
+      </Box>
+    );
+  }
 
-        setEditedRows((prev) => {
-          const newState = { ...prev };
-          delete newState[row._id];
-          return newState;
-        });
-      });
-    } catch (error) {
-      console.error("Error updating row:", error);
-    }
-  };
+  if (status === "failed") {
+    return (
+      <Box
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+        height="100vh"
+      >
+        <Typography variant="h5">Error: {error}</Typography>
+      </Box>
+    );
+  }
 
-  const columns = [
+  const getColumns = ({
+    t,
+    colors,
+    handleUpdate,
+    calculateSalary,
+    gridState,
+  }) => [
     {
       field: "sequenceNumber",
       headerName: t("no"),
@@ -303,7 +369,7 @@ const DriversSalary = () => {
         if (params.row._id === "sum-row") {
           return "";
         }
-        const currentIndex = rowsWithSum.findIndex(
+        const currentIndex = gridState.rows.findIndex(
           (row) => row._id === params.row._id
         );
         return currentIndex + 1;
@@ -370,64 +436,71 @@ const DriversSalary = () => {
       renderCell: ({ row: { additionalOrder, mainOrder } }) => {
         return (
           <Box display="flex" justifyContent="center" borderRadius="4px">
-            {Number(mainOrder) + Number(additionalOrder)}
+            {Number(mainOrder || 0) + Number(additionalOrder || 0)}
           </Box>
         );
       },
     },
     {
       field: "salaryMainOrders",
-      headerName: t("salaryMainOrders"),
+      headerName: t("salaryTotalOrders"),
       flex: 1,
       headerAlign: "center",
       align: "center",
-      renderCell: (params) => {
-        const salary = calculateSalaryForOrders(
-          Number(params.row.mainOrder || 0),
-          params.row.vehicle,
-          configs
+      renderCell: ({ row: { mainOrder, additionalOrder, vehicle } }) => {
+        const totalOrders =
+          Number(mainOrder || 0) + Number(additionalOrder || 0);
+        const config = configs.find((c) => c.vehicleType === vehicle);
+
+        if (!config?.rules) return "0.000";
+
+        const rule = config.rules.find(
+          (r) =>
+            totalOrders >= r.minOrders &&
+            totalOrders <=
+              (r.maxOrders === Infinity ? Number.MAX_SAFE_INTEGER : r.maxOrders)
         );
+
+        const ordersSalary = rule
+          ? rule.multiplier
+            ? (totalOrders * rule.multiplier).toFixed(3)
+            : rule.fixedAmount.toFixed(3)
+          : "0.000";
+
         return (
           <Box display="flex" justifyContent="center" borderRadius="4px">
-            {salary.toFixed(3)}
+            {ordersSalary}
           </Box>
         );
       },
     },
-    {
-      field: "salaryAdditionalOrders",
-      headerName: t("salaryAdditionalOrders"),
-      flex: 1,
-      headerAlign: "center",
-      align: "center",
-      renderCell: (params) => {
-        const salary = calculateSalaryForOrders(
-          Number(params.row.additionalOrder || 0),
-          params.row.vehicle,
-          configs
-        );
-        return (
-          <Box display="flex" justifyContent="center" borderRadius="4px">
-            {salary.toFixed(3)}
-          </Box>
-        );
-      },
-    },
+    // {
+    //   field: "salaryAdditionalOrders",
+    //   headerName: t("salaryAdditionalOrders"),
+    //   flex: 1,
+    //   headerAlign: "center",
+    //   align: "center",
+    //   valueFormatter: (params) => {
+    //     return params.value ? Number(params.value).toFixed(3) : "0.000";
+    //   },
+    // },
     {
       field: "finalSalary",
       headerName: t("finalSalary"),
       headerAlign: "center",
       align: "center",
       renderCell: ({
-        row: { salaryAdditionalOrders, salaryMainOrders, mainSalary },
+        row: { mainSalary, salaryMainOrders, salaryAdditionalOrders },
       }) => {
+        const finalSalary = (
+          Number(mainSalary || 0) +
+          Number(salaryMainOrders || 0) +
+          Number(salaryAdditionalOrders || 0)
+        ).toFixed(3);
+
         return (
           <Box display="flex" justifyContent="center" borderRadius="4px">
-            {(
-              Number(mainSalary || 0) +
-              Number(salaryMainOrders || 0) +
-              Number(salaryAdditionalOrders || 0)
-            ).toFixed(3)}
+            {finalSalary}
           </Box>
         );
       },
@@ -523,8 +596,8 @@ const DriversSalary = () => {
         const isSumRow = params.row._id === "sum-row";
         const rowId = params.row._id;
         const hasChanges = Boolean(
-          editedRows[rowId] &&
-            Object.keys(rowModifications[rowId] || {}).length > 0
+          gridState.editedRows[rowId] &&
+            Object.keys(gridState.rowModifications[rowId] || {}).length > 0
         );
         return (
           <Box display="flex" gap={1}>
@@ -546,230 +619,170 @@ const DriversSalary = () => {
     },
   ];
 
-  const calculateColumnSum = (fieldName) => {
-    const sum = rows.reduce((total, driver) => {
-      return total + Number(driver[fieldName] || 0);
-    }, 0);
-    return sum;
+  const sumRow = {
+    _id: "sum-row",
+    sequenceNumber: "",
+    firstName: t("total"),
+    lastName: "",
+    vehicle: "",
+    mainSalary: calculateColumnSum(gridState.rows, "mainSalary"),
+    mainOrder: calculateColumnSum(gridState.rows, "mainOrder"),
+    additionalOrder: calculateColumnSum(gridState.rows, "additionalOrder"),
+    salaryMainOrders: calculateColumnSum(gridState.rows, "salaryMainOrders"),
+    salaryAdditionalOrders: calculateColumnSum(
+      gridState.rows,
+      "salaryAdditionalOrders"
+    ),
+    finalSalary: calculateColumnSum(gridState.rows, "finalSalary"),
+    talabatDeductionAmount: calculateColumnSum(
+      gridState.rows,
+      "talabatDeductionAmount"
+    ),
+    companyDeductionAmount: calculateColumnSum(
+      gridState.rows,
+      "companyDeductionAmount"
+    ),
+    pettyCashDeductionAmount: calculateColumnSum(
+      gridState.rows,
+      "pettyCashDeductionAmount"
+    ),
+    netSalary: calculateColumnSum(gridState.rows, "netSalary"),
   };
 
-  // Calculate sumRow using the same logic as summary section
-  const sumRow = useMemo(
-    () => ({
-      _id: "sum-row",
-      sequenceNumber: t("total"),
-      firstName: t("total"),
-      name: "",
-      vehicle: "",
-      mainOrder: rows.reduce(
-        (total, driver) =>
-          driver._id === "sum-row"
-            ? total
-            : total + Number(driver.mainOrder || 0),
-        0
-      ),
-      additionalOrder: rows.reduce(
-        (total, driver) =>
-          driver._id === "sum-row"
-            ? total
-            : total + Number(driver.additionalOrder || 0),
-        0
-      ),
-      mainSalary: rows.reduce(
-        (total, driver) =>
-          driver._id === "sum-row"
-            ? total
-            : total + Number(driver.mainSalary || 0),
-        0
-      ),
-      salaryMainOrders: rows.reduce((total, driver) => {
-        if (driver._id === "sum-row") return total;
-        return (
-          total +
-          calculateSalaryForOrders(
-            Number(driver.mainOrder || 0),
-            driver.vehicle,
-            configs
-          )
-        );
-      }, 0),
-      salaryAdditionalOrders: rows.reduce((total, driver) => {
-        if (driver._id === "sum-row") return total;
-        return (
-          total +
-          calculateSalaryForOrders(
-            Number(driver.additionalOrder || 0),
-            driver.vehicle,
-            configs
-          )
-        );
-      }, 0),
-      talabatDeductionAmount: rows.reduce(
-        (total, driver) =>
-          driver._id === "sum-row"
-            ? total
-            : total + Number(driver.talabatDeductionAmount || 0),
-        0
-      ),
-      companyDeductionAmount: rows.reduce(
-        (total, driver) =>
-          driver._id === "sum-row"
-            ? total
-            : total + Number(driver.companyDeductionAmount || 0),
-        0
-      ),
-      pettyCashDeductionAmount: rows.reduce(
-        (total, driver) =>
-          driver._id === "sum-row"
-            ? total
-            : total + Number(driver.pettyCashDeductionAmount || 0),
-        0
-      ),
-      finalSalary: rows.reduce(
-        (total, driver) =>
-          driver._id === "sum-row"
-            ? total
-            : total + calculateTotalSalaryForDriver(driver),
-        0
-      ),
-      netSalary: rows.reduce(
-        (total, driver) =>
-          driver._id === "sum-row"
-            ? total
-            : total +
-              calculateTotalSalaryForDriver(driver) -
-              calculateTotalDeductionsForDriver(driver),
-        0
-      ),
-      remarks: "",
-    }),
-    [rows, configs, t]
-  );
+  const rowsWithSum = [...gridState.rows, sumRow];
 
-  // Combine rows with sumRow using useMemo
-  const rowsWithSum = useMemo(() => {
-    if (rows.length === 0) return [];
-    return [...rows.filter((row) => row._id !== "sum-row"), sumRow];
-  }, [rows, sumRow]);
-
-  useEffect(() => {
-    const baseRows = driversSalaries;
-    const sumRow = {
-      _id: "sum-row",
-      sequenceNumber: t("total"),
-      firstName: t("total"),
-      name: "",
-      vehicle: "",
-      mainOrder: calculateColumnSum("mainOrder"),
-      additionalOrder: calculateColumnSum("additionalOrder"),
-      salaryMainOrders: rows.reduce((total, driver) => {
-        if (driver._id === "sum-row") return total;
-        return (
-          total +
-          calculateSalaryForOrders(
-            Number(driver.mainOrder || 0),
-            driver.vehicle,
-            configs
-          )
-        );
-      }, 0),
-      salaryAdditionalOrders: rows.reduce((total, driver) => {
-        if (driver._id === "sum-row") return total;
-        return (
-          total +
-          calculateSalaryForOrders(
-            Number(driver.additionalOrder || 0),
-            driver.vehicle,
-            configs
-          )
-        );
-      }, 0),
-      mainSalary: calculateColumnSum("mainSalary"),
-      talabatDeductionAmount: calculateColumnSum("talabatDeductionAmount"),
-      companyDeductionAmount: calculateColumnSum("companyDeductionAmount"),
-      pettyCashDeductionAmount: calculateColumnSum("pettyCashDeductionAmount"),
-      netSalary: calculateColumnSum("netSalary"),
-      remarks: "",
-      actions: "",
-    };
-
-    setRows([...baseRows, sumRow]);
-  }, [driversSalaries, t]);
-
-  useEffect(() => {
-    // Get the first and last day of the current month by default
-    const startDate = new Date(startYear, startMonth, 1);
-    const endDate = new Date(startYear, startMonth + 1, 0); // Last day of the month
-
-    dispatch(
-      fetchSalaries({
-        startDate,
-        endDate,
-      })
-    );
-  }, [dispatch, startMonth, startYear]);
-
-  pulsar.register();
-  if (status === "loading") {
+  const renderSummarySection = () => {
     return (
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          height: "100vh",
-        }}
+      <Box
+        display="grid"
+        gridTemplateColumns="repeat(auto-fit, minmax(300px, 1fr))"
+        gap={2}
+        mb={3}
+        mt={3}
       >
-        <l-pulsar
-          size="70"
-          speed="1.75"
-          color={colors.greenAccent[500]}
-        ></l-pulsar>
-      </div>
-    );
-  }
+        {/* Car Drivers Summary */}
+        <Box bgcolor={colors.primary[400]} p={2} borderRadius={2}>
+          <Typography variant="h6" color={colors.grey[100]} mb={1}>
+            {t("carDrivers")}
+          </Typography>
+          <Grid container spacing={2}>
+            <Grid item xs={6}>
+              <Typography color={colors.greenAccent[500]}>
+                {t("finalSalary")}
+              </Typography>
+              <Typography color={colors.grey[100]}>
+                {summaryCalculations.carDrivers.finalSalary.toFixed(3)}
+              </Typography>
+            </Grid>
+            <Grid item xs={6}>
+              <Typography color={colors.greenAccent[500]}>
+                {t("totalDeductions")}
+              </Typography>
+              <Typography color={colors.grey[100]}>
+                {summaryCalculations.carDrivers.totalDeductions.toFixed(3)}
+              </Typography>
+            </Grid>
+            <Grid item xs={12}>
+              <Typography color={colors.greenAccent[500]}>
+                {t("netSalary")}
+              </Typography>
+              <Typography color={colors.grey[100]}>
+                {summaryCalculations.carDrivers.netSalary.toFixed(3)}
+              </Typography>
+            </Grid>
+          </Grid>
+        </Box>
 
-  if (status === "failed") {
-    return (
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          height: "100vh",
-          fontSize: "18px",
-        }}
-      >
-        Error: {error}
-      </div>
-    );
-  }
+        {/* Bike Drivers Summary */}
+        <Box bgcolor={colors.primary[400]} p={2} borderRadius={2}>
+          <Typography variant="h6" color={colors.grey[100]} mb={1}>
+            {t("bikeDrivers")}
+          </Typography>
+          <Grid container spacing={2}>
+            <Grid item xs={6}>
+              <Typography color={colors.greenAccent[500]}>
+                {t("finalSalary")}
+              </Typography>
+              <Typography color={colors.grey[100]}>
+                {summaryCalculations.bikeDrivers.finalSalary.toFixed(3)}
+              </Typography>
+            </Grid>
+            <Grid item xs={6}>
+              <Typography color={colors.greenAccent[500]}>
+                {t("totalDeductions")}
+              </Typography>
+              <Typography color={colors.grey[100]}>
+                {summaryCalculations.bikeDrivers.totalDeductions.toFixed(3)}
+              </Typography>
+            </Grid>
+            <Grid item xs={12}>
+              <Typography color={colors.greenAccent[500]}>
+                {t("netSalary")}
+              </Typography>
+              <Typography color={colors.grey[100]}>
+                {summaryCalculations.bikeDrivers.netSalary.toFixed(3)}
+              </Typography>
+            </Grid>
+          </Grid>
+        </Box>
 
-  const onSearchSubmit = () => {
-    const startDate = new Date(startYear, startMonth, 1);
-    const endDate = new Date(startYear, startMonth + 1, 0);
-    // const endDate = new Date(endYear, endMonth + 1, 0);
-
-    dispatch(
-      fetchSalaries({
-        startDate,
-        endDate,
-      })
+        {/* Total Summary */}
+        <Box bgcolor={colors.primary[400]} p={2} borderRadius={2}>
+          <Typography variant="h6" color={colors.grey[100]} mb={1}>
+            {t("totalSummary")}
+          </Typography>
+          <Grid container spacing={2}>
+            <Grid item xs={6}>
+              <Typography color={colors.greenAccent[500]}>
+                {t("finalSalary")}
+              </Typography>
+              <Typography color={colors.grey[100]}>
+                {summaryCalculations.total.finalSalary.toFixed(3)}
+              </Typography>
+            </Grid>
+            <Grid item xs={6}>
+              <Typography color={colors.greenAccent[500]}>
+                {t("totalDeductions")}
+              </Typography>
+              <Typography color={colors.grey[100]}>
+                {summaryCalculations.total.totalDeductions.toFixed(3)}
+              </Typography>
+            </Grid>
+            <Grid item xs={12}>
+              <Typography color={colors.greenAccent[500]}>
+                {t("netSalary")}
+              </Typography>
+              <Typography
+                color={
+                  summaryCalculations.total.netSalary >= 0
+                    ? colors.greenAccent[500]
+                    : colors.redAccent[500]
+                }
+              >
+                {summaryCalculations.total.netSalary.toFixed(3)}
+              </Typography>
+            </Grid>
+          </Grid>
+        </Box>
+      </Box>
     );
   };
 
+  // Render
   return (
     <Box m="20px">
       <Header
         title={t("driversSalaryTitle")}
         subtitle={t("driversSalarySubtitle")}
       />
+
+      {/* Controls Section */}
       <Box display="flex" justifyContent="flex-end" mb={2}>
         <FormControl sx={{ minWidth: 120, mr: 2 }}>
           <InputLabel>{t("startMonth")}</InputLabel>
           <Select
-            value={startMonth}
-            onChange={handleStartMonthChange}
+            value={dateRange.startMonth}
+            onChange={handleDateChange("startMonth")}
             label="Start Month"
           >
             {[...Array(12).keys()].map((month) => (
@@ -781,71 +794,44 @@ const DriversSalary = () => {
             ))}
           </Select>
         </FormControl>
+
         <TextField
           type="number"
           label={t("startYear")}
-          value={startYear}
-          onChange={handleStartYearChange}
+          value={dateRange.startYear}
+          onChange={handleDateChange("startYear")}
           sx={{ width: 100, mr: 2 }}
         />
-        {/* <FormControl sx={{ minWidth: 120, mr: 2 }}>
-          <InputLabel>{t("endMonth")}</InputLabel>
-          <Select
-            value={endMonth}
-            onChange={handleEndMonthChange}
-            label="End Month"
-          >
-            {[...Array(12).keys()].map((month) => (
-              <MenuItem key={month} value={month}>
-                {new Date(0, month).toLocaleString("default", {
-                  month: "long",
-                })}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-        <TextField
-          type="number"
-          label={t("endYear")}
-          value={endYear}
-          onChange={handleEndYearChange}
-          sx={{ width: 100 }}
-        /> */}
-        <Box display="flex" sx={{ gridColumn: "span 1" }} marginLeft={"20px"}>
-          <Button
-            onClick={onSearchSubmit}
-            color="secondary"
-            variant="contained"
-          >
-            {t("search")}
-          </Button>
-        </Box>
-        <Box display="flex" sx={{ gridColumn: "span 1" }} marginLeft={"20px"}>
-          <Button
-            variant="contained"
-            onClick={handlePrint}
-            sx={{
-              backgroundColor: colors.blueAccent[600],
-              "&:hover": { backgroundColor: colors.blueAccent[500] },
-            }}
-          >
-            {t("print")}
-          </Button>
-        </Box>
+
+        <Button
+          onClick={handleSearch}
+          color="secondary"
+          variant="contained"
+          sx={{ mr: 2 }}
+        >
+          {t("search")}
+        </Button>
+
+        <Button
+          variant="contained"
+          onClick={handlePrint}
+          sx={{
+            backgroundColor: colors.blueAccent[600],
+            "&:hover": { backgroundColor: colors.blueAccent[500] },
+          }}
+        >
+          {t("print")}
+        </Button>
       </Box>
+
+      {/* Data Grid */}
       <Box
         mt="40px"
         height="75vh"
         sx={{
-          "& .MuiDataGrid-root": {
-            border: "none",
-          },
-          "& .MuiDataGrid-cell": {
-            borderBottom: "none",
-          },
-          "& .name-column--cell": {
-            color: colors.greenAccent[300],
-          },
+          "& .MuiDataGrid-root": { border: "none" },
+          "& .MuiDataGrid-cell": { borderBottom: "none" },
+          "& .name-column--cell": { color: colors.greenAccent[300] },
           "& .MuiDataGrid-columnHeaders": {
             backgroundColor: colors.blueAccent[700],
             borderBottom: "none",
@@ -857,182 +843,59 @@ const DriversSalary = () => {
             borderTop: "none",
             backgroundColor: colors.blueAccent[700],
           },
+          "& .sum-row-highlight": {
+            bgcolor: colors.greenAccent[700],
+            fontWeight: "bold",
+            fontSize: "1rem",
+            "&:hover": { bgcolor: colors.greenAccent[600] },
+            "& .MuiDataGrid-cell": { color: colors.grey[100] },
+            borderBottom: `2px solid ${colors.grey[100]}`,
+          },
         }}
       >
         <DataGrid
-          // checkboxSelection
-          rows={rows}
-          columns={columns}
+          rows={rowsWithSum}
+          columns={getColumns({
+            t,
+            colors,
+            handleUpdate,
+            calculateSalary,
+            gridState,
+          })}
           getRowId={(row) => row._id}
-          editRowsModel={editRowsModel}
-          onEditRowsModelChange={(newModel) => setEditRowsModel(newModel)}
-          className={styles.grid}
           editMode="cell"
           processRowUpdate={processRowUpdate}
-          onProcessRowUpdateError={handleProcessRowUpdateError}
           experimentalFeatures={{ newEditingApi: true }}
           getRowClassName={(params) =>
-            params.row._id === "sum-row" ? `sum-row-highlight` : ""
+            params.row._id === "sum-row" ? "sum-row-highlight" : ""
           }
-          sx={{
-            "& .sum-row-highlight": {
-              bgcolor: colors.greenAccent[700],
-              fontWeight: "bold",
-              fontSize: "1rem",
-              "&:hover": {
-                bgcolor: colors.greenAccent[600],
-              },
-              "& .MuiDataGrid-cell": {
-                color: colors.grey[100],
-              },
-              borderBottom: `2px solid ${colors.grey[100]}`,
-            },
-          }}
+          className={styles.grid}
         />
-        <PrintableTable
-          rows={rowsWithSum}
-          columns={columns}
-          ref={componentRef}
-          orientation="landscape"
-          summary={{
-            netCarDriversSalary,
-            netBikeDriversSalary,
-            totalMonthlySalary,
-            totalMonthlyDeduction,
-            totalNetSalary,
-          }}
-        />
-
-        {/* Summary Section */}
-        <Box mt="20px" className={styles.notes}>
-          <Box
-            mt={4}
-            p={3}
-            bgcolor={colors.primary[400]}
-            borderRadius="4px"
-            display="grid"
-            gap="30px"
-            sx={{
-              gridTemplateColumns: {
-                xs: "1fr",
-                sm: "repeat(2, 1fr)",
-                md: "repeat(5, 1fr)",
-              },
-            }}
-          >
-            <Box bgcolor={colors.primary[400]} p={2} borderRadius={2}>
-              <Typography variant="h6" color={colors.grey[100]} mb={1}>
-                {t("carDriversTotalNetSalary")}
-              </Typography>
-              <Grid container spacing={2}>
-                <Grid item xs={12}>
-                  <Typography
-                    color={
-                      netCarDriversSalary >= 0
-                        ? colors.greenAccent[500]
-                        : colors.redAccent[500]
-                    }
-                    sx={{
-                      fontSize: { xs: "1.2rem", sm: "1.4rem", md: "1.6rem" },
-                    }}
-                  >
-                    {(netCarDriversSalary || 0).toFixed(3)}
-                    <span style={{ fontSize: "0.8em" }}> {t("kd")}</span>
-                  </Typography>
-                </Grid>
-              </Grid>
-            </Box>
-
-            <Box bgcolor={colors.primary[400]} p={2} borderRadius={2}>
-              <Typography variant="h6" color={colors.grey[100]} mb={1}>
-                {t("bikeDriversTotalNetSalary")}
-              </Typography>
-              <Grid container spacing={2}>
-                <Grid item xs={12}>
-                  <Typography
-                    color={
-                      netBikeDriversSalary >= 0
-                        ? colors.greenAccent[500]
-                        : colors.redAccent[500]
-                    }
-                    sx={{
-                      fontSize: { xs: "1.2rem", sm: "1.4rem", md: "1.6rem" },
-                    }}
-                  >
-                    {(netBikeDriversSalary || 0).toFixed(3)}
-                    <span style={{ fontSize: "0.8em" }}> {t("kd")}</span>
-                  </Typography>
-                </Grid>
-              </Grid>
-            </Box>
-
-            <Box bgcolor={colors.primary[400]} p={2} borderRadius={2}>
-              <Typography variant="h6" color={colors.grey[100]} mb={1}>
-                {t("totalMonthlySalary")}
-              </Typography>
-              <Grid container spacing={2}>
-                <Grid item xs={12}>
-                  <Typography
-                    color={
-                      totalMonthlySalary >= 0
-                        ? colors.greenAccent[500]
-                        : colors.redAccent[500]
-                    }
-                    sx={{
-                      fontSize: { xs: "1.2rem", sm: "1.4rem", md: "1.6rem" },
-                    }}
-                  >
-                    {(totalMonthlySalary || 0).toFixed(3)}
-                    <span style={{ fontSize: "0.8em" }}> {t("kd")}</span>
-                  </Typography>
-                </Grid>
-              </Grid>
-            </Box>
-
-            <Box bgcolor={colors.primary[400]} p={2} borderRadius={2}>
-              <Typography variant="h6" color={colors.grey[100]} mb={1}>
-                {t("totalMonthlyDeduction")}
-              </Typography>
-              <Grid container spacing={2}>
-                <Grid item xs={12}>
-                  <Typography
-                    color={colors.redAccent[500]}
-                    sx={{
-                      fontSize: { xs: "1.2rem", sm: "1.4rem", md: "1.6rem" },
-                    }}
-                  >
-                    {(totalMonthlyDeduction || 0).toFixed(3)}
-                    <span style={{ fontSize: "0.8em" }}> {t("kd")}</span>
-                  </Typography>
-                </Grid>
-              </Grid>
-            </Box>
-
-            <Box bgcolor={colors.primary[400]} p={2} borderRadius={2}>
-              <Typography variant="h6" color={colors.grey[100]} mb={1}>
-                {t("totalNetSalary")}
-              </Typography>
-              <Grid container spacing={2}>
-                <Grid item xs={12}>
-                  <Typography
-                    color={
-                      totalNetSalary >= 0
-                        ? colors.greenAccent[500]
-                        : colors.redAccent[500]
-                    }
-                    sx={{
-                      fontSize: { xs: "1.2rem", sm: "1.4rem", md: "1.6rem" },
-                    }}
-                  >
-                    {(totalNetSalary || 0).toFixed(3)}
-                    <span style={{ fontSize: "0.8em" }}> {t("kd")}</span>
-                  </Typography>
-                </Grid>
-              </Grid>
-            </Box>
-          </Box>
-        </Box>
       </Box>
+
+      {/* Summary Section */}
+      {renderSummarySection()}
+
+      {/* Printable Table */}
+      <PrintableTable
+        rows={gridState.rows}
+        columns={getColumns({
+          t,
+          colors,
+          handleUpdate,
+          calculateSalary,
+          gridState,
+        })}
+        ref={componentRef}
+        orientation="landscape"
+        summary={{
+          netCarDriversSalary: summaryCalculations.carDrivers.netSalary,
+          netBikeDriversSalary: summaryCalculations.bikeDrivers.netSalary,
+          totalMonthlySalary: summaryCalculations.total.finalSalary,
+          totalMonthlyDeduction: summaryCalculations.total.totalDeductions,
+          totalNetSalary: summaryCalculations.total.netSalary,
+        }}
+      />
     </Box>
   );
 };
