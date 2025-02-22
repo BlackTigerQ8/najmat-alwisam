@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { ProSidebar, Menu, MenuItem } from "react-pro-sidebar";
 import "react-pro-sidebar/dist/css/styles.css";
 import {
@@ -8,6 +8,7 @@ import {
   Typography,
   useTheme,
   Backdrop,
+  useMediaQuery,
 } from "@mui/material";
 import { Link } from "react-router-dom";
 import { tokens } from "../../theme";
@@ -23,6 +24,7 @@ import FindInPageOutlinedIcon from "@mui/icons-material/FindInPageOutlined";
 import FolderCopyOutlinedIcon from "@mui/icons-material/FolderCopyOutlined";
 import ForumOutlinedIcon from "@mui/icons-material/ForumOutlined";
 import PersonAddAltOutlinedIcon from "@mui/icons-material/PersonAddAltOutlined";
+import BlockOutlinedIcon from "@mui/icons-material/BlockOutlined";
 import MoneyOffIcon from "@mui/icons-material/MoneyOff";
 import { useSelector, useDispatch } from "react-redux";
 import { profileImage, removeProfileImage } from "../../redux/userSlice";
@@ -54,6 +56,7 @@ const SideBarEmployee = () => {
   const imageUploadInput = useRef(null);
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
+  const isNonMobile = useMediaQuery("(min-width: 600px)");
   const { t } = useTranslation();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [selected, setSelected] = useState("Dashboard");
@@ -63,6 +66,10 @@ const SideBarEmployee = () => {
   const dispatch = useDispatch();
   const [isUploading, setIsUploading] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
+
+  useEffect(() => {
+    setIsCollapsed(!isNonMobile);
+  }, [isNonMobile]);
 
   const handleImageUpload = async (event) => {
     const file = event.target.files[0];
@@ -308,6 +315,14 @@ const SideBarEmployee = () => {
                 setSelected={setSelected}
                 isCollapsed={isCollapsed}
               />
+              <Item
+                title={t("archiveForm")}
+                to="/archive-form"
+                icon={<ArchiveOutlinedIcon />}
+                selected={selected}
+                setSelected={setSelected}
+                isCollapsed={isCollapsed}
+              />
               <Typography
                 variant="h6"
                 color={colors.greenAccent[500]}
@@ -363,17 +378,17 @@ const SideBarEmployee = () => {
                 isCollapsed={isCollapsed}
               />
               <Item
-                title={t("archiveForm")}
-                to="/archive-form"
-                icon={<ArchiveOutlinedIcon />}
+                title={t("searchingArchive")}
+                to="/searching-archive"
+                icon={<FindInPageOutlinedIcon />}
                 selected={selected}
                 setSelected={setSelected}
                 isCollapsed={isCollapsed}
               />
               <Item
-                title={t("searchingArchive")}
-                to="/searching-archive"
-                icon={<FindInPageOutlinedIcon />}
+                title={t("deactivatedDrivers")}
+                to="/deactivated-drivers"
+                icon={<BlockOutlinedIcon />}
                 selected={selected}
                 setSelected={setSelected}
                 isCollapsed={isCollapsed}

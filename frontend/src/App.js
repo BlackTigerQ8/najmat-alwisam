@@ -175,6 +175,7 @@ function App() {
     { path: "/invoices-archive", element: <InvoicesArchive /> },
     { path: "/archive-form", element: <ArchiveForm /> },
     { path: "/searching-archive", element: <SearchArchive /> },
+    { path: "/deactivated-drivers", element: <DeactivatedDrivers /> },
   ];
 
   const getRoutesByRole = () => {

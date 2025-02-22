@@ -18,6 +18,18 @@ const PrintableTable = forwardRef(
   ) => {
     const { t } = useTranslation();
 
+    // Current date formatting
+    const currentDate = new Date().toLocaleDateString("ar-KW", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    });
+
+    const formatPhoneNumber = (phone) => {
+      if (!phone) return "";
+      return phone.toString().replace(/[,\s]/g, "");
+    };
+
     React.useEffect(() => {
       document.documentElement.style.setProperty(
         "--print-orientation",
@@ -29,6 +41,17 @@ const PrintableTable = forwardRef(
     }, [orientation]);
 
     const getColumnValue = (row, column) => {
+      if (column.field === "id") {
+        return row.identification || row.idNumber || "";
+      }
+
+      if (column.field === "phone") {
+        const phoneValue = row[column.field];
+        if (!phoneValue) return "";
+        // Remove any commas, spaces, or other formatting
+        return phoneValue.toString().replace(/[\s,.-]/g, "");
+      }
+
       const value = row[column.field];
 
       if (value === undefined || value === null) {
@@ -158,7 +181,13 @@ const PrintableTable = forwardRef(
 
             return (
               <div key={accountNumber} className={styles.pageContainer}>
-                <PrintLogo />
+                <div className={styles.headerSection}>
+                  <PrintLogo />
+                  <div className={styles.companyTitle}>
+                    مؤسسة نجمة الوسام لتوصيل الطلبات
+                  </div>
+                  <div className={styles.currentDate}>{currentDate}</div>
+                </div>
                 <h2 className={styles.accountTitle}>{accountName}</h2>
                 <table>
                   <thead>
@@ -178,11 +207,15 @@ const PrintableTable = forwardRef(
                           >
                             {column.renderCell
                               ? column.renderCell({
-                                  row,
+                                  row: row,
                                   value: row[column.field],
                                 })
                               : typeof row[column.field] === "number"
-                              ? formatNegativeNumber(row[column.field])
+                              ? column.field === "phone" ||
+                                column.field === "رقم الهاتف" ||
+                                column.field === "رقم الموظف" // Add all possible field names
+                                ? formatPhoneNumber(row[column.field])
+                                : formatNegativeNumber(row[column.field])
                               : getColumnValue(row, column)}
                           </td>
                         ))}
@@ -244,7 +277,13 @@ const PrintableTable = forwardRef(
           orientation === "landscape" ? styles.printLandscape : ""
         }`}
       >
-        <PrintLogo />
+        <div className={styles.headerSection}>
+          <PrintLogo />
+          <div className={styles.companyTitle}>
+            مؤسسة نجمة الوسام لتوصيل الطلبات
+          </div>
+          <div className={styles.currentDate}>{currentDate}</div>
+        </div>
         <table>
           <thead>
             <tr style={{ backgroundColor: "#8298c0" }}>
@@ -256,20 +295,22 @@ const PrintableTable = forwardRef(
           <tbody>
             {rows.map((row) => (
               <tr key={row._id}>
-                {printableColumns.map((column) => {
-                  return (
-                    <td key={column.field} style={{ textAlign: "center" }}>
-                      {column.renderCell
-                        ? column.renderCell({
-                            row: row,
-                            value: row[column.field],
-                          })
-                        : typeof row[column.field] === "number"
-                        ? formatNegativeNumber(row[column.field])
-                        : getColumnValue(row, column)}
-                    </td>
-                  );
-                })}
+                {printableColumns.map((column) => (
+                  <td key={column.field} style={{ textAlign: "center" }}>
+                    {column.renderCell
+                      ? column.renderCell({
+                          row: row,
+                          value: row[column.field],
+                        })
+                      : typeof row[column.field] === "number"
+                      ? column.field === "phone" ||
+                        column.field === "رقم الهاتف" ||
+                        column.field === "رقم الموظف" // Add all possible field names
+                        ? formatPhoneNumber(row[column.field])
+                        : formatNegativeNumber(row[column.field])
+                      : getColumnValue(row, column)}
+                  </td>
+                ))}
               </tr>
             ))}
           </tbody>

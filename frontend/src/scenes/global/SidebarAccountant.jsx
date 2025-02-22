@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { ProSidebar, Menu, MenuItem } from "react-pro-sidebar";
 import "react-pro-sidebar/dist/css/styles.css";
 import {
@@ -8,6 +8,7 @@ import {
   Typography,
   useTheme,
   Backdrop,
+  useMediaQuery,
 } from "@mui/material";
 import { Link } from "react-router-dom";
 import { tokens } from "../../theme";
@@ -57,6 +58,7 @@ const SidebarA = () => {
   const imageUploadInput = useRef(null);
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
+  const isNonMobile = useMediaQuery("(min-width: 600px)");
   const { t } = useTranslation();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [selected, setSelected] = useState("Dashboard");
@@ -66,6 +68,10 @@ const SidebarA = () => {
   const dispatch = useDispatch();
   const [isUploading, setIsUploading] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
+
+  useEffect(() => {
+    setIsCollapsed(!isNonMobile);
+  }, [isNonMobile]);
 
   const handleImageUpload = async (event) => {
     const file = event.target.files[0];

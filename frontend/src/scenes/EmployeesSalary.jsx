@@ -9,6 +9,7 @@ import {
   Select,
   MenuItem,
   Typography,
+  useMediaQuery,
 } from "@mui/material";
 import Header from "../components/Header";
 import { DataGrid } from "@mui/x-data-grid";
@@ -27,6 +28,7 @@ import { useTranslation } from "react-i18next";
 const EmployeesSalary = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
+  const isNonMobile = useMediaQuery("(min-width: 600px)");
   const dispatch = useDispatch();
   const { t } = useTranslation();
   const status = useSelector((state) => state.user.salariesStatus);
@@ -34,10 +36,14 @@ const EmployeesSalary = () => {
     (salary, index) => ({ sequenceNumber: index + 1, ...salary })
   );
   const error = useSelector((state) => state.user.error);
-  const [startMonth, setStartMonth] = useState(new Date().getMonth());
-  const [startYear, setStartYear] = useState(new Date().getFullYear());
-  const [endMonth, setEndMonth] = useState(new Date().getMonth());
-  const [endYear, setEndYear] = useState(new Date().getFullYear());
+  // const [startMonth, setStartMonth] = useState(new Date().getMonth());
+  // const [startYear, setStartYear] = useState(new Date().getFullYear());
+  // const [endMonth, setEndMonth] = useState(new Date().getMonth());
+  // const [endYear, setEndYear] = useState(new Date().getFullYear());
+  const [dateRange, setDateRange] = useState({
+    startMonth: new Date().getMonth(),
+    startYear: new Date().getFullYear(),
+  });
   const componentRef = useRef();
   const [rowModifications, setRowModifications] = useState({});
   const [editedRows, setEditedRows] = useState({});
@@ -47,21 +53,28 @@ const EmployeesSalary = () => {
     documentTitle: "Employees Salary Report",
   });
 
-  const handleStartMonthChange = (event) => {
-    setStartMonth(event.target.value);
+  const handleDateChange = (field) => (event) => {
+    setDateRange((prev) => ({
+      ...prev,
+      [field]: event.target.value,
+    }));
   };
 
-  const handleStartYearChange = (event) => {
-    setStartYear(event.target.value);
-  };
+  // const handleStartMonthChange = (event) => {
+  //   setStartMonth(event.target.value);
+  // };
 
-  const handleEndMonthChange = (event) => {
-    setEndMonth(event.target.value);
-  };
+  // const handleStartYearChange = (event) => {
+  //   setStartYear(event.target.value);
+  // };
 
-  const handleEndYearChange = (event) => {
-    setEndYear(event.target.value);
-  };
+  // const handleEndMonthChange = (event) => {
+  //   setEndMonth(event.target.value);
+  // };
+
+  // const handleEndYearChange = (event) => {
+  //   setEndYear(event.target.value);
+  // };
 
   const netEmployeesSalaries = useMemo(() => {
     return salaries.reduce((total, employee) => {
@@ -286,8 +299,8 @@ const EmployeesSalary = () => {
   ];
 
   const onSearchSubmit = async () => {
-    const startDate = new Date(startYear, startMonth, 1);
-    const endDate = new Date(endYear, endMonth + 1, 0);
+    const startDate = new Date(dateRange.startYear, dateRange.startMonth, 1);
+    const endDate = new Date(dateRange.startYear, dateRange.startMonth + 1, 0);
     endDate.setHours(23, 59, 59, 999);
 
     dispatch(
@@ -391,8 +404,8 @@ const EmployeesSalary = () => {
         <FormControl sx={{ minWidth: 120, mr: 2 }}>
           <InputLabel>{t("startMonth")}</InputLabel>
           <Select
-            value={startMonth}
-            onChange={handleStartMonthChange}
+            value={dateRange.startMonth}
+            onChange={handleDateChange("startMonth")}
             label="Start Month"
           >
             {[...Array(12).keys()].map((month) => (
@@ -404,57 +417,34 @@ const EmployeesSalary = () => {
             ))}
           </Select>
         </FormControl>
+
         <TextField
           type="number"
           label={t("startYear")}
-          value={startYear}
-          onChange={handleStartYearChange}
+          value={dateRange.startYear}
+          onChange={handleDateChange("startYear")}
           sx={{ width: 100, mr: 2 }}
         />
-        <FormControl sx={{ minWidth: 120, mr: 2 }}>
-          <InputLabel>{t("endMonth")}</InputLabel>
-          <Select
-            value={endMonth}
-            onChange={handleEndMonthChange}
-            label="End Month"
-          >
-            {[...Array(12).keys()].map((month) => (
-              <MenuItem key={month} value={month}>
-                {new Date(0, month).toLocaleString("default", {
-                  month: "long",
-                })}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-        <TextField
-          type="number"
-          label={t("endYear")}
-          value={endYear}
-          onChange={handleEndYearChange}
-          sx={{ width: 100 }}
-        />
-        <Box display="flex" sx={{ gridColumn: "span 1" }} marginLeft={"20px"}>
-          <Button
-            onClick={onSearchSubmit}
-            color="secondary"
-            variant="contained"
-          >
-            {t("search")}
-          </Button>
-        </Box>
-        <Box display="flex" sx={{ gridColumn: "span 1" }} marginLeft={"20px"}>
-          <Button
-            variant="contained"
-            onClick={handlePrint}
-            sx={{
-              backgroundColor: colors.blueAccent[600],
-              "&:hover": { backgroundColor: colors.blueAccent[500] },
-            }}
-          >
-            {t("print")}
-          </Button>
-        </Box>
+
+        <Button
+          onClick={onSearchSubmit}
+          color="secondary"
+          variant="contained"
+          sx={{ mr: 2 }}
+        >
+          {t("search")}
+        </Button>
+
+        <Button
+          variant="contained"
+          onClick={handlePrint}
+          sx={{
+            backgroundColor: colors.blueAccent[600],
+            "&:hover": { backgroundColor: colors.blueAccent[500] },
+          }}
+        >
+          {t("print")}
+        </Button>
       </Box>
       <Box
         mt="40px"

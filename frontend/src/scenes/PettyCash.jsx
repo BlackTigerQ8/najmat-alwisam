@@ -17,8 +17,12 @@ import {
   DialogContent,
   DialogContentText,
   DialogTitle,
+  Backdrop,
 } from "@mui/material";
+import UploadIcon from "@mui/icons-material/Upload";
+import DownloadIcon from "@mui/icons-material/Download";
 import ClearIcon from "@mui/icons-material/Clear";
+import * as XLSX from "xlsx";
 import { Formik } from "formik";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import { DataGrid } from "@mui/x-data-grid";
@@ -45,6 +49,7 @@ import SaveIcon from "@mui/icons-material/Save";
 import DeleteIcon from "@mui/icons-material/Delete";
 import SearchIcon from "@mui/icons-material/Search";
 import InputAdornment from "@mui/material/InputAdornment";
+import { toast } from "react-toastify";
 
 const newPettyCashInitialValues = {
   requestApplicant: "",
@@ -80,7 +85,7 @@ const PettyCash = () => {
   const [isSearchActive, setIsSearchActive] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleteId, setDeleteId] = useState(null);
-
+  const [isLoading, setIsLoading] = useState(false);
   const pettyCashSearchResults = useSelector(
     (state) => state.pettyCash.searchResults
   );
@@ -112,6 +117,187 @@ const PettyCash = () => {
     content: () => componentRef.current,
     documentTitle: "Petty Cash Report",
   });
+
+  // Uploading Excel File
+
+  const handleFileUpload = async (event) => {
+    try {
+      setIsLoading(true);
+      const file = event.target.files[0];
+      const reader = new FileReader();
+
+      reader.onload = async (e) => {
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, { type: "array" });
+        const sheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[sheetName];
+        const jsonData = XLSX.utils.sheet_to_json(worksheet);
+
+        // Process and upload each row
+        for (const row of jsonData) {
+          try {
+            await dispatch(
+              createPettyCash({
+                values: {
+                  requestApplicant: row.requestApplicant,
+                  requestDate: formatExcelDate(row.requestDate),
+                  spendsDate: formatExcelDate(row.spendsDate),
+                  spendsReason: row.spendsReason,
+                  cashAmount: Number(row.cashAmount) || 0,
+                  spendType: row.spendType,
+                  spendsRemarks: row.spendsRemarks || "",
+                  deductedFromUser: row.deductedFromUser || undefined,
+                  deductedFromDriver: row.deductedFromDriver || undefined,
+                  currentBalance: Number(row.currentBalance) || 0,
+                  serialNumber: Number(row.serialNumber),
+                },
+              })
+            ).unwrap();
+          } catch (error) {
+            console.error(`Error uploading row:`, error);
+            toast.error(t("rowUploadError"));
+          }
+        }
+
+        // Refresh the data
+        await dispatch(fetchPettyCash());
+        toast.success(t("excelUploadSuccess"));
+      };
+
+      reader.readAsArrayBuffer(file);
+    } catch (error) {
+      console.error("Error uploading excel:", error);
+      toast.error(t("excelUploadError"));
+    } finally {
+      setIsLoading(false);
+      event.target.value = ""; // Reset file input
+    }
+  };
+
+  const downloadExcelTemplate = () => {
+    // Main template sheet
+    const template = [
+      {
+        requestApplicant: "", // Will be User ID
+        requestDate: "MM/DD/YYYY",
+        spendsDate: "MM/DD/YYYY",
+        spendsReason: "",
+        cashAmount: 0,
+        spendType: "", // Will be SpendType ID
+        spendsRemarks: "",
+        deductedFromUser: "", // Will be User ID
+        deductedFromDriver: "", // Will be Driver ID
+        currentBalance: 0,
+        serialNumber: 0,
+      },
+    ];
+
+    // Reference data sheet
+    const referenceData = {
+      users: users.map((user) => ({
+        "User Name": `${user.firstName} ${user.lastName} (${user.role})`,
+        "User ID (for requestApplicant/deductedFromUser)": user._id,
+      })),
+      drivers: drivers.map((driver) => ({
+        "Driver Name": `${driver.firstName} ${driver.lastName}`,
+        "Driver ID (for deductedFromDriver)": driver._id,
+      })),
+      spendTypes: spendTypes.map((type) => ({
+        "Spend Type Name": type.name,
+        "Spend Type ID": type._id,
+      })),
+    };
+
+    // Create workbook
+    const wb = XLSX.utils.book_new();
+
+    // Add main template sheet
+    const ws = XLSX.utils.json_to_sheet(template);
+    ws["!cols"] = [
+      { wch: 20 }, // requestApplicant
+      { wch: 12 }, // requestDate
+      { wch: 12 }, // spendsDate
+      { wch: 20 }, // spendsReason
+      { wch: 12 }, // cashAmount
+      { wch: 20 }, // spendType
+      { wch: 20 }, // spendsRemarks
+      { wch: 20 }, // deductedFromUser
+      { wch: 20 }, // deductedFromDriver
+      { wch: 15 }, // currentBalance
+      { wch: 12 }, // serialNumber
+    ];
+    XLSX.utils.book_append_sheet(wb, ws, "Petty Cash Template");
+
+    // Add reference sheets
+    const usersWs = XLSX.utils.json_to_sheet(referenceData.users);
+    usersWs["!cols"] = [
+      { wch: 40 }, // User Name
+      { wch: 40 }, // User ID
+    ];
+    XLSX.utils.book_append_sheet(wb, usersWs, "Users Reference");
+
+    const driversWs = XLSX.utils.json_to_sheet(referenceData.drivers);
+    driversWs["!cols"] = [
+      { wch: 40 }, // Driver Name
+      { wch: 40 }, // Driver ID
+    ];
+    XLSX.utils.book_append_sheet(wb, driversWs, "Drivers Reference");
+
+    const spendTypesWs = XLSX.utils.json_to_sheet(referenceData.spendTypes);
+    spendTypesWs["!cols"] = [
+      { wch: 40 }, // Spend Type Name
+      { wch: 40 }, // Spend Type ID
+    ];
+    XLSX.utils.book_append_sheet(wb, spendTypesWs, "SpendTypes Reference");
+
+    // Add instructions sheet
+    const instructions = [
+      {
+        Instructions: [
+          "1. Use the reference sheets to find the correct IDs for users, drivers, and spend types",
+          "2. Copy IDs from reference sheets to the main template sheet",
+          "3. For requestApplicant: Use User ID from Users Reference",
+          "4. For deductedFromUser: Use User ID from Users Reference",
+          "5. For deductedFromDriver: Use Driver ID from Drivers Reference",
+          "6. For spendType: Use Spend Type ID from SpendTypes Reference",
+          "7. Dates should be in MM/DD/YYYY format",
+          "8. Do not modify the column headers",
+          "9. All amounts should be numbers",
+          "10. Either deductedFromUser OR deductedFromDriver should be filled, not both",
+        ].join("\n"),
+      },
+    ];
+    const instructionsWs = XLSX.utils.json_to_sheet(instructions, {
+      header: ["Instructions"],
+    });
+    instructionsWs["!cols"] = [{ wch: 100 }];
+    XLSX.utils.book_append_sheet(wb, instructionsWs, "Instructions");
+
+    // Save the workbook
+    XLSX.writeFile(wb, "petty_cash_template.xlsx");
+  };
+
+  const formatExcelDate = (dateValue) => {
+    if (!dateValue) return new Date().toISOString().split("T")[0];
+
+    try {
+      if (typeof dateValue === "string" && dateValue.includes("/")) {
+        const [month, day, year] = dateValue.split("/");
+        return `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
+      } else if (typeof dateValue === "number") {
+        const excelDate = new Date(
+          Math.round((dateValue - 25569) * 86400 * 1000)
+        );
+        return excelDate.toISOString().split("T")[0];
+      } else if (typeof dateValue === "string" && dateValue.includes("-")) {
+        return dateValue;
+      }
+      return new Date().toISOString().split("T")[0];
+    } catch (error) {
+      console.error("Date parsing error:", error, dateValue);
+      return new Date().toISOString().split("T")[0];
+    }
+  };
 
   async function handleFormSubmit(values) {
     try {
@@ -586,6 +772,20 @@ const PettyCash = () => {
 
   return (
     <Box m="20px">
+      <Backdrop
+        sx={{
+          color: "#fff",
+          zIndex: (theme) => theme.zIndex.drawer + 1,
+          backgroundColor: "rgba(0, 0, 0, 0.7)",
+        }}
+        open={isLoading}
+      >
+        <l-pulsar
+          size="70"
+          speed="1.75"
+          color={colors.greenAccent[500]}
+        ></l-pulsar>
+      </Backdrop>
       <Header title={t("pettyCashTitle")} subtitle={t("pettyCashSubtitle")} />
       <Typography variant="h2" color="secondary" mb={2}>
         {t("searchPettyCash")}
@@ -663,11 +863,37 @@ const PettyCash = () => {
         )}
       </Formik>
 
-      {
-        <Box mt="40px">
-          <PettyCashForm handlePrint={handlePrint} />
-        </Box>
-      }
+      <Box mt="40px">
+        <PettyCashForm handlePrint={handlePrint} />
+      </Box>
+
+      <Box display="flex" justifyContent="flex-start" gap="10px" mt="20px">
+        <input
+          type="file"
+          accept=".xlsx, .xls"
+          style={{ display: "none" }}
+          id="excel-upload"
+          onChange={handleFileUpload}
+        />
+        <label htmlFor="excel-upload">
+          <Button
+            component="span"
+            color="secondary"
+            variant="contained"
+            startIcon={<UploadIcon />}
+          >
+            {t("uploadExcel")}
+          </Button>
+        </label>
+        <Button
+          color="secondary"
+          variant="outlined"
+          onClick={downloadExcelTemplate}
+          startIcon={<DownloadIcon />}
+        >
+          {t("downloadTemplate")}
+        </Button>
+      </Box>
 
       <Box
         mt="40px"

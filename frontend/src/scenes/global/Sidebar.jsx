@@ -21,6 +21,7 @@ import ForumOutlinedIcon from "@mui/icons-material/ForumOutlined";
 import MoneyOffIcon from "@mui/icons-material/MoneyOff";
 import ReceiptOutlinedIcon from "@mui/icons-material/ReceiptOutlined";
 import PersonOutlinedIcon from "@mui/icons-material/PersonOutlined";
+import PersonAddAltOutlinedIcon from "@mui/icons-material/PersonAddAltOutlined";
 import NotificationsOutlinedIcon from "@mui/icons-material/NotificationsOutlined";
 import SendOutlinedIcon from "@mui/icons-material/SendOutlined";
 import BlockOutlinedIcon from "@mui/icons-material/BlockOutlined";
@@ -32,6 +33,7 @@ import { profileImage, removeProfileImage } from "../../redux/userSlice";
 import AnonImage from "../../assets/profileImage.png";
 import { toast } from "react-toastify";
 import { useTranslation } from "react-i18next";
+import useMediaQuery from "@mui/material/useMediaQuery";
 
 const Item = ({ title, to, icon, selected, setSelected, isCollapsed }) => {
   const theme = useTheme();
@@ -58,6 +60,7 @@ const Sidebar = () => {
   const imageUploadInput = useRef(null);
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
+  const isNonMobile = useMediaQuery("(min-width: 600px)");
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [selected, setSelected] = useState("Dashboard");
   const userInfo = useSelector((state) => state.user.userInfo);
@@ -71,6 +74,7 @@ const Sidebar = () => {
   useEffect(() => {
     // Fetch the user's profile image when the component mounts
     // dispatch(profileImage());
+    setIsCollapsed(!isNonMobile);
   }, [dispatch]);
 
   const handleImageUpload = async (event) => {
@@ -382,7 +386,7 @@ const Sidebar = () => {
               <Item
                 title={t("driversForm")}
                 to="/driver-form"
-                icon={<PersonOutlinedIcon />}
+                icon={<PersonAddAltOutlinedIcon />}
                 selected={selected}
                 setSelected={setSelected}
                 isCollapsed={isCollapsed}

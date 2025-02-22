@@ -87,19 +87,32 @@ const Login = () => {
       justifyContent="center"
       alignItems="center"
       height="100vh"
+      margin="0 1.5rem"
       bgcolor={theme.palette.background.default}
     >
-      <img src={Logo} width={isNonMobile ? 600 : 300} alt="" />
-      <Typography variant="h4" gutterBottom>
+      <img src={Logo} width={isNonMobile ? 600 : 300} alt="Company Logo" />
+      <Typography variant="h4" gutterBottom sx={{ mb: 3 }}>
         {t("login")}
       </Typography>
       {status === "failed" && (
         <Typography
-          color="error"
+          // color="error"
           variant="body2"
-          style={{ marginTop: 16, marginBottom: 16 }}
+          sx={{
+            backgroundColor: "error.light",
+            padding: "10px 20px",
+            borderRadius: "4px",
+            marginBottom: 3,
+          }}
         >
-          {error}
+          {/* Translate the error message based on the error type */}
+          {error === "Invalid credentials"
+            ? t("invalidCredentials")
+            : error === "User not found"
+            ? t("userNotFound")
+            : error === "Network Error"
+            ? t("networkError")
+            : t("generalError")}
         </Typography>
       )}
       <Box
@@ -159,22 +172,25 @@ const Login = () => {
             },
           }}
         />
-        <Box mt={2}>
+        <Box mt={3}>
           <Button
             type="submit"
             variant="contained"
             color="primary"
-            disabled={status === "loading"}
+            disabled={
+              status === "loading" ||
+              !credentials.email ||
+              !credentials.password
+            }
             fullWidth
             sx={{
-              backgroundColor: "loading"
-                ? colors.greenAccent[700]
-                : colors.greenAccent[700],
+              backgroundColor: colors.greenAccent[700],
               "&:hover": {
-                backgroundColor: "loading"
-                  ? colors.greenAccent[500]
-                  : colors.greenAccent[500],
+                backgroundColor: colors.greenAccent[500],
               },
+              height: "48px",
+              fontSize: "1.1rem",
+              textTransform: "none",
             }}
           >
             {status === "loading" ? t("loggingIn") : t("login")}
@@ -182,22 +198,35 @@ const Login = () => {
         </Box>
         <Box display="flex" alignItems="center" justifyContent="center">
           {/* Language Menu */}
-          <Typography variant="h4" mt={2} gutterBottom>
-            Change Language
-          </Typography>
-          <Tooltip title={t("changeLanguage")}>
-            <IconButton onClick={handleLanguageMenu}>
-              <TranslateOutlinedIcon />
-            </IconButton>
-          </Tooltip>
-          <Menu
-            anchorEl={languageAnchorEl}
-            open={Boolean(languageAnchorEl)}
-            onClose={handleCloseLanguageMenu}
+          <Box
+            display="flex"
+            alignItems="center"
+            justifyContent="center"
+            mt={4}
+            gap={1}
           >
-            <MenuItem onClick={() => toggleLanguage("en")}>English</MenuItem>
-            <MenuItem onClick={() => toggleLanguage("ar")}>العربية</MenuItem>
-          </Menu>
+            <Typography variant="body1">{t("changeLanguage")}:</Typography>
+            <Tooltip title={t("changeLanguage")}>
+              <IconButton
+                onClick={handleLanguageMenu}
+                sx={{
+                  "&:hover": {
+                    backgroundColor: colors.greenAccent[900],
+                  },
+                }}
+              >
+                <TranslateOutlinedIcon />
+              </IconButton>
+            </Tooltip>
+            <Menu
+              anchorEl={languageAnchorEl}
+              open={Boolean(languageAnchorEl)}
+              onClose={handleCloseLanguageMenu}
+            >
+              <MenuItem onClick={() => toggleLanguage("en")}>English</MenuItem>
+              <MenuItem onClick={() => toggleLanguage("ar")}>العربية</MenuItem>
+            </Menu>
+          </Box>
         </Box>
       </Box>
     </Box>

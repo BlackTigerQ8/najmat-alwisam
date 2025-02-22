@@ -64,6 +64,21 @@ const SalaryReport = () => {
 
   const columns = useMemo(
     () => [
+      {
+        field: "sequenceNumber",
+        headerName: t("no"),
+        flex: 0.2,
+        renderCell: (params) => {
+          if (params.row._id === "sum-row") {
+            return "";
+          }
+          const currentIndex = driversAndUsers.findIndex(
+            (row) => row._id === params.row._id
+          );
+          return currentIndex + 1;
+        },
+        sortable: false,
+      },
       { field: "phone", headerName: t("phone"), flex: 1 },
       {
         field: "id",

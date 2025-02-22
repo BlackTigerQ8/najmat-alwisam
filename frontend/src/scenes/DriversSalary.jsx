@@ -15,6 +15,7 @@ import {
   MenuItem,
   TextField,
   Grid,
+  Backdrop,
 } from "@mui/material";
 import SaveIcon from "@mui/icons-material/Save";
 
@@ -59,6 +60,7 @@ const DriversSalary = () => {
   // State Management
   const [dateRange, setDateRange] = useState(initialDateRange);
   const [gridState, setGridState] = useState(initialGridState);
+  const [isLoading, setIsLoading] = useState(false);
 
   // Redux Selectors
   const { pettyCash } = useSelector((state) => state.pettyCash);
@@ -209,9 +211,11 @@ const DriversSalary = () => {
   });
 
   const handleSearch = () => {
+    setIsLoading(true);
     const startDate = new Date(dateRange.startYear, dateRange.startMonth, 1);
     const endDate = new Date(dateRange.startYear, dateRange.startMonth + 1, 0);
     dispatch(fetchSalaries({ startDate, endDate }));
+    setIsLoading(false);
   };
 
   const handleUpdate = async (row) => {
@@ -276,10 +280,11 @@ const DriversSalary = () => {
   }, [dispatch]);
 
   useEffect(() => {
+    setIsLoading(true);
     const startDate = new Date(dateRange.startYear, dateRange.startMonth, 1);
     const endDate = new Date(dateRange.startYear, dateRange.startMonth + 1, 0);
-
     dispatch(fetchSalaries({ startDate, endDate }));
+    setIsLoading(false);
   }, [dispatch, dateRange.startMonth, dateRange.startYear]);
 
   useEffect(() => {
@@ -771,6 +776,15 @@ const DriversSalary = () => {
   // Render
   return (
     <Box m="20px">
+      <Backdrop
+        sx={{
+          color: colors.greenAccent[500],
+          zIndex: (theme) => theme.zIndex.drawer + 1,
+        }}
+        open={isLoading}
+      >
+        <l-pulsar size="70" speed="1.75" color="currentColor" />
+      </Backdrop>
       <Header
         title={t("driversSalaryTitle")}
         subtitle={t("driversSalarySubtitle")}

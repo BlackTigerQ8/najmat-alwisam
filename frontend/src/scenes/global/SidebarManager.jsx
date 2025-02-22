@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { ProSidebar, Menu, MenuItem } from "react-pro-sidebar";
 import "react-pro-sidebar/dist/css/styles.css";
 import {
@@ -7,6 +7,7 @@ import {
   IconButton,
   Tooltip,
   Typography,
+  useMediaQuery,
   useTheme,
 } from "@mui/material";
 import { Link } from "react-router-dom";
@@ -15,6 +16,7 @@ import BlockOutlinedIcon from "@mui/icons-material/BlockOutlined";
 import NotificationsActiveOutlinedIcon from "@mui/icons-material/NotificationsActiveOutlined";
 import PeopleOutlinedIcon from "@mui/icons-material/PeopleOutlined";
 import PersonOutlinedIcon from "@mui/icons-material/PersonOutlined";
+import PersonAddAltOutlinedIcon from "@mui/icons-material/PersonAddAltOutlined";
 import ContactsOutlinedIcon from "@mui/icons-material/ContactsOutlined";
 import MoneyOffIcon from "@mui/icons-material/MoneyOff";
 import MenuOutlinedIcon from "@mui/icons-material/MenuOutlined";
@@ -55,6 +57,7 @@ const Item = ({ title, to, icon, selected, setSelected, isCollapsed }) => {
 const SidebarM = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
+  const isNonMobile = useMediaQuery("(min-width: 600px)");
   const { t } = useTranslation();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [selected, setSelected] = useState("Dashboard");
@@ -62,6 +65,10 @@ const SidebarM = () => {
   const imageUploadInput = useRef(null);
   const [isUploading, setIsUploading] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
+
+  useEffect(() => {
+    setIsCollapsed(!isNonMobile);
+  }, [isNonMobile]);
 
   const userProfileImage =
     useSelector((state) => state.user.userProfileImage) || userInfo.image;
@@ -321,7 +328,7 @@ const SidebarM = () => {
               <Item
                 title={t("driversForm")}
                 to="/driver-form"
-                icon={<ContactsOutlinedIcon />}
+                icon={<PersonAddAltOutlinedIcon />}
                 selected={selected}
                 setSelected={setSelected}
                 isCollapsed={isCollapsed}
