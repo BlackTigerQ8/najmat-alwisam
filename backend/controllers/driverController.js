@@ -472,23 +472,23 @@ const carDriverSalary = async (
         return {
           mainSalary: 26,
           additionalSalary: 0,
-          totalSalary: 26, // Add this line
+          totalSalary: 26,
         };
       }
 
       if (rule.fixedAmount > 0) {
         const totalAmount = rule.fixedAmount + 26;
         return {
-          mainSalary: totalAmount, // Change this
+          mainSalary: totalAmount,
           additionalSalary: 0,
-          totalSalary: totalAmount, // Add this
+          totalSalary: totalAmount,
         };
       }
 
       const totalAmount =
         (salaryMainOrders + salaryAdditionalOrders) * rule.multiplier + 26;
       return {
-        mainSalary: totalAmount, // Change this
+        mainSalary: totalAmount,
         additionalSalary: 0,
         totalSalary: totalAmount,
       };
@@ -547,6 +547,12 @@ const bikeDriverSalary = async (
       } else if (orders > 500) {
         return {
           mainSalary: orders * 0.55,
+          additionalSalary: 0,
+        };
+      } else {
+        // When orders are below 350 or zero
+        return {
+          mainSalary: 0,
           additionalSalary: 0,
         };
       }

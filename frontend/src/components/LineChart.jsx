@@ -2,21 +2,8 @@ import { ResponsiveLine } from "@nivo/line";
 import { useTheme } from "@mui/material";
 import { tokens } from "../theme";
 import { pulsar } from "ldrs";
+import { useTranslation } from "react-i18next";
 
-const month_names = {
-  1: "Jan",
-  2: "Feb",
-  3: "Mar",
-  4: "Apr",
-  5: "May",
-  6: "Jun",
-  7: "Jul",
-  8: "Aug",
-  9: "Sep",
-  10: "Oct",
-  11: "Nov",
-  12: "Dec",
-};
 const types = ["car", "bike"];
 const LineChart = ({
   isDashboard = false,
@@ -24,8 +11,24 @@ const LineChart = ({
   chartField,
   yAxisMin = 0,
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
+
+  const month_names = {
+    1: t("Jan"),
+    2: t("Feb"),
+    3: t("Mar"),
+    4: t("Apr"),
+    5: t("May"),
+    6: t("Jun"),
+    7: t("Jul"),
+    8: t("Aug"),
+    9: t("Sep"),
+    10: t("Oct"),
+    11: t("Nov"),
+    12: t("Dec"),
+  };
 
   pulsar.register();
   if (!monthlyStats || Object.keys(monthlyStats).length === 0) {
@@ -92,10 +95,27 @@ const LineChart = ({
         },
         tooltip: {
           container: {
-            color: colors.primary[500],
+            background: colors.primary[400],
+            color: colors.grey[100],
+            padding: 12,
           },
         },
       }}
+      tooltip={({ point }) => (
+        <div
+          style={{
+            background: colors.primary[400],
+            padding: 12,
+            color: colors.grey[100],
+          }}
+        >
+          <strong>
+            {point.serieId === "car" ? "Car" : "Bike"}: {point.data.y}
+            <br />
+            Month: {point.data.x}
+          </strong>
+        </div>
+      )}
       colors={{ datum: "color" }}
       margin={{ top: 50, right: 110, bottom: 50, left: 60 }}
       xScale={{ type: "point" }}

@@ -452,11 +452,46 @@ const DriversSalary = () => {
       flex: 1,
       headerAlign: "center",
       align: "center",
-      renderCell: ({ row: { mainOrder, additionalOrder, vehicle } }) => {
+      renderCell: ({ row: { mainOrder, additionalOrder, vehicle, _id } }) => {
+        // Skip calculation for sum row
+        if (_id === "sum-row") {
+          return (
+            <Box display="flex" justifyContent="center" borderRadius="4px">
+              {calculateColumnSum(gridState.rows, "salaryMainOrders").toFixed(
+                3
+              )}
+            </Box>
+          );
+        }
+
         const totalOrders =
           Number(mainOrder || 0) + Number(additionalOrder || 0);
-        const config = configs.find((c) => c.vehicleType === vehicle);
 
+        // Special case for specific bike driver
+        if (_id === "6772c32da62e5d54cb6ea8dc") {
+          if (totalOrders >= 350 && totalOrders <= 500) {
+            return (
+              <Box display="flex" justifyContent="center" borderRadius="4px">
+                {(totalOrders * 0.5).toFixed(3)}
+              </Box>
+            );
+          } else if (totalOrders > 500) {
+            return (
+              <Box display="flex" justifyContent="center" borderRadius="4px">
+                {(totalOrders * 0.55).toFixed(3)}
+              </Box>
+            );
+          } else {
+            return (
+              <Box display="flex" justifyContent="center" borderRadius="4px">
+                {"0.000"}
+              </Box>
+            );
+          }
+        }
+
+        // Regular case for other drivers
+        const config = configs.find((c) => c.vehicleType === vehicle);
         if (!config?.rules) return "0.000";
 
         const rule = config.rules.find(

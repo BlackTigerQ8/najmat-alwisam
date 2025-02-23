@@ -387,6 +387,7 @@ const UserProfile = () => {
                     onChange={handleChange}
                     onBlur={handleBlur}
                     name="bankName"
+                    disabled={!canEdit}
                     error={!!touched.bankName && !!errors.bankName}
                   >
                     {BANK_NAMES.map((pos) => (

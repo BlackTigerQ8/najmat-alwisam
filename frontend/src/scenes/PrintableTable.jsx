@@ -334,6 +334,54 @@ const PrintableTable = forwardRef(
                   </>
                 )}
 
+                {/* For DriversSalaryDetails page */}
+                {summary.totalDriversNetSalary !== undefined && (
+                  <>
+                    <div className={styles.summaryItem}>
+                      <span>{t("totalDriversNetSalary")}: </span>
+                      <strong>
+                        {(summary.totalDriversNetSalary || 0).toFixed(3)}
+                        <span> {t("kd")} </span>
+                      </strong>
+                    </div>
+                    <div className={styles.summaryItem}>
+                      <span>{t("totalDriversCashPayment")}: </span>
+                      <strong>
+                        {(summary.totalDriversCashPayment || 0).toFixed(3)}
+                        <span> {t("kd")} </span>
+                      </strong>
+                    </div>
+                    <div className={styles.summaryItem}>
+                      <span>{t("totalBankTransfer")}: </span>
+                      <strong>
+                        {(summary.totalBankTransfer || 0).toFixed(3)}
+                        <span> {t("kd")} </span>
+                      </strong>
+                    </div>
+                    <div className={styles.summaryItem}>
+                      <span>{t("grandTotal")}: </span>
+                      <strong>
+                        {(summary.grandTotal || 0).toFixed(3)}
+                        <span> {t("kd")} </span>
+                      </strong>
+                    </div>
+                    <div className={styles.summaryItem}>
+                      <span>{t("totalBankTransferAllStaff")}: </span>
+                      <strong>
+                        {(summary.totalBankTransferAllStaff || 0).toFixed(3)}
+                        <span> {t("kd")} </span>
+                      </strong>
+                    </div>
+                    <div className={styles.summaryItem}>
+                      <span>{t("totalCashPaymentAllStaff")}: </span>
+                      <strong>
+                        {(summary.totalCashPaymentAllStaff || 0).toFixed(3)}
+                        <span> {t("kd")} </span>
+                      </strong>
+                    </div>
+                  </>
+                )}
+
                 {/* For CoSpends main summary */}
                 {page === "coSpends" && (
                   <>

@@ -771,10 +771,10 @@ i18n
           deleteSalaryConfigFulfilled: "Rules are deleted successfully!",
           deleteSalaryConfigRejected: "Can't delete rules, you can try later!",
           ////////////
-          driversSalaryDetailsTitle: "Drivers Salary Details",
+          driversSalaryDetailsTitle: "Monthly Salary Details",
           driversSalaryDetailsSubtitle:
-            "Drivers salary details for all drivers",
-          driversSalaryDetails: "Drivers Salary Details",
+            "Monthly salary details for all employees and drivers",
+          driversSalaryDetails: "Monthly Salary Details",
           cashSalary: "Cash Payment",
           netSalaryAfterDeductions: "Bank Transfer",
           specialBikeDriverSummary: "Hakikat Hameed Bike Driver Summary",
@@ -787,6 +787,9 @@ i18n
           grandTotal: "Grand Total",
           deductions: "Deductions",
           cashPayment: "Cash Payment",
+          allEmployeesSummary: "All Employees Summary",
+          totalBankTransferAllStaff: "Total Bank Transfer All Staff",
+          totalCashPaymentAllStaff: "Total Cash Payment All Staff",
         },
       },
       ar: {
@@ -1516,9 +1519,10 @@ i18n
           deleteSalaryConfigRejected:
             "لم يتم حذف القواعد، يرجى المحاولة لاحقاً",
           ////////////////////
-          driversSalaryDetailsTitle: "تفاصيل الرواتب للسائقين",
-          driversSalaryDetailsSubtitle: "تفاصيل الرواتب لجميع السائقين",
-          driversSalaryDetails: "تفاصيل الرواتب الشهرية للسائقين",
+          driversSalaryDetailsTitle: "تفاصيل الرواتب الشهرية",
+          driversSalaryDetailsSubtitle:
+            "تفاصيل الرواتب الشهرية لجميع الإداريين والسائقين",
+          driversSalaryDetails: "تفاصيل الرواتب الشهرية",
           cashSalary: "سداد نقدي",
           netSalaryAfterDeductions: "تحويل بنكي",
           specialBikeDriverSummary: "ملخص السائق حاكيكات حميد",
@@ -1531,6 +1535,10 @@ i18n
           grandTotal: "إجمالي المبلغ",
           deductions: "الاستقطاعات",
           cashPayment: "السداد النقدي",
+          allEmployeesSummary: "ملخص جميع الموظفين",
+          totalBankTransferAllStaff:
+            "إجمالي التحويل البنكي للإداريين + السائقين",
+          totalCashPaymentAllStaff: "إجمالي السداد النقدي للإداريين + السائقين",
         },
       },
     },

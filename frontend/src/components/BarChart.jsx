@@ -2,11 +2,18 @@ import React from "react";
 import { useTheme } from "@mui/material";
 import { ResponsiveBar } from "@nivo/bar";
 import { tokens } from "../theme";
-import { mockBarData as data } from "../data/mockData";
+import { useTranslation } from "react-i18next";
 
-const BarChart = ({ isDashboard = false }) => {
+const BarChart = ({ isDashboard = false, monthlyStats, chartField }) => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
+  const { t, i18n } = useTranslation();
+
+  // Transform monthly stats into the format needed for the bar chart
+  const data = Object.entries(monthlyStats).map(([month, stats]) => ({
+    month: t(month),
+    [t(chartField)]: stats[chartField] || 0,
+  }));
 
   return (
     <ResponsiveBar
@@ -39,8 +46,8 @@ const BarChart = ({ isDashboard = false }) => {
           },
         },
       }}
-      keys={["hot dog", "burger", "sandwich", "kebab", "fries", "donut"]}
-      indexBy="country"
+      keys={[t(chartField)]}
+      indexBy="month"
       margin={{ top: 50, right: 130, bottom: 50, left: 60 }}
       padding={0.3}
       valueScale={{ type: "linear" }}
@@ -76,7 +83,7 @@ const BarChart = ({ isDashboard = false }) => {
         tickSize: 5,
         tickPadding: 5,
         tickRotation: 0,
-        legend: isDashboard ? undefined : "country",
+        legend: isDashboard ? undefined : t("month"),
         legendPosition: "middle",
         legendOffset: 32,
       }}
@@ -84,10 +91,24 @@ const BarChart = ({ isDashboard = false }) => {
         tickSize: 5,
         tickPadding: 5,
         tickRotation: 0,
-        legend: isDashboard ? undefined : "food",
+        legend: isDashboard ? undefined : t(chartField),
         legendPosition: "middle",
         legendOffset: -40,
+        tickValues: 5,
       }}
+      tooltip={({ id, value, color }) => (
+        <div
+          style={{
+            padding: 12,
+            background: colors.primary[400],
+            color: colors.grey[100],
+          }}
+        >
+          <strong>
+            {t(id)}: {value}
+          </strong>
+        </div>
+      )}
       enableLabel={false}
       labelSkipWidth={12}
       labelSkipHeight={12}

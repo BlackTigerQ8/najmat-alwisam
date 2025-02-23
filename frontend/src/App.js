@@ -19,9 +19,6 @@ import { setUser } from "./redux/userSlice";
 
 import Topbar from "./scenes/global/Topbar";
 import Sidebar from "./scenes/global/Sidebar";
-import SidebarA from "./scenes/global/SidebarAccountant";
-import SidebarM from "./scenes/global/SidebarManager";
-import SidebarE from "./scenes/global/SidebarEmployee";
 import Dashboard from "./scenes/dashboard";
 import Team from "./scenes/Team";
 import Invoices from "./scenes/Invoices";
@@ -41,7 +38,6 @@ import DriverWork from "./scenes/DriverWork";
 import Drivers from "./scenes/Drivers";
 
 import UserProfile from "./scenes/UserProfile";
-// import NotFound from "./scenes/NotFound";
 import Notifications from "./scenes/Notifications";
 import Deduction from "./scenes/Deduction";
 import AccountantDashboard from "./scenes/dashboard/AccountantDashboard";
@@ -51,7 +47,6 @@ import DriversSalary from "./scenes/DriversSalary";
 import EmployeesSalary from "./scenes/EmployeesSalary";
 import AdminInvoices from "./scenes/AdminInvoices";
 import ManagerInvoices from "./scenes/ManagerInvoices";
-import ManagerDashboard from "./scenes/dashboard/ManagerDashboard";
 import Messages from "./scenes/Messages";
 import CoSpends from "./scenes/CoSpends";
 import Profits from "./scenes/Profits";
@@ -64,7 +59,8 @@ import SearchArchive from "./scenes/SearchArchive";
 import SalaryReport from "./scenes/SalaryReport";
 import LandingPage from "./scenes/global/LandingPage";
 import SalaryConfig from "./scenes/SalaryConfig";
-import DriversSalaryDetails from "./scenes/DriversSalaryDetails";
+import MonthlySalaryDetails from "./scenes/MonthlySalaryDetails";
+// import NotFound from "./scenes/NotFound";
 
 const lngs = {
   en: { nativeName: "English" },
@@ -167,7 +163,7 @@ function App() {
     { path: "/searching-archive", element: <SearchArchive /> },
     { path: "/invoices-archive", element: <InvoicesArchive /> },
     { path: "/salary-report", element: <SalaryReport /> },
-    { path: "/drivers-salary-details", element: <DriversSalaryDetails /> },
+    { path: "/drivers-salary-details", element: <MonthlySalaryDetails /> },
   ];
 
   const employeeRoutes = [
@@ -216,16 +212,7 @@ function App() {
           <div className="app">
             {(currentUser || savedToken) &&
               location.pathname !== "/searching-archive" && (
-                <>
-                  {userRole === "Admin" && <Sidebar isSidebar={isSidebar} />}
-                  {userRole === "Manager" && <SidebarM isSidebar={isSidebar} />}
-                  {userRole === "Accountant" && (
-                    <SidebarA isSidebar={isSidebar} />
-                  )}
-                  {userRole === "Employee" && (
-                    <SidebarE isSidebar={isSidebar} />
-                  )}
-                </>
+                <Sidebar isSidebar={isSidebar} />
               )}
             <main className="content">
               {(currentUser || savedToken) &&
@@ -272,8 +259,8 @@ function App() {
                     <Route exact path="/line" element={<Line />} />
                     <Route exact path="/pie" element={<Pie />} />
                     <Route exact path="/faq" element={<Faq />} />
-                    <Route exact path="/geography" element={<Geography />} />
-                    <Route exact path="/calendar" element={<Calendar />} />
+                    {/* <Route exact path="/geography" element={<Geography />} />
+                    <Route exact path="/calendar" element={<Calendar />} /> */}
                     <Route exact path="/team" element={<Team />} />
                     <Route
                       path="/driver-profile/:id"

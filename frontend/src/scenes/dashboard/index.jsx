@@ -5,6 +5,8 @@ import AccessTimeFilledIcon from "@mui/icons-material/AccessTimeFilled";
 import PointOfSaleIcon from "@mui/icons-material/PointOfSale";
 import Header from "../../components/Header";
 import LineChart from "../../components/LineChart";
+import BarChart from "../../components/BarChart";
+import PieChart from "../../components/PieChart";
 import StatBox from "../../components/StatBox";
 import { pulsar } from "ldrs";
 import { useTranslation } from "react-i18next";
@@ -12,6 +14,10 @@ import { useDispatch, useSelector } from "react-redux";
 import { fetchDrivers, fetchDriverSummary } from "../../redux/driversSlice";
 import { useEffect } from "react";
 import { fetchDriverStatsByMonth } from "../../redux/invoiceSlice";
+import PrintIcon from "@mui/icons-material/Print";
+import { IconButton } from "@mui/material";
+import styles from "../Print.module.css";
+import { PrintLogo } from "../PrintLogo";
 
 const calculateTotalStats = (monthlyStats) => {
   return Object.values(monthlyStats).reduce(
@@ -85,11 +91,156 @@ const Dashboard = () => {
     );
   }
 
+  const handlePrint = () => {
+    const printContent = document.getElementById("dashboard");
+
+    // Create print-specific styles
+    const printStyles = `
+     @media print {
+      body * {
+        visibility: hidden;
+      }
+      #dashboard, #dashboard * {
+        visibility: visible;
+      }
+      #dashboard {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+      }
+      .MuiIconButton-root, .header-component {
+        display: none !important;
+      }
+      .print-header {
+        display: flex !important;
+      }
+      /* Reduce spacing between elements */
+      #dashboard .MuiBox-root {
+        gap: 10px !important;
+      }
+      /* Adjust chart heights */
+      #dashboard .MuiBox-root[gridRow="span 2"] {
+        height: 200px !important;
+      }
+      /* Reduce margins */
+      #dashboard > .MuiBox-root {
+        margin: 10px !important;
+      }
+      /* Adjust grid gap */
+      #dashboard .MuiBox-root[display="grid"] {
+        gap: 10px !important;
+      }
+      /* Reduce padding in stat boxes */
+      .MuiBox-root[backgroundColor] {
+        padding: 10px !important;
+      }
+      /* Adjust chart containers */
+      .MuiBox-root[height="250px"] {
+        height: 200px !important;
+        margin: 0 !important;
+      }
+      /* Hide URL and page numbers */
+      @page {
+        margin: 0;
+        size: auto;
+      }
+      @page :first {
+        margin-top: 0;
+      }
+      @page :left {
+        margin-left: 0;
+      }
+      @page :right {
+        margin-right: 0;
+      }
+
+
+
+       /* Set fixed dimensions for chart containers */
+      #dashboard .MuiBox-root[gridRow="span 2"] {
+        height: 300px !important;
+      }
+
+      /* Set consistent size for all chart containers */
+      #dashboard .MuiBox-root[height="250px"] {
+        height: 300px !important;
+        width: 100% !important;
+        max-width: 800px !important;
+        margin: 0 auto !important;
+      }
+
+      /* Ensure charts maintain aspect ratio */
+      #dashboard .MuiBox-root[height="250px"] > div {
+        height: 100% !important;
+        width: 100% !important;
+        aspect-ratio: 16/9;
+        object-fit: contain !important;
+      }
+
+      /* Adjust grid layout for better print layout */
+      #dashboard .MuiBox-root[display="grid"] {
+        grid-template-columns: 1fr !important;
+        gap: 20px !important;
+      }
+
+      /* Make all chart containers take full width */
+      #dashboard .MuiBox-root[gridColumn="span 12"],
+      #dashboard .MuiBox-root[gridColumn="span 6"] {
+        grid-column: 1 / -1 !important;
+        width: 100% !important;
+      }
+    }
+  `;
+
+    // Add print styles
+    const styleSheet = document.createElement("style");
+    styleSheet.innerHTML = printStyles;
+    document.head.appendChild(styleSheet);
+
+    // Print
+    window.print();
+
+    // Remove print styles
+    document.head.removeChild(styleSheet);
+  };
+
+  // Current date formatting
+  const currentDate = new Date().toLocaleDateString("ar-KW", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
+
   return (
     <Box m="20px" id="dashboard">
-      {/* HEADER */}
-      <Box display="flex" justifyContent="space-between" alignItems="center">
+      <div
+        className={`${styles.headerSection} print-header`}
+        style={{ display: "none" }}
+      >
+        <PrintLogo />
+        <div className={styles.companyTitle}>
+          مؤسسة نجمة الوسام لتوصيل الطلبات
+        </div>
+        <div className={styles.currentDate}>{currentDate}</div>
+      </div>
+      {/* Regular Header - Shown in UI, hidden when printing */}
+      <Box
+        display="flex"
+        justifyContent="space-between"
+        alignItems="center"
+        className="header-component"
+      >
         <Header title={t("DASHBOARD")} subtitle={t("dashboardSubtitle")} />
+        <IconButton
+          onClick={handlePrint}
+          sx={{
+            backgroundColor: colors.primary[400],
+            "&:hover": { backgroundColor: colors.greenAccent[700] },
+          }}
+        >
+          <PrintIcon />
+        </IconButton>
       </Box>
 
       {/* GRID & CHARTS */}
@@ -204,6 +355,7 @@ const Dashboard = () => {
             />
           </Box>
         </Box>
+
         {/* ROW 2 */}
         <Box
           gridColumn="span 12"
@@ -251,6 +403,68 @@ const Dashboard = () => {
               chartField="totalOrders"
               yAxisMin={0}
             />
+          </Box>
+        </Box>
+        <Box
+          gridColumn="span 6"
+          gridRow="span 2"
+          backgroundColor={colors.primary[400]}
+        >
+          <Box mt="25px" p="0 30px" alignItems="center">
+            <Box>
+              <Box display="flex" gap="20px" justifyContent="space-between">
+                <Typography
+                  variant="h5"
+                  fontWeight="600"
+                  color={colors.grey[100]}
+                >
+                  {t("totalOrders")}
+                </Typography>
+                <Typography
+                  variant="h5"
+                  fontWeight="600"
+                  color={colors.grey[100]}
+                >
+                  {currentYear} {t("year")}
+                </Typography>
+              </Box>
+            </Box>
+          </Box>
+          <Box height="250px" m="-20px 0 0 0">
+            <BarChart
+              isDashboard={true}
+              monthlyStats={monthlyStats}
+              chartField="totalOrders"
+            />
+          </Box>
+        </Box>
+        <Box
+          gridColumn="span 6"
+          gridRow="span 2"
+          backgroundColor={colors.primary[400]}
+        >
+          <Box mt="25px" p="0 30px" alignItems="center">
+            <Box>
+              <Box display="flex" gap="20px" justifyContent="space-between">
+                <Typography
+                  variant="h5"
+                  fontWeight="600"
+                  color={colors.grey[100]}
+                >
+                  {t("totalOrders")}
+                </Typography>
+                <Typography
+                  variant="h5"
+                  fontWeight="600"
+                  color={colors.grey[100]}
+                >
+                  {currentYear} {t("year")}
+                </Typography>
+              </Box>
+            </Box>
+          </Box>
+          <Box height="250px" m="-20px 0 0 0">
+            <PieChart monthlyStats={monthlyStats} chartField="totalOrders" />
           </Box>
         </Box>
       </Box>
