@@ -1,5 +1,16 @@
 import React, { useEffect, useState, useMemo, useRef } from "react";
-import { Box, Typography, useTheme, Grid, Button } from "@mui/material";
+import {
+  Box,
+  Typography,
+  useTheme,
+  Grid,
+  Button,
+  FormControl,
+  Select,
+  MenuItem,
+  TextField,
+  InputLabel,
+} from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import { tokens } from "../theme";
 import Header from "../components/Header";
@@ -7,6 +18,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { fetchSalaries } from "../redux/driversSlice";
 import { fetchSalaries as fetchEmployeesSalaries } from "../redux/usersSlice";
 import { pulsar } from "ldrs";
+import PrintIcon from "@mui/icons-material/Print";
 import { useReactToPrint } from "react-to-print";
 import PrintableTable from "./PrintableTable";
 import styles from "./Print.module.css";
@@ -17,6 +29,7 @@ const MonthlySalaryDetails = () => {
   const colors = tokens(theme.palette.mode);
   const dispatch = useDispatch();
   const { t } = useTranslation();
+  const configs = useSelector((state) => state.salaryConfig.configs);
   const driversSalaries = useSelector((state) => state.drivers.salaries);
   const employeesSalaries = useSelector((state) => state.users.salaries);
   const status = useSelector((state) => state.drivers.salariesStatus);
@@ -28,27 +41,147 @@ const MonthlySalaryDetails = () => {
     editedRows: {},
   });
 
+  const [dateRange, setDateRange] = useState({
+    startYear: new Date().getFullYear(),
+    startMonth: new Date().getMonth(),
+    startDay: 1,
+    endYear: new Date().getFullYear(),
+    endMonth: new Date().getMonth(),
+    endDay: new Date(
+      new Date().getFullYear(),
+      new Date().getMonth() + 1,
+      0
+    ).getDate(),
+  });
+
+  const getDaysInMonth = (year, month) => {
+    return new Date(year, month + 1, 0).getDate();
+  };
+
+  const getDaysArray = (year, month) => {
+    const daysInMonth = getDaysInMonth(year, month);
+    return Array.from({ length: daysInMonth }, (_, i) => i + 1);
+  };
+
+  const handleDateChange = (field) => (event) => {
+    setDateRange((prev) => ({
+      ...prev,
+      [field]: event.target.value,
+    }));
+  };
+
+  const handleSearch = () => {
+    const token = localStorage.getItem("token");
+
+    // Create dates using UTC
+    const startDate = new Date(
+      Date.UTC(
+        dateRange.startYear,
+        dateRange.startMonth,
+        dateRange.startDay,
+        0,
+        0,
+        0
+      )
+    );
+
+    const endDate = new Date(
+      Date.UTC(
+        dateRange.endYear,
+        dateRange.endMonth,
+        dateRange.endDay,
+        23,
+        59,
+        59
+      )
+    );
+
+    // Pass the dates in an object, matching the structure used in DriversSalary.jsx
+    dispatch(fetchSalaries({ startDate, endDate }));
+    dispatch(fetchEmployeesSalaries({ startDate, endDate }));
+  };
+
   useEffect(() => {
     const currentDate = new Date();
-    dispatch(
-      fetchSalaries({
-        startDate: new Date(
-          currentDate.getFullYear(),
-          currentDate.getMonth(),
-          1
-        ),
-        endDate: new Date(
-          currentDate.getFullYear(),
-          currentDate.getMonth() + 1,
-          0
-        ),
-      })
-    );
+    const params = {
+      startDate: new Date(currentDate.getFullYear(), currentDate.getMonth(), 1),
+      endDate: new Date(
+        currentDate.getFullYear(),
+        currentDate.getMonth() + 1,
+        0
+      ),
+    };
+
+    dispatch(fetchSalaries(params));
   }, [dispatch]);
 
   useEffect(() => {
-    dispatch(fetchEmployeesSalaries());
+    const currentDate = new Date();
+    const params = {
+      startDate: new Date(currentDate.getFullYear(), currentDate.getMonth(), 1),
+      endDate: new Date(
+        currentDate.getFullYear(),
+        currentDate.getMonth() + 1,
+        0
+      ),
+    };
+
+    dispatch(fetchEmployeesSalaries(params));
   }, [dispatch]);
+
+  // Salary Calculation Utilities
+  const calculateSalary = {
+    forOrders: (orderCount, vehicleType) => {
+      const config = configs.find((c) => c.vehicleType === vehicleType);
+      if (!config?.rules) return 0;
+
+      const rule = config.rules.find(
+        (r) =>
+          orderCount >= r.minOrders &&
+          orderCount <=
+            (r.maxOrders === Infinity ? Number.MAX_SAFE_INTEGER : r.maxOrders)
+      );
+
+      return rule
+        ? rule.multiplier
+          ? orderCount * rule.multiplier
+          : rule.fixedAmount
+        : 0;
+    },
+
+    total: (driver) => {
+      if (driver._id === "sum-row") return 0;
+
+      const mainOrdersSalary = calculateSalary.forOrders(
+        Number(driver.mainOrder || 0),
+        driver.vehicle
+      );
+      const additionalOrdersSalary = calculateSalary.forOrders(
+        Number(driver.additionalOrder || 0),
+        driver.vehicle
+      );
+
+      return (
+        Number(driver.mainSalary || 0) +
+        mainOrdersSalary +
+        additionalOrdersSalary
+      );
+    },
+
+    deductions: (driver) => {
+      if (driver._id === "sum-row") return 0;
+
+      return (
+        Number(driver.talabatDeductionAmount || 0) +
+        Number(driver.companyDeductionAmount || 0) +
+        Number(driver.pettyCashDeductionAmount || 0)
+      );
+    },
+
+    net: (driver) => {
+      return calculateSalary.total(driver) - calculateSalary.deductions(driver);
+    },
+  };
 
   const columns = [
     {
@@ -87,7 +220,8 @@ const MonthlySalaryDetails = () => {
       headerAlign: "center",
       align: "center",
       renderCell: (params) => {
-        return t(params.value);
+        const vehicleValue = params.value || "";
+        return t(vehicleValue, { defaultValue: vehicleValue });
       },
     },
     {
@@ -103,20 +237,40 @@ const MonthlySalaryDetails = () => {
     {
       field: "finalSalary",
       headerName: t("finalSalary"),
-      flex: 1,
       headerAlign: "center",
       align: "center",
-      renderCell: ({
-        row: { salaryAdditionalOrders, salaryMainOrders, mainSalary },
-      }) => {
-        const final = (
-          Number(mainSalary || 0) +
-          Number(salaryMainOrders || 0) +
-          Number(salaryAdditionalOrders || 0)
+      renderCell: ({ row }) => {
+        // For sum row, calculate total from all rows
+        if (row._id === "sum-row") {
+          const total = rows
+            .filter((driver) => driver._id !== "sum-row")
+            .reduce((sum, driver) => {
+              const ordersSalary = calculateSalary.forOrders(
+                Number(driver.mainOrder || 0) +
+                  Number(driver.additionalOrder || 0),
+                driver.vehicle
+              );
+              return sum + Number(driver.mainSalary || 0) + ordersSalary;
+            }, 0);
+          return (
+            <Box display="flex" justifyContent="center" borderRadius="4px">
+              {total.toFixed(3)}
+            </Box>
+          );
+        }
+
+        // For regular rows, calculate using the salary calculation utility
+        const ordersSalary = calculateSalary.forOrders(
+          Number(row.mainOrder || 0) + Number(row.additionalOrder || 0),
+          row.vehicle
+        );
+        const finalSalary = (
+          Number(row.mainSalary || 0) + ordersSalary
         ).toFixed(3);
+
         return (
           <Box display="flex" justifyContent="center" borderRadius="4px">
-            {final}
+            {finalSalary}
           </Box>
         );
       },
@@ -153,31 +307,38 @@ const MonthlySalaryDetails = () => {
       flex: 1,
       headerAlign: "center",
       align: "center",
-      renderCell: ({
-        row: { mainSalary, salaryAdditionalOrders, salaryMainOrders, _id },
-      }) => {
-        const finalSalary =
-          Number(mainSalary || 0) +
-          Number(salaryMainOrders || 0) +
-          Number(salaryAdditionalOrders || 0);
-        const cash = (finalSalary - Number(mainSalary || 0)).toFixed(3);
+      renderCell: ({ row }) => {
+        // For sum row
+        if (row._id === "sum-row") {
+          const totalCashPayment = rows
+            .filter((driver) => driver._id !== "sum-row")
+            .reduce((sum, driver) => {
+              const ordersSalary = calculateSalary.forOrders(
+                Number(driver.mainOrder || 0) +
+                  Number(driver.additionalOrder || 0),
+                driver.vehicle
+              );
+              return sum + ordersSalary;
+            }, 0);
+
+          return (
+            <Box display="flex" justifyContent="center" borderRadius="4px">
+              {totalCashPayment.toFixed(3)}
+            </Box>
+          );
+        }
+
+        // For regular rows
+        const ordersSalary = calculateSalary.forOrders(
+          Number(row.mainOrder || 0) + Number(row.additionalOrder || 0),
+          row.vehicle
+        );
 
         return (
-          <Box
-            display="flex"
-            justifyContent="space-between"
-            alignItems="center"
-            width="100%"
-            pr={2}
-          >
-            <Box flex={1} textAlign="center">
-              {cash}
-            </Box>
+          <Box display="flex" justifyContent="center" borderRadius="4px">
+            {ordersSalary.toFixed(3)}
           </Box>
         );
-      },
-      valueFormatter: (params) => {
-        return params.value ? Number(params.value).toFixed(3) : "0.000";
       },
     },
   ];
@@ -196,10 +357,12 @@ const MonthlySalaryDetails = () => {
     );
     if (!specialDriver) return null;
 
-    const finalSalary =
-      Number(specialDriver.mainSalary || 0) +
-      Number(specialDriver.salaryMainOrders || 0) +
-      Number(specialDriver.salaryAdditionalOrders || 0);
+    const ordersSalary = calculateSalary.forOrders(
+      Number(specialDriver.mainOrder || 0) +
+        Number(specialDriver.additionalOrder || 0),
+      specialDriver.vehicle
+    );
+    const finalSalary = Number(specialDriver.mainSalary || 0) + ordersSalary;
 
     const totalDeductions =
       Number(specialDriver.talabatDeductionAmount || 0) +
@@ -225,57 +388,69 @@ const MonthlySalaryDetails = () => {
       (driver) => driver.vehicle === "Bike"
     );
 
+    // Calculate all the values first
+    const mainOrder = bikeDrivers.reduce(
+      (sum, driver) => sum + Number(driver.mainOrder || 0),
+      0
+    );
+
+    const additionalOrder = bikeDrivers.reduce(
+      (sum, driver) => sum + Number(driver.additionalOrder || 0),
+      0
+    );
+
+    const mainSalary = bikeDrivers.reduce(
+      (sum, driver) => sum + Number(driver.mainSalary || 0),
+      0
+    );
+
+    const finalSalary = bikeDrivers.reduce((sum, driver) => {
+      const ordersSalary = calculateSalary.forOrders(
+        Number(driver.mainOrder || 0) + Number(driver.additionalOrder || 0),
+        driver.vehicle
+      );
+      return sum + Number(driver.mainSalary || 0) + ordersSalary;
+    }, 0);
+
+    const deductions = bikeDrivers.reduce(
+      (sum, driver) =>
+        sum +
+        Number(driver.talabatDeductionAmount || 0) +
+        Number(driver.companyDeductionAmount || 0) +
+        Number(driver.pettyCashDeductionAmount || 0),
+      0
+    );
+
+    const netSalary = bikeDrivers.reduce((sum, driver) => {
+      const ordersSalary = calculateSalary.forOrders(
+        Number(driver.mainOrder || 0) + Number(driver.additionalOrder || 0),
+        driver.vehicle
+      );
+      const driverFinalSalary = Number(driver.mainSalary || 0) + ordersSalary;
+      const totalDeductions =
+        Number(driver.talabatDeductionAmount || 0) +
+        Number(driver.companyDeductionAmount || 0) +
+        Number(driver.pettyCashDeductionAmount || 0);
+      return sum + (driverFinalSalary - totalDeductions);
+    }, 0);
+
+    const cashPayment = bikeDrivers.reduce((sum, driver) => {
+      const ordersSalary = calculateSalary.forOrders(
+        Number(driver.mainOrder || 0) + Number(driver.additionalOrder || 0),
+        driver.vehicle
+      );
+      return sum + ordersSalary;
+    }, 0);
+
+    // Return all calculated values
     return {
-      mainOrder: bikeDrivers.reduce(
-        (sum, driver) => sum + Number(driver.mainOrder || 0),
-        0
-      ),
-      additionalOrder: bikeDrivers.reduce(
-        (sum, driver) => sum + Number(driver.additionalOrder || 0),
-        0
-      ),
-      mainSalary: bikeDrivers.reduce(
-        (sum, driver) => sum + Number(driver.mainSalary || 0),
-        0
-      ),
-      finalSalary: bikeDrivers.reduce((sum, driver) => {
-        const salary =
-          Number(driver.mainSalary || 0) +
-          Number(driver.salaryMainOrders || 0) +
-          Number(driver.salaryAdditionalOrders || 0);
-        const totalDeductions =
-          Number(driver.talabatDeductionAmount || 0) +
-          Number(driver.companyDeductionAmount || 0) +
-          Number(driver.pettyCashDeductionAmount || 0);
-        return sum + (salary - totalDeductions);
-      }, 0),
-      deductions: bikeDrivers.reduce(
-        (sum, driver) =>
-          sum +
-          Number(driver.talabatDeductionAmount || 0) +
-          Number(driver.companyDeductionAmount || 0) +
-          Number(driver.pettyCashDeductionAmount || 0),
-        0
-      ),
-      netSalary: bikeDrivers.reduce((sum, driver) => {
-        const finalSalary =
-          Number(driver.mainSalary || 0) +
-          Number(driver.salaryMainOrders || 0) +
-          Number(driver.salaryAdditionalOrders || 0);
-        const totalDeductions =
-          Number(driver.talabatDeductionAmount || 0) +
-          Number(driver.companyDeductionAmount || 0) +
-          Number(driver.pettyCashDeductionAmount || 0);
-        return sum + (finalSalary - totalDeductions);
-      }, 0),
-      cashPayment: bikeDrivers.reduce((sum, driver) => {
-        const finalSalary =
-          sum +
-          Number(driver.mainSalary || 0) +
-          Number(driver.salaryMainOrders || 0) +
-          Number(driver.salaryAdditionalOrders || 0);
-        return finalSalary - Number(driver.mainSalary || 0);
-      }, 0),
+      mainOrder,
+      additionalOrder,
+      mainSalary,
+      finalSalary,
+      deductions,
+      netSalary,
+      cashPayment,
     };
   }, [driversSalaries]);
 
@@ -293,14 +468,13 @@ const MonthlySalaryDetails = () => {
         (sum, driver) => sum + Number(driver.mainSalary || 0),
         0
       ),
-      finalSalary: driversSalaries.reduce(
-        (sum, driver) =>
-          sum +
-          Number(driver.mainSalary || 0) +
-          Number(driver.salaryMainOrders || 0) +
-          Number(driver.salaryAdditionalOrders || 0),
-        0
-      ),
+      finalSalary: driversSalaries.reduce((sum, driver) => {
+        const ordersSalary = calculateSalary.forOrders(
+          Number(driver.mainOrder || 0) + Number(driver.additionalOrder || 0),
+          driver.vehicle
+        );
+        return sum + Number(driver.mainSalary || 0) + ordersSalary;
+      }, 0),
       deductions: driversSalaries.reduce(
         (sum, driver) =>
           sum +
@@ -310,10 +484,11 @@ const MonthlySalaryDetails = () => {
         0
       ),
       netSalary: driversSalaries.reduce((sum, driver) => {
-        const finalSalary =
-          Number(driver.mainSalary || 0) +
-          Number(driver.salaryMainOrders || 0) +
-          Number(driver.salaryAdditionalOrders || 0);
+        const ordersSalary = calculateSalary.forOrders(
+          Number(driver.mainOrder || 0) + Number(driver.additionalOrder || 0),
+          driver.vehicle
+        );
+        const finalSalary = Number(driver.mainSalary || 0) + ordersSalary;
         const totalDeductions =
           Number(driver.talabatDeductionAmount || 0) +
           Number(driver.companyDeductionAmount || 0) +
@@ -321,11 +496,11 @@ const MonthlySalaryDetails = () => {
         return sum + (finalSalary - totalDeductions);
       }, 0),
       cashPayment: driversSalaries.reduce((sum, driver) => {
-        const finalSalary =
-          Number(driver.mainSalary || 0) +
-          Number(driver.salaryMainOrders || 0) +
-          Number(driver.salaryAdditionalOrders || 0);
-        return finalSalary - Number(driver.mainSalary || 0);
+        const ordersSalary = calculateSalary.forOrders(
+          Number(driver.mainOrder || 0) + Number(driver.additionalOrder || 0),
+          driver.vehicle
+        );
+        return sum + ordersSalary;
       }, 0),
     };
   }, [driversSalaries]);
@@ -454,9 +629,122 @@ const MonthlySalaryDetails = () => {
           title={t("driversSalaryDetailsTitle")}
           subtitle={t("driversSalaryDetailsSubtitle")}
         />
+      </Box>
+      {/* Add date controls */}
+      <Box
+        display="flex"
+        justifyContent="flex-start"
+        alignItems="flex-start"
+        gap={2}
+        mb={2}
+        mt={2}
+      >
+        <Box display="flex" flexDirection="column" gap={2}>
+          {/* Start Date Controls */}
+          <Box display="flex">
+            <FormControl sx={{ minWidth: 120, mr: 1 }}>
+              <Select
+                value={dateRange.startDay}
+                onChange={handleDateChange("startDay")}
+              >
+                {getDaysArray(dateRange.startYear, dateRange.startMonth).map(
+                  (day) => (
+                    <MenuItem key={day} value={day}>
+                      {day}
+                    </MenuItem>
+                  )
+                )}
+              </Select>
+            </FormControl>
+
+            <FormControl sx={{ minWidth: 120, mr: 1 }}>
+              <InputLabel>{t("startMonth")}</InputLabel>
+              <Select
+                value={dateRange.startMonth}
+                onChange={handleDateChange("startMonth")}
+                label={t("startMonth")}
+              >
+                {[...Array(12).keys()].map((month) => (
+                  <MenuItem key={month} value={month}>
+                    {new Date(0, month).toLocaleString("default", {
+                      month: "long",
+                    })}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+
+            <TextField
+              type="number"
+              label={t("startYear")}
+              value={dateRange.startYear}
+              onChange={handleDateChange("startYear")}
+              sx={{ width: 100 }}
+            />
+          </Box>
+
+          {/* End Date Controls */}
+          <Box>
+            <FormControl sx={{ minWidth: 120, mr: 1 }}>
+              <Select
+                value={dateRange.endDay}
+                onChange={handleDateChange("endDay")}
+              >
+                {getDaysArray(dateRange.endYear, dateRange.endMonth).map(
+                  (day) => (
+                    <MenuItem key={day} value={day}>
+                      {day}
+                    </MenuItem>
+                  )
+                )}
+              </Select>
+            </FormControl>
+
+            <FormControl sx={{ minWidth: 120, mr: 1 }}>
+              <InputLabel>{t("endMonth")}</InputLabel>
+              <Select
+                value={dateRange.endMonth}
+                onChange={handleDateChange("endMonth")}
+                label={t("endMonth")}
+              >
+                {[...Array(12).keys()].map((month) => (
+                  <MenuItem key={month} value={month}>
+                    {new Date(0, month).toLocaleString("default", {
+                      month: "long",
+                    })}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+
+            <TextField
+              type="number"
+              label={t("endYear")}
+              value={dateRange.endYear}
+              onChange={handleDateChange("endYear")}
+              sx={{ width: 100 }}
+            />
+          </Box>
+        </Box>
+        <Button
+          onClick={handleSearch}
+          color="secondary"
+          variant="contained"
+          sx={{
+            height: "fit-content",
+            alignSelf: "flex-end",
+            height: "50px",
+            px: 4,
+          }}
+        >
+          {t("search")}
+        </Button>
+      </Box>
+      <Box display="flex" gap={2} justifyContent="flex-end">
         <Button
           variant="contained"
           onClick={handlePrint}
+          startIcon={<PrintIcon />}
           sx={{
             backgroundColor: colors.blueAccent[600],
             "&:hover": { backgroundColor: colors.blueAccent[500] },
@@ -529,7 +817,12 @@ const MonthlySalaryDetails = () => {
         backgroundColor={colors.blueAccent[700]}
         borderRadius="4px"
       >
-        <Typography variant="h5" color={colors.grey[100]} mb="20px">
+        <Typography
+          variant="h2"
+          color={colors.grey[100]}
+          textAlign="center"
+          mb="20px"
+        >
           {t("summary")}
         </Typography>
 

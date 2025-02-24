@@ -603,9 +603,6 @@ const Invoices = () => {
         const worksheet = workbook.Sheets[sheetName];
         const jsonData = XLSX.utils.sheet_to_json(worksheet);
 
-        console.log("Parsed Excel Data:", jsonData);
-
-        // Process and upload each row
         for (const row of jsonData) {
           const driverId = row["Driver ID (DO NOT EDIT)"] || row["driverId"];
 
@@ -618,26 +615,30 @@ const Invoices = () => {
           let formattedDate;
           if (row.invoiceDate) {
             try {
-              // Convert Excel serial number to date
-              if (typeof row.invoiceDate === "number") {
-                const excelEpoch = new Date(1899, 11, 30); // Excel's epoch starts from December 30, 1899
-                const millisecondsPerDay = 24 * 60 * 60 * 1000;
+              if (
+                typeof row.invoiceDate === "string" &&
+                row.invoiceDate.includes("/")
+              ) {
+                // Handle date format
+                const [month, day, year] = row.invoiceDate
+                  .split("/")
+                  .map(Number);
+                formattedDate = `${year}-${String(month).padStart(
+                  2,
+                  "0"
+                )}-${String(day).padStart(2, "0")}`;
+              } else if (
+                typeof row.invoiceDate === "string" &&
+                row.invoiceDate.includes("-")
+              ) {
+                // Handle date format
+                formattedDate = row.invoiceDate;
+              } else if (typeof row.invoiceDate === "number") {
+                // Handle Excel serial number date
                 const date = new Date(
-                  excelEpoch.getTime() + row.invoiceDate * millisecondsPerDay
+                  Math.round((row.invoiceDate - 25569) * 86400 * 1000)
                 );
                 formattedDate = date.toISOString().split("T")[0];
-              }
-              // Handle string date format
-              else if (typeof row.invoiceDate === "string") {
-                if (row.invoiceDate.includes("/")) {
-                  const [month, day, year] = row.invoiceDate.split("/");
-                  formattedDate = `${year}-${month.padStart(
-                    2,
-                    "0"
-                  )}-${day.padStart(2, "0")}`;
-                } else if (row.invoiceDate.includes("-")) {
-                  formattedDate = row.invoiceDate;
-                }
               }
 
               if (!formattedDate) {
@@ -645,7 +646,7 @@ const Invoices = () => {
                 continue;
               }
 
-              console.log("Parsed date:", {
+              console.log("Date parsing:", {
                 original: row.invoiceDate,
                 formatted: formattedDate,
               });
@@ -685,7 +686,6 @@ const Invoices = () => {
           }
         }
 
-        // Refresh the archived invoices data
         await dispatch(fetchArchivedInvoices(token));
         toast.success(t("excelUploadSuccess"));
       };
@@ -696,7 +696,7 @@ const Invoices = () => {
       toast.error(t("excelUploadError"));
     } finally {
       setIsUploading(false);
-      event.target.value = ""; // Reset file input
+      event.target.value = "";
     }
   };
 

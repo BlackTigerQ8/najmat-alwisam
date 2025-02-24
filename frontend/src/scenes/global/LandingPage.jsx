@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useContext } from "react";
 import {
   Box,
   Button,
@@ -9,6 +9,7 @@ import {
   Menu,
   Tooltip,
   IconButton,
+  MenuItem,
 } from "@mui/material";
 import { tokens } from "../../theme";
 import LocalShippingOutlinedIcon from "@mui/icons-material/LocalShippingOutlined";
@@ -18,13 +19,17 @@ import TranslateOutlinedIcon from "@mui/icons-material/TranslateOutlined";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import deliveryImage from "../../assets/delivery.svg";
-import { MenuItem } from "react-pro-sidebar";
+import { ColorModeContext } from "../../theme";
+import LightModeOutlinedIcon from "@mui/icons-material/LightModeOutlined";
+import DarkModeOutlinedIcon from "@mui/icons-material/DarkModeOutlined";
+import LoginOutlinedIcon from "@mui/icons-material/LoginOutlined";
 
 const LandingPage = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
+  const colorMode = useContext(ColorModeContext);
   const [languageAnchorEl, setLanguageAnchorEl] = React.useState(null);
 
   const handleLanguageMenu = (event) => {
@@ -60,65 +65,78 @@ const LandingPage = () => {
 
   return (
     <Box>
-      {/* Language Selector */}
+      {/* Simplified Topbar */}
       <Box
+        display="flex"
+        justifyContent="flex-end"
+        p={2}
         sx={{
           position: "absolute",
-          top: 20,
-          right: 20,
+          top: 0,
+          right: 0,
           zIndex: 1000,
+          width: "100%",
         }}
       >
-        <Tooltip title={t("changeLanguage")}>
-          <IconButton
-            onClick={handleLanguageMenu}
-            sx={{
-              backgroundColor: colors.primary[400],
-              "&:hover": {
-                backgroundColor: colors.greenAccent[700],
-              },
-            }}
+        <Box display="flex" gap={1}>
+          <Tooltip title={t("changeLanguage")}>
+            <IconButton onClick={handleLanguageMenu}>
+              <TranslateOutlinedIcon sx={{ color: colors.grey[100] }} />
+            </IconButton>
+          </Tooltip>
+          <Tooltip
+            title={
+              theme.palette.mode === "dark" ? t("lightMode") : t("darkMode")
+            }
           >
-            <TranslateOutlinedIcon sx={{ color: colors.grey[100] }} />
-          </IconButton>
-        </Tooltip>
-        <Menu
-          anchorEl={languageAnchorEl}
-          open={Boolean(languageAnchorEl)}
-          onClose={handleCloseLanguageMenu}
-          PaperProps={{
-            sx: {
-              backgroundColor: colors.primary[400],
-              color: colors.grey[100],
-              padding: "10px",
+            <IconButton onClick={colorMode.toggleColorMode}>
+              {theme.palette.mode === "dark" ? (
+                <DarkModeOutlinedIcon sx={{ color: colors.grey[100] }} />
+              ) : (
+                <LightModeOutlinedIcon sx={{ color: colors.grey[100] }} />
+              )}
+            </IconButton>
+          </Tooltip>
+          <Tooltip title={t("login")}>
+            <IconButton onClick={() => navigate("/login")}>
+              <LoginOutlinedIcon sx={{ color: colors.grey[100] }} />
+            </IconButton>
+          </Tooltip>
+        </Box>
+      </Box>
+
+      <Menu
+        anchorEl={languageAnchorEl}
+        open={Boolean(languageAnchorEl)}
+        onClose={handleCloseLanguageMenu}
+        PaperProps={{
+          sx: {
+            backgroundColor: colors.primary[400],
+            color: colors.grey[100],
+          },
+        }}
+      >
+        <MenuItem
+          onClick={() => toggleLanguage("en")}
+          sx={{
+            "&:hover": {
+              backgroundColor: colors.primary[300],
             },
           }}
         >
-          <MenuItem
-            onClick={() => toggleLanguage("en")}
-            sx={{
-              "&:hover": {
-                backgroundColor: colors.primary[300],
-                cursor: "pointer",
-              },
-            }}
-          >
-            English
-          </MenuItem>
-          <MenuItem
-            onClick={() => toggleLanguage("ar")}
-            sx={{
-              "&:hover": {
-                backgroundColor: colors.primary[300],
-                cursor: "pointer",
-                margin: "10px",
-              },
-            }}
-          >
-            العربية
-          </MenuItem>
-        </Menu>
-      </Box>
+          English
+        </MenuItem>
+        <MenuItem
+          onClick={() => toggleLanguage("ar")}
+          sx={{
+            "&:hover": {
+              backgroundColor: colors.primary[300],
+            },
+          }}
+        >
+          العربية
+        </MenuItem>
+      </Menu>
 
       {/* Hero Section */}
       <Box
@@ -199,7 +217,7 @@ const LandingPage = () => {
       <Box
         sx={{
           py: 8,
-          backgroundColor: colors.primary[500],
+          backgroundColor: colors.primary[800],
         }}
       >
         <Container maxWidth="lg">

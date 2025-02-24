@@ -96,14 +96,15 @@ function App() {
         if (savedUser) {
           dispatch(setUser(savedUser));
         }
-      } else {
+      } else if (location.pathname !== "/home") {
+        // Only redirect to login if user is not on landing page
         navigate("/login");
       }
       setIsLoading(false);
     };
 
     checkUser();
-  }, [navigate, dispatch, savedToken]);
+  }, [navigate, dispatch, savedToken, location.pathname]);
 
   pulsar.register();
   if (isLoading) {
@@ -220,6 +221,8 @@ function App() {
                   <Topbar setIsSidebar={setIsSidebar} />
                 )}
               <Routes>
+                <Route path="/home" element={<LandingPage />} />
+
                 {(currentUser || savedToken) && (
                   <>
                     {getRoutesByRole().map((route) => (
@@ -287,7 +290,6 @@ function App() {
                     />
                   }
                 />
-                <Route path="/" element={<LandingPage />} />
               </Routes>
             </main>
             <ToastContainer />

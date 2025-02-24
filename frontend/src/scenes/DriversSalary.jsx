@@ -529,13 +529,33 @@ const DriversSalary = () => {
       headerName: t("finalSalary"),
       headerAlign: "center",
       align: "center",
-      renderCell: ({
-        row: { mainSalary, salaryMainOrders, salaryAdditionalOrders },
-      }) => {
+      renderCell: ({ row }) => {
+        // For sum row, calculate total from all rows
+        if (row._id === "sum-row") {
+          const total = gridState.rows
+            .filter((driver) => driver._id !== "sum-row")
+            .reduce((sum, driver) => {
+              const ordersSalary = calculateSalary.forOrders(
+                Number(driver.mainOrder || 0) +
+                  Number(driver.additionalOrder || 0),
+                driver.vehicle
+              );
+              return sum + Number(driver.mainSalary || 0) + ordersSalary;
+            }, 0);
+          return (
+            <Box display="flex" justifyContent="center" borderRadius="4px">
+              {total.toFixed(3)}
+            </Box>
+          );
+        }
+
+        // For regular rows, calculate using the salary calculation utility
+        const ordersSalary = calculateSalary.forOrders(
+          Number(row.mainOrder || 0) + Number(row.additionalOrder || 0),
+          row.vehicle
+        );
         const finalSalary = (
-          Number(mainSalary || 0) +
-          Number(salaryMainOrders || 0) +
-          Number(salaryAdditionalOrders || 0)
+          Number(row.mainSalary || 0) + ordersSalary
         ).toFixed(3);
 
         return (
