@@ -10,6 +10,7 @@ import {
   MenuItem,
   TextField,
   InputLabel,
+  useMediaQuery,
 } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import { tokens } from "../theme";
@@ -27,6 +28,7 @@ import { useTranslation } from "react-i18next";
 const MonthlySalaryDetails = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
+  const isNonMobile = useMediaQuery("(min-width: 600px)");
   const dispatch = useDispatch();
   const { t } = useTranslation();
   const configs = useSelector((state) => state.salaryConfig.configs);
@@ -369,7 +371,8 @@ const MonthlySalaryDetails = () => {
       Number(specialDriver.companyDeductionAmount || 0) +
       Number(specialDriver.pettyCashDeductionAmount || 0);
 
-    const netSalary = finalSalary - totalDeductions;
+    const bankTransfer =
+      Number(specialDriver.mainSalary || 0) - totalDeductions;
     const cashSalary = finalSalary - Number(specialDriver.mainSalary || 0);
 
     return {
@@ -378,7 +381,7 @@ const MonthlySalaryDetails = () => {
       mainSalary: Number(specialDriver.mainSalary || 0),
       finalSalary,
       deductions: totalDeductions,
-      netSalary,
+      bankTransfer,
       cashPayment: cashSalary,
     };
   }, [driversSalaries]);
@@ -421,17 +424,12 @@ const MonthlySalaryDetails = () => {
       0
     );
 
-    const netSalary = bikeDrivers.reduce((sum, driver) => {
-      const ordersSalary = calculateSalary.forOrders(
-        Number(driver.mainOrder || 0) + Number(driver.additionalOrder || 0),
-        driver.vehicle
-      );
-      const driverFinalSalary = Number(driver.mainSalary || 0) + ordersSalary;
+    const bankTransfer = bikeDrivers.reduce((sum, driver) => {
       const totalDeductions =
         Number(driver.talabatDeductionAmount || 0) +
         Number(driver.companyDeductionAmount || 0) +
         Number(driver.pettyCashDeductionAmount || 0);
-      return sum + (driverFinalSalary - totalDeductions);
+      return sum + (Number(driver.mainSalary || 0) - totalDeductions);
     }, 0);
 
     const cashPayment = bikeDrivers.reduce((sum, driver) => {
@@ -449,7 +447,7 @@ const MonthlySalaryDetails = () => {
       mainSalary,
       finalSalary,
       deductions,
-      netSalary,
+      bankTransfer,
       cashPayment,
     };
   }, [driversSalaries]);
@@ -483,19 +481,20 @@ const MonthlySalaryDetails = () => {
           Number(driver.pettyCashDeductionAmount || 0),
         0
       ),
-      netSalary: driversSalaries.reduce((sum, driver) => {
-        const ordersSalary = calculateSalary.forOrders(
-          Number(driver.mainOrder || 0) + Number(driver.additionalOrder || 0),
-          driver.vehicle
-        );
-        const finalSalary = Number(driver.mainSalary || 0) + ordersSalary;
+      bankTransfer: driversSalaries.reduce((sum, driver) => {
+        // Calculate total deductions
         const totalDeductions =
           Number(driver.talabatDeductionAmount || 0) +
           Number(driver.companyDeductionAmount || 0) +
           Number(driver.pettyCashDeductionAmount || 0);
-        return sum + (finalSalary - totalDeductions);
+
+        // Bank transfer should be mainSalary minus deductions
+        // Orders-based salary is paid in cash, so it's not included in bank transfer
+        return sum + (Number(driver.mainSalary || 0) - totalDeductions);
       }, 0),
+
       cashPayment: driversSalaries.reduce((sum, driver) => {
+        // Cash payment is only the orders-based salary
         const ordersSalary = calculateSalary.forOrders(
           Number(driver.mainOrder || 0) + Number(driver.additionalOrder || 0),
           driver.vehicle
@@ -511,6 +510,10 @@ const MonthlySalaryDetails = () => {
     );
 
     return {
+      mainSalary: employees.reduce(
+        (sum, employee) => sum + Number(employee.mainSalary || 0),
+        0
+      ),
       deductions: employees.reduce(
         (sum, employee) =>
           sum +
@@ -535,11 +538,13 @@ const MonthlySalaryDetails = () => {
 
   const totalNetSalary = useMemo(() => {
     const driversTotal = driversSalaries.reduce((sum, driver) => {
-      const finalSalary =
-        Number(driver.mainSalary || 0) +
-        Number(driver.salaryMainOrders || 0) +
-        Number(driver.salaryAdditionalOrders || 0);
+      const ordersSalary = calculateSalary.forOrders(
+        Number(driver.mainOrder || 0) + Number(driver.additionalOrder || 0),
+        driver.vehicle
+      );
+      const finalSalary = Number(driver.mainSalary || 0) + ordersSalary;
 
+      // Calculate total deductions
       const totalDeductions =
         Number(driver.talabatDeductionAmount || 0) +
         Number(driver.companyDeductionAmount || 0) +
@@ -548,12 +553,23 @@ const MonthlySalaryDetails = () => {
       return sum + (finalSalary - totalDeductions);
     }, 0);
 
+    // Add employees net salary
     return driversTotal + allEmployeesStats.netSalary;
   }, [driversSalaries, allEmployeesStats.netSalary]);
 
   const totalCashPayment = useMemo(() => {
-    return allDriversStats.cashPayment + allEmployeesStats.cashPayment;
-  }, [allDriversStats.cashPayment, allEmployeesStats.cashPayment]);
+    // For drivers: only the orders-based salary is paid in cash
+    const driversCashPayment = driversSalaries.reduce((sum, driver) => {
+      const ordersSalary = calculateSalary.forOrders(
+        Number(driver.mainOrder || 0) + Number(driver.additionalOrder || 0),
+        driver.vehicle
+      );
+      return sum + ordersSalary;
+    }, 0);
+
+    // Add employees cash payments
+    return driversCashPayment + allEmployeesStats.cashPayment;
+  }, [driversSalaries, allEmployeesStats.cashPayment]);
 
   const sumRow = {
     _id: "sum-row",
@@ -817,15 +833,6 @@ const MonthlySalaryDetails = () => {
         backgroundColor={colors.blueAccent[700]}
         borderRadius="4px"
       >
-        <Typography
-          variant="h2"
-          color={colors.grey[100]}
-          textAlign="center"
-          mb="20px"
-        >
-          {t("summary")}
-        </Typography>
-
         <Grid container spacing={3}>
           {/* Special Bike Driver Summary */}
           {specialBikeDriverStats && (
@@ -834,37 +841,51 @@ const MonthlySalaryDetails = () => {
                 backgroundColor={colors.primary[400]}
                 p="15px"
                 borderRadius="4px"
+                textAlign="center"
               >
                 <Typography
                   variant="h6"
                   color={colors.greenAccent[500]}
                   mb="10px"
                   fontSize="1.2rem"
+                  sx={{
+                    borderBottom: `2px solid ${colors.grey[400]}`,
+                    width: "30%",
+                    margin: "10px auto",
+                  }}
                 >
                   {t("specialBikeDriverSummary")}
                 </Typography>
                 <Grid container spacing={2}>
-                  <Grid item xs={2} sx={{ textAlign: "center" }}>
-                    <Typography>
-                      {t("mainSalary")} <br />
+                  <Grid item xs={12} sm={3} sx={{ textAlign: "center" }}>
+                    <Typography variant="body1" gutterBottom>
+                      {t("mainSalary")}
+                    </Typography>
+                    <Typography variant="h6">
                       {specialBikeDriverStats.mainSalary.toFixed(3)}
                     </Typography>
                   </Grid>
-                  <Grid item xs={2} sx={{ textAlign: "center" }}>
-                    <Typography>
-                      {t("finalSalary")} <br />
-                      {specialBikeDriverStats.finalSalary.toFixed(3)}
+                  <Grid item xs={12} sm={3} sx={{ textAlign: "center" }}>
+                    <Typography variant="body1" gutterBottom>
+                      {t("deductions")}
+                    </Typography>
+                    <Typography variant="h6">
+                      {specialBikeDriverStats.deductions.toFixed(3)}
                     </Typography>
                   </Grid>
-                  <Grid item xs={2} sx={{ textAlign: "center" }}>
-                    <Typography>
-                      {t("netSalaryAfterDeductions")} <br />
-                      {specialBikeDriverStats.netSalary.toFixed(3)}
+                  <Grid item xs={12} sm={3} sx={{ textAlign: "center" }}>
+                    <Typography variant="body1" gutterBottom>
+                      {t("netSalaryAfterDeductions")}
+                    </Typography>
+                    <Typography variant="h6">
+                      {specialBikeDriverStats.bankTransfer.toFixed(3)}
                     </Typography>
                   </Grid>
-                  <Grid item xs={2} sx={{ textAlign: "center" }}>
-                    <Typography>
-                      {t("cashSalary")} <br />
+                  <Grid item xs={12} sm={3} sx={{ textAlign: "center" }}>
+                    <Typography variant="body1" gutterBottom>
+                      {t("cashSalary")}
+                    </Typography>
+                    <Typography variant="h6">
                       {specialBikeDriverStats.cashPayment.toFixed(3)}
                     </Typography>
                   </Grid>
@@ -885,31 +906,45 @@ const MonthlySalaryDetails = () => {
                 color={colors.greenAccent[500]}
                 mb="10px"
                 fontSize="1.2rem"
+                textAlign="center"
+                sx={{
+                  borderBottom: `2px solid ${colors.grey[400]}`,
+                  width: "30%",
+                  margin: "10px auto",
+                }}
               >
                 {t("allBikeDriversSummary")}
               </Typography>
-              <Grid container spacing={2}>
-                <Grid item xs={2} sx={{ textAlign: "center" }}>
-                  <Typography>
-                    {t("mainSalary")} <br />
+              <Grid container spacing={2} justifyContent="center">
+                <Grid item xs={12} sm={3} sx={{ textAlign: "center" }}>
+                  <Typography variant="body1" gutterBottom>
+                    {t("mainSalary")}
+                  </Typography>
+                  <Typography variant="h6">
                     {allBikeDriversStats.mainSalary.toFixed(3)}
                   </Typography>
                 </Grid>
-                <Grid item xs={2} sx={{ textAlign: "center" }}>
-                  <Typography>
-                    {t("deductions")} <br />
+                <Grid item xs={12} sm={3} sx={{ textAlign: "center" }}>
+                  <Typography variant="body1" gutterBottom>
+                    {t("deductions")}
+                  </Typography>
+                  <Typography variant="h6">
                     {allBikeDriversStats.deductions.toFixed(3)}
                   </Typography>
                 </Grid>
-                <Grid item xs={2} sx={{ textAlign: "center" }}>
-                  <Typography>
-                    {t("netSalaryAfterDeductions")} <br />
-                    {allBikeDriversStats.netSalary.toFixed(3)}
+                <Grid item xs={12} sm={3} sx={{ textAlign: "center" }}>
+                  <Typography variant="body1" gutterBottom>
+                    {t("netSalaryAfterDeductions")}
+                  </Typography>
+                  <Typography variant="h6">
+                    {allBikeDriversStats.bankTransfer.toFixed(3)}
                   </Typography>
                 </Grid>
-                <Grid item xs={2} sx={{ textAlign: "center" }}>
-                  <Typography>
-                    {t("cashPayment")} <br />
+                <Grid item xs={12} sm={3} sx={{ textAlign: "center" }}>
+                  <Typography variant="body1" gutterBottom>
+                    {t("cashPayment")}
+                  </Typography>
+                  <Typography variant="h6">
                     {allBikeDriversStats.cashPayment.toFixed(3)}
                   </Typography>
                 </Grid>
@@ -929,34 +964,45 @@ const MonthlySalaryDetails = () => {
                 color={colors.greenAccent[500]}
                 mb="10px"
                 fontSize="1.2rem"
+                textAlign="center"
+                sx={{
+                  borderBottom: `2px solid ${colors.grey[400]}`,
+                  width: "30%",
+                  margin: "10px auto",
+                }}
               >
                 {t("allDriversSummary")}
               </Typography>
-              <Grid container spacing={2}>
-                <Grid item xs={2} sx={{ textAlign: "center" }}>
-                  <Typography>
+              <Grid container spacing={2} justifyContent="center">
+                <Grid item xs={12} sm={3} sx={{ textAlign: "center" }}>
+                  <Typography variant="body1" gutterBottom>
                     {t("mainSalary")}
-                    <br />
+                  </Typography>
+                  <Typography variant="h6">
                     {allDriversStats.mainSalary.toFixed(3)}
                   </Typography>
                 </Grid>
-                <Grid item xs={2} sx={{ textAlign: "center" }}>
-                  <Typography>
+                <Grid item xs={12} sm={3} sx={{ textAlign: "center" }}>
+                  <Typography variant="body1" gutterBottom>
                     {t("deductions")}
-                    <br />
+                  </Typography>
+                  <Typography variant="h6">
                     {allDriversStats.deductions.toFixed(3)}
                   </Typography>
                 </Grid>
-                <Grid item xs={2} sx={{ textAlign: "center" }}>
-                  <Typography>
-                    {t("netSalaryAfterDeductions")} <br />
-                    {allDriversStats.netSalary.toFixed(3)}
+                <Grid item xs={12} sm={3} sx={{ textAlign: "center" }}>
+                  <Typography variant="body1" gutterBottom>
+                    {t("netSalaryAfterDeductions")}
+                  </Typography>
+                  <Typography variant="h6">
+                    {allDriversStats.bankTransfer.toFixed(3)}
                   </Typography>
                 </Grid>
-                <Grid item xs={2} sx={{ textAlign: "center" }}>
-                  <Typography>
+                <Grid item xs={12} sm={3} sx={{ textAlign: "center" }}>
+                  <Typography variant="body1" gutterBottom>
                     {t("cashPayment")}
-                    <br />
+                  </Typography>
+                  <Typography variant="h6">
                     {allDriversStats.cashPayment.toFixed(3)}
                   </Typography>
                 </Grid>
@@ -964,7 +1010,7 @@ const MonthlySalaryDetails = () => {
             </Box>
           </Grid>
 
-          {/* All Employees Summary */}
+          {/* All Employees and Drivers Summary */}
           <Grid item xs={12}>
             <Box
               backgroundColor={colors.primary[400]}
@@ -976,27 +1022,45 @@ const MonthlySalaryDetails = () => {
                 color={colors.greenAccent[500]}
                 mb="10px"
                 fontSize="1.2rem"
+                textAlign="center"
+                sx={{
+                  borderBottom: `2px solid ${colors.grey[400]}`,
+                  width: "30%",
+                  margin: "10px auto",
+                }}
               >
                 {t("allEmployeesSummary")}
               </Typography>
-              <Grid container spacing={2}>
-                <Grid item xs={2} sx={{ textAlign: "center" }}>
-                  <Typography>
+              <Grid container spacing={2} justifyContent="center">
+                <Grid item xs={12} sm={3} sx={{ textAlign: "center" }}>
+                  <Typography variant="body1" gutterBottom>
+                    {t("mainSalary")}
+                  </Typography>
+                  <Typography variant="h6">
+                    {allEmployeesStats.mainSalary.toFixed(3)}
+                  </Typography>
+                </Grid>
+                <Grid item xs={12} sm={3} sx={{ textAlign: "center" }}>
+                  <Typography variant="body1" gutterBottom>
                     {t("deductions")}
-                    <br />
+                  </Typography>
+                  <Typography variant="h6">
                     {allEmployeesStats.deductions.toFixed(3)}
                   </Typography>
                 </Grid>
-                <Grid item xs={2} sx={{ textAlign: "center" }}>
-                  <Typography>
-                    {t("netSalaryAfterDeductions")} <br />
+                <Grid item xs={12} sm={3} sx={{ textAlign: "center" }}>
+                  <Typography variant="body1" gutterBottom>
+                    {t("netSalaryAfterDeductions")}
+                  </Typography>
+                  <Typography variant="h6">
                     {allEmployeesStats.netSalary.toFixed(3)}
                   </Typography>
                 </Grid>
-                <Grid item xs={2} sx={{ textAlign: "center" }}>
-                  <Typography>
+                <Grid item xs={12} sm={3} sx={{ textAlign: "center" }}>
+                  <Typography variant="body1" gutterBottom>
                     {t("cashPayment")}
-                    <br />
+                  </Typography>
+                  <Typography variant="h6">
                     {allEmployeesStats.cashPayment.toFixed(3)}
                   </Typography>
                 </Grid>
@@ -1016,36 +1080,50 @@ const MonthlySalaryDetails = () => {
                 color={colors.greenAccent[500]}
                 mb="10px"
                 fontSize="1.2rem"
+                textAlign="center"
+                sx={{
+                  borderBottom: `2px solid ${colors.grey[400]}`,
+                  width: "30%",
+                  margin: "10px auto",
+                }}
               >
                 {t("finalSummary")}
               </Typography>
-              <Grid container spacing={2}>
-                <Grid item xs={3} sx={{ textAlign: "center" }}>
-                  <Typography>
-                    {t("totalDriversNetSalary")} <br />
-                    {allDriversStats.netSalary.toFixed(3)}
+              <Grid container spacing={2} justifyContent="center">
+                <Grid item xs={12} sm={3} sx={{ textAlign: "center" }}>
+                  <Typography variant="body1" gutterBottom>
+                    {t("totalDriversNetSalary")}
+                  </Typography>
+                  <Typography variant="h6">
+                    {allDriversStats.bankTransfer.toFixed(3)}
                   </Typography>
                 </Grid>
-                <Grid item xs={3} sx={{ textAlign: "center" }}>
-                  <Typography>
-                    {t("totalDriversCashPayment")} <br />
+                <Grid item xs={12} sm={3} sx={{ textAlign: "center" }}>
+                  <Typography variant="body1" gutterBottom>
+                    {t("totalDriversCashPayment")}
+                  </Typography>
+                  <Typography variant="h6">
                     {allDriversStats.cashPayment.toFixed(3)}
                   </Typography>
                 </Grid>
-                <Grid item xs={3} sx={{ textAlign: "center" }}>
-                  <Typography>
-                    {t("totalBankTransfer")} <br />
+                <Grid item xs={12} sm={3} sx={{ textAlign: "center" }}>
+                  <Typography variant="body1" gutterBottom>
+                    {t("totalBankTransfer")}
+                  </Typography>
+                  <Typography variant="h6">
                     {(totalNetSalary - totalCashPayment).toFixed(3)}
                   </Typography>
                 </Grid>
-                <Grid item xs={3} sx={{ textAlign: "center" }}>
-                  <Typography>
-                    {t("grandTotal")} <br />
+                <Grid item xs={12} sm={3} sx={{ textAlign: "center" }}>
+                  <Typography variant="body1" gutterBottom>
+                    {t("grandTotal")}
+                  </Typography>
+                  <Typography variant="h6">
                     {totalNetSalary.toFixed(3)}
                   </Typography>
                 </Grid>
                 {/* Add new row for combined totals */}
-                <Grid item xs={6} sx={{ textAlign: "center" }}>
+                <Grid item xs={12} sm={6} sx={{ textAlign: "center" }}>
                   <Typography
                     color={colors.greenAccent[500]}
                     fontSize={16}
@@ -1055,7 +1133,7 @@ const MonthlySalaryDetails = () => {
                     {(totalNetSalary - totalCashPayment).toFixed(3)}
                   </Typography>
                 </Grid>
-                <Grid item xs={6} sx={{ textAlign: "center" }}>
+                <Grid item xs={12} sm={6} sx={{ textAlign: "center" }}>
                   <Typography
                     color={colors.greenAccent[500]}
                     fontSize={16}

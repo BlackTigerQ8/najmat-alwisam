@@ -63,7 +63,7 @@ const InvoicesArchive = () => {
   const getInvoiceData = useCallback(
     (driverId) => {
       const driverInvoices = invoices.filter(
-        (invoice) => invoice.driver._id === driverId
+        (invoice) => invoice.driver && invoice.driver._id === driverId
       );
 
       return driverInvoices.reduce((result, invoice) => {
@@ -93,19 +93,24 @@ const InvoicesArchive = () => {
   );
 
   const driverWithInvoices = useMemo(() => {
-    return drivers.map((driver) => {
-      const { cash, hour, mainOrder, additionalOrder, invoiceDate } =
-        getInvoiceData(driver._id);
+    if (!drivers || !invoices) return [];
 
-      return {
-        ...driver,
-        cash: cash ? cash.toFixed(3) : cash,
-        hour,
-        mainOrder,
-        additionalOrder,
-        invoiceDate,
-      };
-    });
+    return drivers
+      .map((driver) => {
+        if (!driver || !driver._id) return null;
+        const { cash, hour, mainOrder, additionalOrder, invoiceDate } =
+          getInvoiceData(driver._id);
+
+        return {
+          ...driver,
+          cash: cash ? cash.toFixed(3) : cash,
+          hour,
+          mainOrder,
+          additionalOrder,
+          invoiceDate,
+        };
+      })
+      .filter(Boolean);
   }, [drivers, getInvoiceData]);
 
   const [editRowsModel, setEditRowsModel] = useState({});

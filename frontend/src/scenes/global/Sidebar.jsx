@@ -821,7 +821,10 @@ const Sidebar = () => {
                   ml="15px"
                 >
                   <Typography variant="h3" color={colors.grey[100]}>
-                    {t("admins")}
+                    {userInfo.role === "Admin" && t("admins")}
+                    {userInfo.role === "Manager" && t("managers")}
+                    {userInfo.role === "Accountant" && t("accountants")}
+                    {userInfo.role === "Employee" && t("employees")}
                   </Typography>
                   <IconButton onClick={() => setIsCollapsed(!isCollapsed)}>
                     <MenuOutlinedIcon />

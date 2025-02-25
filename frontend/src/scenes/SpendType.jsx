@@ -84,6 +84,8 @@ const SpendType = () => {
       field: "name",
       headerName: t("name"),
       flex: 1,
+      align: "center",
+      headerAlign: "center",
     },
     {
       field: "actions",
@@ -250,7 +252,7 @@ const SpendType = () => {
             border: "none",
           },
           "& .MuiDataGrid-cell": {
-            borderBottom: "none",
+            borderBottom: `1px solid ${colors.grey[400]}`,
           },
           "& .name-column--cell": {
             color: colors.greenAccent[300],

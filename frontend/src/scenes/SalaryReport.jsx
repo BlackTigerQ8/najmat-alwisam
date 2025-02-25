@@ -426,7 +426,7 @@ const SalaryReport = () => {
             border: "none",
           },
           "& .MuiDataGrid-cell": {
-            borderBottom: "none",
+            borderBottom: `1px solid ${colors.grey[400]}`,
           },
           "& .name-column--cell": {
             color: colors.greenAccent[300],
