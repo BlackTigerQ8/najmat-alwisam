@@ -24,6 +24,8 @@ import { useReactToPrint } from "react-to-print";
 import PrintableTable from "./PrintableTable";
 import styles from "./Print.module.css";
 import { useTranslation } from "react-i18next";
+import { fetchPettyCash, searchPettyCash } from "../redux/pettyCashSlice";
+import { fetchSalaryConfigs } from "../redux/salaryConfigSlice";
 
 const MonthlySalaryDetails = () => {
   const theme = useTheme();
@@ -36,12 +38,9 @@ const MonthlySalaryDetails = () => {
   const employeesSalaries = useSelector((state) => state.users.salaries);
   const status = useSelector((state) => state.drivers.salariesStatus);
   const error = useSelector((state) => state.drivers.salariesError);
+  const { pettyCash } = useSelector((state) => state.pettyCash);
   const componentRef = useRef();
   const [rows, setRows] = useState([]);
-  const [gridState, setGridState] = useState({
-    rowModifications: {},
-    editedRows: {},
-  });
 
   const [dateRange, setDateRange] = useState({
     startYear: new Date().getFullYear(),
@@ -115,75 +114,92 @@ const MonthlySalaryDetails = () => {
     };
 
     dispatch(fetchSalaries(params));
+    dispatch(fetchEmployeesSalaries(params));
+    dispatch(fetchPettyCash({ values: params }));
+    dispatch(fetchSalaryConfigs());
   }, [dispatch]);
 
   useEffect(() => {
-    const currentDate = new Date();
-    const params = {
-      startDate: new Date(currentDate.getFullYear(), currentDate.getMonth(), 1),
-      endDate: new Date(
-        currentDate.getFullYear(),
-        currentDate.getMonth() + 1,
-        0
-      ),
-    };
+    if (driversSalaries.length > 0 && pettyCash.length > 0) {
+      const updatedSalaries = driversSalaries.map((driver) => {
+        // Get all petty cash entries for this driver
+        const driverPettyCashEntries = pettyCash.filter(
+          (entry) => entry.deductedFromDriver === driver._id
+        );
 
-    dispatch(fetchEmployeesSalaries(params));
-  }, [dispatch]);
+        // Calculate total petty cash deductions
+        const totalPettyCashDeduction = driverPettyCashEntries.reduce(
+          (sum, entry) => sum + Number(entry.cashAmount || 0),
+          0
+        );
+
+        return {
+          ...driver,
+          pettyCashDeductionAmount: totalPettyCashDeduction,
+        };
+      });
+
+      setRows(updatedSalaries);
+    }
+  }, [driversSalaries, pettyCash]);
 
   // Salary Calculation Utilities
-  const calculateSalary = {
-    forOrders: (orderCount, vehicleType) => {
-      const config = configs.find((c) => c.vehicleType === vehicleType);
-      if (!config?.rules) return 0;
+  const calculateSalary = useMemo(() => {
+    return {
+      forOrders: (orderCount, vehicleType) => {
+        const config = configs.find((c) => c.vehicleType === vehicleType);
+        if (!config?.rules) return 0;
 
-      const rule = config.rules.find(
-        (r) =>
-          orderCount >= r.minOrders &&
-          orderCount <=
-            (r.maxOrders === Infinity ? Number.MAX_SAFE_INTEGER : r.maxOrders)
-      );
+        const rule = config.rules.find(
+          (r) =>
+            orderCount >= r.minOrders &&
+            orderCount <=
+              (r.maxOrders === Infinity ? Number.MAX_SAFE_INTEGER : r.maxOrders)
+        );
 
-      return rule
-        ? rule.multiplier
-          ? orderCount * rule.multiplier
-          : rule.fixedAmount
-        : 0;
-    },
+        return rule
+          ? rule.multiplier
+            ? orderCount * rule.multiplier
+            : rule.fixedAmount
+          : 0;
+      },
 
-    total: (driver) => {
-      if (driver._id === "sum-row") return 0;
+      total: (driver) => {
+        if (driver._id === "sum-row") return 0;
 
-      const mainOrdersSalary = calculateSalary.forOrders(
-        Number(driver.mainOrder || 0),
-        driver.vehicle
-      );
-      const additionalOrdersSalary = calculateSalary.forOrders(
-        Number(driver.additionalOrder || 0),
-        driver.vehicle
-      );
+        const mainOrdersSalary = calculateSalary.forOrders(
+          Number(driver.mainOrder || 0),
+          driver.vehicle
+        );
+        const additionalOrdersSalary = calculateSalary.forOrders(
+          Number(driver.additionalOrder || 0),
+          driver.vehicle
+        );
 
-      return (
-        Number(driver.mainSalary || 0) +
-        mainOrdersSalary +
-        additionalOrdersSalary
-      );
-    },
+        return (
+          Number(driver.mainSalary || 0) +
+          mainOrdersSalary +
+          additionalOrdersSalary
+        );
+      },
 
-    deductions: (driver) => {
-      if (driver._id === "sum-row") return 0;
+      deductions: (driver) => {
+        if (driver._id === "sum-row") return 0;
 
-      return (
-        Number(driver.talabatDeductionAmount || 0) +
-        Number(driver.companyDeductionAmount || 0) +
-        Number(driver.pettyCashDeductionAmount || 0)
-      );
-    },
+        return (
+          Number(driver.talabatDeductionAmount || 0) +
+          Number(driver.companyDeductionAmount || 0) +
+          Number(driver.pettyCashDeductionAmount || 0)
+        );
+      },
 
-    net: (driver) => {
-      return calculateSalary.total(driver) - calculateSalary.deductions(driver);
-    },
-  };
+      net: (driver) => {
+        return (
+          calculateSalary.total(driver) - calculateSalary.deductions(driver)
+        );
+      },
+    };
+  }, [configs]);
 
   const columns = [
     {
@@ -283,19 +299,21 @@ const MonthlySalaryDetails = () => {
       flex: 1,
       headerAlign: "center",
       align: "center",
-      renderCell: ({
-        row: {
+      renderCell: (params) => {
+        const {
           mainSalary,
           talabatDeductionAmount,
           companyDeductionAmount,
           pettyCashDeductionAmount,
-        },
-      }) => {
+        } = params.row;
+
         const totalDeductions =
           Number(talabatDeductionAmount || 0) +
           Number(companyDeductionAmount || 0) +
           Number(pettyCashDeductionAmount || 0);
+
         const net = (Number(mainSalary || 0) - totalDeductions).toFixed(3);
+
         return (
           <Box display="flex" justifyContent="center" borderRadius="4px">
             {net}
@@ -352,128 +370,84 @@ const MonthlySalaryDetails = () => {
     return sum;
   };
 
-  //  Calculations for Summary Section
-  const specialBikeDriverStats = useMemo(() => {
+  const summaryCalculations = useMemo(() => {
+    if (!driversSalaries?.length || !employeesSalaries?.length) {
+      return {
+        specialDriver: null,
+        bikeDrivers: {
+          finalSalary: 0,
+          deductions: 0,
+          bankTransfer: 0,
+          cashPayment: 0,
+        },
+        allDrivers: {
+          finalSalary: 0,
+          deductions: 0,
+          bankTransfer: 0,
+          cashPayment: 0,
+          mainSalary: 0,
+        },
+        employees: {
+          finalSalary: 0,
+          deductions: 0,
+          bankTransfer: 0,
+          cashPayment: 0,
+          mainSalary: 0,
+        },
+        total: {
+          finalSalary: 0,
+          deductions: 0,
+          bankTransfer: 0,
+          cashPayment: 0,
+          mainSalary: 0,
+        },
+      };
+    }
+
+    const bikeDrivers =
+      driversSalaries.filter(
+        (driver) => driver.vehicle === "Bike" && driver._id !== "sum-row"
+      ) || [];
+    const carDrivers =
+      driversSalaries.filter(
+        (driver) => driver.vehicle === "Car" && driver._id !== "sum-row"
+      ) || [];
+    const employees =
+      employeesSalaries.filter((employee) => employee.role !== "Admin") || [];
+
+    // Special bike driver calculations
     const specialDriver = driversSalaries.find(
       (driver) => driver._id === "6772c32da62e5d54cb6ea8dc"
     );
-    if (!specialDriver) return null;
+    const specialDriverStats = specialDriver
+      ? {
+          mainSalary: Number(specialDriver.mainSalary || 0),
+          ordersSalary: calculateSalary.forOrders(
+            Number(specialDriver.mainOrder || 0) +
+              Number(specialDriver.additionalOrder || 0),
+            specialDriver.vehicle
+          ),
+          deductions:
+            Number(specialDriver.talabatDeductionAmount || 0) +
+            Number(specialDriver.companyDeductionAmount || 0) +
+            Number(specialDriver.pettyCashDeductionAmount || 0),
+        }
+      : null;
 
-    const ordersSalary = calculateSalary.forOrders(
-      Number(specialDriver.mainOrder || 0) +
-        Number(specialDriver.additionalOrder || 0),
-      specialDriver.vehicle
-    );
-    const finalSalary = Number(specialDriver.mainSalary || 0) + ordersSalary;
-
-    const totalDeductions =
-      Number(specialDriver.talabatDeductionAmount || 0) +
-      Number(specialDriver.companyDeductionAmount || 0) +
-      Number(specialDriver.pettyCashDeductionAmount || 0);
-
-    const bankTransfer =
-      Number(specialDriver.mainSalary || 0) - totalDeductions;
-    const cashSalary = finalSalary - Number(specialDriver.mainSalary || 0);
-
-    return {
-      mainOrder: Number(specialDriver.mainOrder || 0),
-      additionalOrder: Number(specialDriver.additionalOrder || 0),
-      mainSalary: Number(specialDriver.mainSalary || 0),
-      finalSalary,
-      deductions: totalDeductions,
-      bankTransfer,
-      cashPayment: cashSalary,
-    };
-  }, [driversSalaries]);
-
-  const allBikeDriversStats = useMemo(() => {
-    const bikeDrivers = driversSalaries.filter(
-      (driver) => driver.vehicle === "Bike"
-    );
-
-    // Calculate all the values first
-    const mainOrder = bikeDrivers.reduce(
-      (sum, driver) => sum + Number(driver.mainOrder || 0),
-      0
-    );
-
-    const additionalOrder = bikeDrivers.reduce(
-      (sum, driver) => sum + Number(driver.additionalOrder || 0),
-      0
-    );
-
-    const mainSalary = bikeDrivers.reduce(
-      (sum, driver) => sum + Number(driver.mainSalary || 0),
-      0
-    );
-
-    const finalSalary = bikeDrivers.reduce((sum, driver) => {
-      const ordersSalary = calculateSalary.forOrders(
-        Number(driver.mainOrder || 0) + Number(driver.additionalOrder || 0),
-        driver.vehicle
-      );
-      return sum + Number(driver.mainSalary || 0) + ordersSalary;
-    }, 0);
-
-    const deductions = bikeDrivers.reduce(
-      (sum, driver) =>
-        sum +
-        Number(driver.talabatDeductionAmount || 0) +
-        Number(driver.companyDeductionAmount || 0) +
-        Number(driver.pettyCashDeductionAmount || 0),
-      0
-    );
-
-    const bankTransfer = bikeDrivers.reduce((sum, driver) => {
-      const totalDeductions =
-        Number(driver.talabatDeductionAmount || 0) +
-        Number(driver.companyDeductionAmount || 0) +
-        Number(driver.pettyCashDeductionAmount || 0);
-      return sum + (Number(driver.mainSalary || 0) - totalDeductions);
-    }, 0);
-
-    const cashPayment = bikeDrivers.reduce((sum, driver) => {
-      const ordersSalary = calculateSalary.forOrders(
-        Number(driver.mainOrder || 0) + Number(driver.additionalOrder || 0),
-        driver.vehicle
-      );
-      return sum + ordersSalary;
-    }, 0);
-
-    // Return all calculated values
-    return {
-      mainOrder,
-      additionalOrder,
-      mainSalary,
-      finalSalary,
-      deductions,
-      bankTransfer,
-      cashPayment,
-    };
-  }, [driversSalaries]);
-
-  const allDriversStats = useMemo(() => {
-    return {
-      mainOrder: driversSalaries.reduce(
-        (sum, driver) => sum + Number(driver.mainOrder || 0),
-        0
-      ),
-      additionalOrder: driversSalaries.reduce(
-        (sum, driver) => sum + Number(driver.additionalOrder || 0),
-        0
-      ),
-      mainSalary: driversSalaries.reduce(
+    // Calculate stats for each group
+    const calculateGroupStats = (drivers) => ({
+      mainSalary: drivers.reduce(
         (sum, driver) => sum + Number(driver.mainSalary || 0),
         0
       ),
-      finalSalary: driversSalaries.reduce((sum, driver) => {
+      ordersSalary: drivers.reduce((sum, driver) => {
         const ordersSalary = calculateSalary.forOrders(
           Number(driver.mainOrder || 0) + Number(driver.additionalOrder || 0),
           driver.vehicle
         );
-        return sum + Number(driver.mainSalary || 0) + ordersSalary;
+        return sum + ordersSalary;
       }, 0),
-      deductions: driversSalaries.reduce(
+      deductions: drivers.reduce(
         (sum, driver) =>
           sum +
           Number(driver.talabatDeductionAmount || 0) +
@@ -481,35 +455,11 @@ const MonthlySalaryDetails = () => {
           Number(driver.pettyCashDeductionAmount || 0),
         0
       ),
-      bankTransfer: driversSalaries.reduce((sum, driver) => {
-        // Calculate total deductions
-        const totalDeductions =
-          Number(driver.talabatDeductionAmount || 0) +
-          Number(driver.companyDeductionAmount || 0) +
-          Number(driver.pettyCashDeductionAmount || 0);
+    });
 
-        // Bank transfer should be mainSalary minus deductions
-        // Orders-based salary is paid in cash, so it's not included in bank transfer
-        return sum + (Number(driver.mainSalary || 0) - totalDeductions);
-      }, 0),
-
-      cashPayment: driversSalaries.reduce((sum, driver) => {
-        // Cash payment is only the orders-based salary
-        const ordersSalary = calculateSalary.forOrders(
-          Number(driver.mainOrder || 0) + Number(driver.additionalOrder || 0),
-          driver.vehicle
-        );
-        return sum + ordersSalary;
-      }, 0),
-    };
-  }, [driversSalaries]);
-
-  const allEmployeesStats = useMemo(() => {
-    const employees = employeesSalaries.filter(
-      (employee) => employee.role !== "Admin"
-    );
-
-    return {
+    const bikeStats = calculateGroupStats(bikeDrivers);
+    const carStats = calculateGroupStats(carDrivers);
+    const employeeStats = {
       mainSalary: employees.reduce(
         (sum, employee) => sum + Number(employee.mainSalary || 0),
         0
@@ -521,41 +471,101 @@ const MonthlySalaryDetails = () => {
           Number(employee.pettyCashDeductionAmount || 0),
         0
       ),
-      netSalary: employees.reduce((sum, employee) => {
-        const finalSalary = Number(employee.mainSalary || 0);
-
-        const totalDeductions =
-          Number(employee.companyDeductionAmount || 0) +
-          Number(employee.pettyCashDeductionAmount || 0);
-        return sum + (finalSalary - totalDeductions);
-      }, 0),
-      cashPayment: employees.reduce((sum, employee) => {
-        const finalSalary = Number(employee.mainSalary || 0);
-        return sum + (finalSalary - Number(employee.mainSalary || 0));
-      }, 0),
     };
-  }, [employeesSalaries]);
 
-  const totalNetSalary = useMemo(() => {
-    const driversTotal = driversSalaries.reduce((sum, driver) => {
-      const ordersSalary = calculateSalary.forOrders(
-        Number(driver.mainOrder || 0) + Number(driver.additionalOrder || 0),
-        driver.vehicle
-      );
-      const finalSalary = Number(driver.mainSalary || 0) + ordersSalary;
+    // Calculate totals
+    const driversTotal = {
+      mainSalary: driversSalaries.reduce(
+        (sum, driver) => sum + Number(driver?.mainSalary || 0),
+        0
+      ),
+      ordersSalary: driversSalaries.reduce((sum, driver) => {
+        const ordersSalary = calculateSalary.forOrders(
+          Number(driver?.mainOrder || 0) + Number(driver?.additionalOrder || 0),
+          driver?.vehicle
+        );
+        return sum + Number(ordersSalary || 0);
+      }, 0),
+      deductions: driversSalaries.reduce(
+        (sum, driver) =>
+          sum +
+          Number(driver?.talabatDeductionAmount || 0) +
+          Number(driver?.companyDeductionAmount || 0) +
+          Number(driver?.pettyCashDeductionAmount || 0),
+        0
+      ),
+    };
 
-      // Calculate total deductions
-      const totalDeductions =
-        Number(driver.talabatDeductionAmount || 0) +
-        Number(driver.companyDeductionAmount || 0) +
-        Number(driver.pettyCashDeductionAmount || 0);
+    // Calculate employees totals
+    const employeesTotal = {
+      mainSalary: employeesSalaries.reduce(
+        (sum, employee) => sum + Number(employee?.mainSalary || 0),
+        0
+      ),
+      deductions: employeesSalaries.reduce(
+        (sum, employee) =>
+          sum +
+          Number(employee?.companyDeductionAmount || 0) +
+          Number(employee?.pettyCashDeductionAmount || 0),
+        0
+      ),
+    };
 
-      return sum + (finalSalary - totalDeductions);
-    }, 0);
+    // Calculate final totals
+    const finalTotals = {
+      driversMainSalary: driversTotal.mainSalary,
+      driversCashPayment: driversTotal.ordersSalary,
+      totalBankTransfer:
+        driversTotal.mainSalary -
+        driversTotal.deductions +
+        (employeesTotal.mainSalary - employeesTotal.deductions),
+      grandTotal:
+        driversTotal.mainSalary +
+        driversTotal.ordersSalary +
+        employeesTotal.mainSalary,
+    };
 
-    // Add employees net salary
-    return driversTotal + allEmployeesStats.netSalary;
-  }, [driversSalaries, allEmployeesStats.netSalary]);
+    return {
+      specialDriver: specialDriverStats
+        ? {
+            mainSalary: specialDriverStats.mainSalary,
+            finalSalary:
+              specialDriverStats.mainSalary + specialDriverStats.ordersSalary,
+            deductions: specialDriverStats.deductions,
+            bankTransfer:
+              specialDriverStats.mainSalary - specialDriverStats.deductions,
+            cashPayment: specialDriverStats.ordersSalary,
+          }
+        : null,
+      bikeDrivers: {
+        mainSalary: bikeStats.mainSalary,
+        finalSalary: bikeStats.mainSalary + bikeStats.ordersSalary,
+        deductions: bikeStats.deductions,
+        bankTransfer: bikeStats.mainSalary - bikeStats.deductions,
+        cashPayment: bikeStats.ordersSalary,
+      },
+      allDrivers: {
+        mainSalary: driversTotal.mainSalary,
+        finalSalary: driversTotal.mainSalary + driversTotal.ordersSalary,
+        deductions: driversTotal.deductions,
+        bankTransfer: driversTotal.mainSalary - driversTotal.deductions,
+        cashPayment: driversTotal.ordersSalary,
+      },
+      employees: {
+        mainSalary: employeeStats.mainSalary,
+        finalSalary: employeeStats.mainSalary,
+        deductions: employeeStats.deductions,
+        bankTransfer: employeeStats.mainSalary - employeeStats.deductions,
+        cashPayment: 0,
+      },
+      total: {
+        driversMainSalary: finalTotals.driversMainSalary,
+        driversCashPayment: finalTotals.driversCashPayment,
+        bankTransfer: finalTotals.totalBankTransfer,
+        grandTotal: finalTotals.grandTotal,
+      },
+    };
+  }, [driversSalaries, employeesSalaries, calculateSalary]);
 
   const totalCashPayment = useMemo(() => {
     // For drivers: only the orders-based salary is paid in cash
@@ -568,39 +578,61 @@ const MonthlySalaryDetails = () => {
     }, 0);
 
     // Add employees cash payments
-    return driversCashPayment + allEmployeesStats.cashPayment;
-  }, [driversSalaries, allEmployeesStats.cashPayment]);
+    return driversCashPayment + summaryCalculations.employees.cashPayment;
+  }, [driversSalaries, summaryCalculations.employees.cashPayment]);
 
-  const sumRow = {
-    _id: "sum-row",
-    sequenceNumber: t("total"),
-    firstName: t("total"),
-    name: "",
-    vehicle: "",
-    mainOrder: calculateColumnSum("mainOrder"),
-    additionalOrder: calculateColumnSum("additionalOrder"),
-    salaryMainOrders: calculateColumnSum("salaryMainOrders"),
-    salaryAdditionalOrders: calculateColumnSum("salaryAdditionalOrders"),
-    mainSalary: calculateColumnSum("mainSalary"),
-    talabatDeductionAmount: calculateColumnSum("talabatDeductionAmount"),
-    companyDeductionAmount: calculateColumnSum("companyDeductionAmount"),
-    pettyCashDeductionAmount: calculateColumnSum("pettyCashDeductionAmount"),
-    cashAmount: calculateColumnSum("cashAmount"),
-    netSalary: calculateColumnSum("netSalary"),
-    remarks: "",
-    actions: "",
-  };
+  useEffect(() => {
+    if (driversSalaries.length > 0 && pettyCash.length > 0) {
+      // First update the salaries with petty cash data
+      const updatedSalaries = driversSalaries.map((driver) => {
+        const driverPettyCashEntries = pettyCash.filter(
+          (entry) => entry.deductedFromDriver === driver._id
+        );
 
-  const rowsWithSum = [...driversSalaries, sumRow];
+        const totalPettyCashDeduction = driverPettyCashEntries.reduce(
+          (sum, entry) => sum + Number(entry.cashAmount || 0),
+          0
+        );
+
+        return {
+          ...driver,
+          pettyCashDeductionAmount: totalPettyCashDeduction,
+        };
+      });
+
+      // Create the sum row with updated totals
+      const sumRow = {
+        _id: "sum-row",
+        firstName: t("total"),
+        lastName: "",
+        vehicle: "",
+        mainSalary: calculateColumnSum("mainSalary"),
+        mainOrder: calculateColumnSum("mainOrder"),
+        additionalOrder: calculateColumnSum("additionalOrder"),
+        talabatDeductionAmount: calculateColumnSum("talabatDeductionAmount"),
+        companyDeductionAmount: calculateColumnSum("companyDeductionAmount"),
+        pettyCashDeductionAmount: calculateColumnSum(
+          "pettyCashDeductionAmount"
+        ),
+        salaryMainOrders: calculateColumnSum("salaryMainOrders"),
+        salaryAdditionalOrders: calculateColumnSum("salaryAdditionalOrders"),
+        cashAmount: calculateColumnSum("cashAmount"),
+        netSalary: calculateColumnSum("netSalary"),
+        remarks: "",
+        actions: "",
+
+        // Add any other fields that need to be summed
+      };
+
+      // Set the rows with both updated salaries and sum row
+      setRows([...updatedSalaries, sumRow]);
+    }
+  }, [driversSalaries, pettyCash, t]);
 
   const handlePrint = useReactToPrint({
     content: () => componentRef.current,
     documentTitle: "Drivers Salary Report",
   });
-
-  useEffect(() => {
-    setRows(rowsWithSum);
-  }, [driversSalaries]);
 
   pulsar.register();
   if (status === "loading") {
@@ -835,7 +867,7 @@ const MonthlySalaryDetails = () => {
       >
         <Grid container spacing={3}>
           {/* Special Bike Driver Summary */}
-          {specialBikeDriverStats && (
+          {summaryCalculations?.specialDriver && (
             <Grid item xs={12}>
               <Box
                 backgroundColor={colors.primary[400]}
@@ -862,7 +894,9 @@ const MonthlySalaryDetails = () => {
                       {t("mainSalary")}
                     </Typography>
                     <Typography variant="h6">
-                      {specialBikeDriverStats.mainSalary.toFixed(3)}
+                      {(
+                        summaryCalculations?.specialDriver?.mainSalary || 0
+                      ).toFixed(3)}
                     </Typography>
                   </Grid>
                   <Grid item xs={12} sm={3} sx={{ textAlign: "center" }}>
@@ -870,7 +904,9 @@ const MonthlySalaryDetails = () => {
                       {t("deductions")}
                     </Typography>
                     <Typography variant="h6">
-                      {specialBikeDriverStats.deductions.toFixed(3)}
+                      {(
+                        summaryCalculations?.specialDriver?.deductions || 0
+                      ).toFixed(3)}
                     </Typography>
                   </Grid>
                   <Grid item xs={12} sm={3} sx={{ textAlign: "center" }}>
@@ -878,7 +914,9 @@ const MonthlySalaryDetails = () => {
                       {t("netSalaryAfterDeductions")}
                     </Typography>
                     <Typography variant="h6">
-                      {specialBikeDriverStats.bankTransfer.toFixed(3)}
+                      {(
+                        summaryCalculations?.specialDriver?.bankTransfer || 0
+                      ).toFixed(3)}
                     </Typography>
                   </Grid>
                   <Grid item xs={12} sm={3} sx={{ textAlign: "center" }}>
@@ -886,7 +924,7 @@ const MonthlySalaryDetails = () => {
                       {t("cashSalary")}
                     </Typography>
                     <Typography variant="h6">
-                      {specialBikeDriverStats.cashPayment.toFixed(3)}
+                      {summaryCalculations.bikeDrivers?.cashPayment?.toFixed(3)}
                     </Typography>
                   </Grid>
                 </Grid>
@@ -921,7 +959,9 @@ const MonthlySalaryDetails = () => {
                     {t("mainSalary")}
                   </Typography>
                   <Typography variant="h6">
-                    {allBikeDriversStats.mainSalary.toFixed(3)}
+                    {(
+                      summaryCalculations?.bikeDrivers?.mainSalary || 0
+                    ).toFixed(3)}
                   </Typography>
                 </Grid>
                 <Grid item xs={12} sm={3} sx={{ textAlign: "center" }}>
@@ -929,7 +969,9 @@ const MonthlySalaryDetails = () => {
                     {t("deductions")}
                   </Typography>
                   <Typography variant="h6">
-                    {allBikeDriversStats.deductions.toFixed(3)}
+                    {(
+                      summaryCalculations?.bikeDrivers?.deductions || 0
+                    ).toFixed(3)}
                   </Typography>
                 </Grid>
                 <Grid item xs={12} sm={3} sx={{ textAlign: "center" }}>
@@ -937,7 +979,9 @@ const MonthlySalaryDetails = () => {
                     {t("netSalaryAfterDeductions")}
                   </Typography>
                   <Typography variant="h6">
-                    {allBikeDriversStats.bankTransfer.toFixed(3)}
+                    {(
+                      summaryCalculations?.bikeDrivers?.bankTransfer || 0
+                    ).toFixed(3)}
                   </Typography>
                 </Grid>
                 <Grid item xs={12} sm={3} sx={{ textAlign: "center" }}>
@@ -945,7 +989,9 @@ const MonthlySalaryDetails = () => {
                     {t("cashPayment")}
                   </Typography>
                   <Typography variant="h6">
-                    {allBikeDriversStats.cashPayment.toFixed(3)}
+                    {(
+                      summaryCalculations?.bikeDrivers?.cashPayment || 0
+                    ).toFixed(3)}
                   </Typography>
                 </Grid>
               </Grid>
@@ -979,7 +1025,9 @@ const MonthlySalaryDetails = () => {
                     {t("mainSalary")}
                   </Typography>
                   <Typography variant="h6">
-                    {allDriversStats.mainSalary.toFixed(3)}
+                    {(summaryCalculations?.allDrivers?.mainSalary || 0).toFixed(
+                      3
+                    )}
                   </Typography>
                 </Grid>
                 <Grid item xs={12} sm={3} sx={{ textAlign: "center" }}>
@@ -987,7 +1035,9 @@ const MonthlySalaryDetails = () => {
                     {t("deductions")}
                   </Typography>
                   <Typography variant="h6">
-                    {allDriversStats.deductions.toFixed(3)}
+                    {(summaryCalculations?.allDrivers?.deductions || 0).toFixed(
+                      3
+                    )}
                   </Typography>
                 </Grid>
                 <Grid item xs={12} sm={3} sx={{ textAlign: "center" }}>
@@ -995,7 +1045,9 @@ const MonthlySalaryDetails = () => {
                     {t("netSalaryAfterDeductions")}
                   </Typography>
                   <Typography variant="h6">
-                    {allDriversStats.bankTransfer.toFixed(3)}
+                    {(
+                      summaryCalculations?.allDrivers?.bankTransfer || 0
+                    ).toFixed(3)}
                   </Typography>
                 </Grid>
                 <Grid item xs={12} sm={3} sx={{ textAlign: "center" }}>
@@ -1003,7 +1055,9 @@ const MonthlySalaryDetails = () => {
                     {t("cashPayment")}
                   </Typography>
                   <Typography variant="h6">
-                    {allDriversStats.cashPayment.toFixed(3)}
+                    {(
+                      summaryCalculations?.allDrivers?.cashPayment || 0
+                    ).toFixed(3)}
                   </Typography>
                 </Grid>
               </Grid>
@@ -1037,7 +1091,9 @@ const MonthlySalaryDetails = () => {
                     {t("mainSalary")}
                   </Typography>
                   <Typography variant="h6">
-                    {allEmployeesStats.mainSalary.toFixed(3)}
+                    {(summaryCalculations?.employees?.mainSalary || 0).toFixed(
+                      3
+                    )}
                   </Typography>
                 </Grid>
                 <Grid item xs={12} sm={3} sx={{ textAlign: "center" }}>
@@ -1045,7 +1101,9 @@ const MonthlySalaryDetails = () => {
                     {t("deductions")}
                   </Typography>
                   <Typography variant="h6">
-                    {allEmployeesStats.deductions.toFixed(3)}
+                    {(summaryCalculations?.employees?.deductions || 0).toFixed(
+                      3
+                    )}
                   </Typography>
                 </Grid>
                 <Grid item xs={12} sm={3} sx={{ textAlign: "center" }}>
@@ -1053,7 +1111,9 @@ const MonthlySalaryDetails = () => {
                     {t("netSalaryAfterDeductions")}
                   </Typography>
                   <Typography variant="h6">
-                    {allEmployeesStats.netSalary.toFixed(3)}
+                    {(
+                      summaryCalculations?.employees?.bankTransfer || 0
+                    ).toFixed(3)}
                   </Typography>
                 </Grid>
                 <Grid item xs={12} sm={3} sx={{ textAlign: "center" }}>
@@ -1061,7 +1121,9 @@ const MonthlySalaryDetails = () => {
                     {t("cashPayment")}
                   </Typography>
                   <Typography variant="h6">
-                    {allEmployeesStats.cashPayment.toFixed(3)}
+                    {(summaryCalculations?.employees?.cashPayment || 0).toFixed(
+                      3
+                    )}
                   </Typography>
                 </Grid>
               </Grid>
@@ -1095,7 +1157,9 @@ const MonthlySalaryDetails = () => {
                     {t("totalDriversNetSalary")}
                   </Typography>
                   <Typography variant="h6">
-                    {allDriversStats.bankTransfer.toFixed(3)}
+                    {(
+                      summaryCalculations?.allDrivers?.bankTransfer || 0
+                    ).toFixed(3)}
                   </Typography>
                 </Grid>
                 <Grid item xs={12} sm={3} sx={{ textAlign: "center" }}>
@@ -1103,7 +1167,9 @@ const MonthlySalaryDetails = () => {
                     {t("totalDriversCashPayment")}
                   </Typography>
                   <Typography variant="h6">
-                    {allDriversStats.cashPayment.toFixed(3)}
+                    {(
+                      summaryCalculations?.allDrivers?.cashPayment || 0
+                    ).toFixed(3)}
                   </Typography>
                 </Grid>
                 <Grid item xs={12} sm={3} sx={{ textAlign: "center" }}>
@@ -1111,7 +1177,7 @@ const MonthlySalaryDetails = () => {
                     {t("totalBankTransfer")}
                   </Typography>
                   <Typography variant="h6">
-                    {(totalNetSalary - totalCashPayment).toFixed(3)}
+                    {(summaryCalculations?.total?.bankTransfer || 0).toFixed(3)}
                   </Typography>
                 </Grid>
                 <Grid item xs={12} sm={3} sx={{ textAlign: "center" }}>
@@ -1119,7 +1185,7 @@ const MonthlySalaryDetails = () => {
                     {t("grandTotal")}
                   </Typography>
                   <Typography variant="h6">
-                    {totalNetSalary.toFixed(3)}
+                    {(summaryCalculations?.total?.grandTotal || 0).toFixed(3)}
                   </Typography>
                 </Grid>
                 {/* Add new row for combined totals */}
@@ -1130,7 +1196,7 @@ const MonthlySalaryDetails = () => {
                     fontWeight="bold"
                   >
                     {t("totalBankTransferAllStaff")} <br />
-                    {(totalNetSalary - totalCashPayment).toFixed(3)}
+                    {(summaryCalculations?.total?.bankTransfer).toFixed(3)}
                   </Typography>
                 </Grid>
                 <Grid item xs={12} sm={6} sx={{ textAlign: "center" }}>
@@ -1140,7 +1206,7 @@ const MonthlySalaryDetails = () => {
                     fontWeight="bold"
                   >
                     {t("totalCashPaymentAllStaff")} <br />
-                    {totalCashPayment.toFixed(3)}
+                    {totalCashPayment?.toFixed(3)}
                   </Typography>
                 </Grid>
               </Grid>
@@ -1155,11 +1221,17 @@ const MonthlySalaryDetails = () => {
         ref={componentRef}
         orientation="landscape"
         summary={{
-          totalDriversNetSalary: allDriversStats.netSalary,
-          totalDriversCashPayment: allDriversStats.cashPayment,
-          totalBankTransfer: totalNetSalary - totalCashPayment,
-          grandTotal: totalNetSalary,
-          totalBankTransferAllStaff: totalNetSalary - totalCashPayment,
+          totalDriversNetSalary:
+            summaryCalculations.allDrivers.driversMainSalary,
+          totalDriversCashPayment:
+            summaryCalculations.allDrivers.driversCashPayment,
+          totalBankTransfer:
+            summaryCalculations.allDrivers.bankTransfer -
+            summaryCalculations.allDrivers.cashPayment,
+          grandTotal: summaryCalculations.total.grandTotal,
+          totalBankTransferAllStaff:
+            summaryCalculations.total.totalBankTransfer -
+            summaryCalculations.total.driversCashPayment,
           totalCashPaymentAllStaff: totalCashPayment,
         }}
       />
