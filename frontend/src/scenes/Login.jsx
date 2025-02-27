@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Box,
   Button,
@@ -11,7 +11,7 @@ import {
   useTheme,
 } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
-import { loginUser } from "../redux/userSlice";
+import { loginUser, logoutUser } from "../redux/userSlice";
 import { tokens } from "../theme";
 import { pulsar } from "ldrs";
 import Logo from "../assets/nj-logo.png";
@@ -59,6 +59,55 @@ const Login = () => {
     i18n.changeLanguage(language);
     handleCloseLanguageMenu();
   };
+
+  useEffect(() => {
+    // Function to handle user activity
+    const updateLastActivity = () => {
+      localStorage.setItem("lastActivity", new Date().getTime());
+    };
+
+    // Function to check if user should be logged out
+    const checkActivity = () => {
+      const lastActivity = localStorage.getItem("lastActivity");
+      if (lastActivity) {
+        const currentTime = new Date().getTime();
+        const inactiveTime = currentTime - parseInt(lastActivity);
+
+        // If inactive for more than 24 hours (in milliseconds)
+        if (inactiveTime > 24 * 60 * 60 * 1000) {
+          dispatch(logoutUser());
+          localStorage.clear();
+          window.location.href = "/login";
+        }
+      }
+    };
+
+    // Add event listeners for user activity
+    const events = [
+      "mousedown",
+      "mousemove",
+      "keydown",
+      "scroll",
+      "touchstart",
+    ];
+    events.forEach((event) => {
+      document.addEventListener(event, updateLastActivity);
+    });
+
+    // Check activity every minute
+    const intervalId = setInterval(checkActivity, 60000);
+
+    // Set initial activity timestamp
+    updateLastActivity();
+
+    // Cleanup
+    return () => {
+      events.forEach((event) => {
+        document.removeEventListener(event, updateLastActivity);
+      });
+      clearInterval(intervalId);
+    };
+  }, [dispatch]);
 
   pulsar.register();
   if (status === "loading") {

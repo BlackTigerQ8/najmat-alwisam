@@ -119,30 +119,6 @@ const MonthlySalaryDetails = () => {
     dispatch(fetchSalaryConfigs());
   }, [dispatch]);
 
-  useEffect(() => {
-    if (driversSalaries.length > 0 && pettyCash.length > 0) {
-      const updatedSalaries = driversSalaries.map((driver) => {
-        // Get all petty cash entries for this driver
-        const driverPettyCashEntries = pettyCash.filter(
-          (entry) => entry.deductedFromDriver === driver._id
-        );
-
-        // Calculate total petty cash deductions
-        const totalPettyCashDeduction = driverPettyCashEntries.reduce(
-          (sum, entry) => sum + Number(entry.cashAmount || 0),
-          0
-        );
-
-        return {
-          ...driver,
-          pettyCashDeductionAmount: totalPettyCashDeduction,
-        };
-      });
-
-      setRows(updatedSalaries);
-    }
-  }, [driversSalaries, pettyCash]);
-
   // Salary Calculation Utilities
   const calculateSalary = useMemo(() => {
     return {
@@ -404,6 +380,15 @@ const MonthlySalaryDetails = () => {
       };
     }
 
+    const calculatePettyCashDeductions = (id) => {
+      return pettyCash
+        .filter(
+          (entry) =>
+            entry.deductedFromDriver === id || entry.deductedFromUser === id
+        )
+        .reduce((sum, entry) => sum + Number(entry.cashAmount || 0), 0);
+    };
+
     const bikeDrivers =
       driversSalaries.filter(
         (driver) => driver.vehicle === "Bike" && driver._id !== "sum-row"
@@ -430,7 +415,7 @@ const MonthlySalaryDetails = () => {
           deductions:
             Number(specialDriver.talabatDeductionAmount || 0) +
             Number(specialDriver.companyDeductionAmount || 0) +
-            Number(specialDriver.pettyCashDeductionAmount || 0),
+            calculatePettyCashDeductions(specialDriver._id),
         }
       : null;
 
@@ -452,7 +437,7 @@ const MonthlySalaryDetails = () => {
           sum +
           Number(driver.talabatDeductionAmount || 0) +
           Number(driver.companyDeductionAmount || 0) +
-          Number(driver.pettyCashDeductionAmount || 0),
+          calculatePettyCashDeductions(driver._id),
         0
       ),
     });
@@ -468,7 +453,7 @@ const MonthlySalaryDetails = () => {
         (sum, employee) =>
           sum +
           Number(employee.companyDeductionAmount || 0) +
-          Number(employee.pettyCashDeductionAmount || 0),
+          calculatePettyCashDeductions(employee._id),
         0
       ),
     };
@@ -491,7 +476,7 @@ const MonthlySalaryDetails = () => {
           sum +
           Number(driver?.talabatDeductionAmount || 0) +
           Number(driver?.companyDeductionAmount || 0) +
-          Number(driver?.pettyCashDeductionAmount || 0),
+          calculatePettyCashDeductions(driver._id),
         0
       ),
     };
@@ -506,7 +491,7 @@ const MonthlySalaryDetails = () => {
         (sum, employee) =>
           sum +
           Number(employee?.companyDeductionAmount || 0) +
-          Number(employee?.pettyCashDeductionAmount || 0),
+          calculatePettyCashDeductions(employee._id),
         0
       ),
     };
@@ -579,7 +564,7 @@ const MonthlySalaryDetails = () => {
 
     // Add employees cash payments
     return driversCashPayment + summaryCalculations.employees.cashPayment;
-  }, [driversSalaries, summaryCalculations.employees.cashPayment]);
+  }, [driversSalaries, employeesSalaries]);
 
   useEffect(() => {
     if (driversSalaries.length > 0 && pettyCash.length > 0) {
@@ -611,8 +596,9 @@ const MonthlySalaryDetails = () => {
         additionalOrder: calculateColumnSum("additionalOrder"),
         talabatDeductionAmount: calculateColumnSum("talabatDeductionAmount"),
         companyDeductionAmount: calculateColumnSum("companyDeductionAmount"),
-        pettyCashDeductionAmount: calculateColumnSum(
-          "pettyCashDeductionAmount"
+        pettyCashDeductionAmount: updatedSalaries.reduce(
+          (sum, driver) => sum + Number(driver.pettyCashDeductionAmount || 0),
+          0
         ),
         salaryMainOrders: calculateColumnSum("salaryMainOrders"),
         salaryAdditionalOrders: calculateColumnSum("salaryAdditionalOrders"),

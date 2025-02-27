@@ -278,7 +278,10 @@ const Dashboard = () => {
           textAlign="center"
         >
           <StatBox
-            title={`${summary.totalCash.toFixed(3)} ${t("kd")}`}
+            title={`${summary.totalCash.toLocaleString("en-US", {
+              minimumFractionDigits: 3,
+              maximumFractionDigits: 3,
+            })} ${t("kd")}`}
             subtitle={t("totalCashThisMonth")}
             icon={
               <PointOfSaleIcon
@@ -335,7 +338,11 @@ const Dashboard = () => {
                 fontWeight="bold"
                 color={colors.greenAccent[500]}
               >
-                {allMonthsTotals.totalCash.toFixed(3)} {t("kd")}
+                {allMonthsTotals.totalCash.toLocaleString("en-US", {
+                  minimumFractionDigits: 3,
+                  maximumFractionDigits: 3,
+                })}{" "}
+                {t("kd")}
               </Typography>
             </Box>
             <Box>

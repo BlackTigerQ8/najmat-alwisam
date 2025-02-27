@@ -15,7 +15,7 @@ import { I18nextProvider, Trans, useTranslation } from "react-i18next";
 import { pulsar } from "ldrs";
 import { tokens } from "./theme";
 import { getUserRoleFromToken } from "./scenes/global/getUserRoleFromToken";
-import { setUser } from "./redux/userSlice";
+import { logoutUser, setUser } from "./redux/userSlice";
 
 import Topbar from "./scenes/global/Topbar";
 import Sidebar from "./scenes/global/Sidebar";
@@ -105,6 +105,55 @@ function App() {
 
     checkUser();
   }, [navigate, dispatch, savedToken, location.pathname]);
+
+  useEffect(() => {
+    // Function to handle user activity
+    const updateLastActivity = () => {
+      localStorage.setItem("lastActivity", new Date().getTime());
+    };
+
+    // Function to check if user should be logged out
+    const checkActivity = () => {
+      const lastActivity = localStorage.getItem("lastActivity");
+      if (lastActivity) {
+        const currentTime = new Date().getTime();
+        const inactiveTime = currentTime - parseInt(lastActivity);
+
+        // If inactive for more than 24 hours (in milliseconds)
+        if (inactiveTime > 24 * 60 * 60 * 1000) {
+          dispatch(logoutUser());
+          localStorage.clear();
+          navigate("/login");
+        }
+      }
+    };
+
+    // Add event listeners for user activity
+    const events = [
+      "mousedown",
+      "mousemove",
+      "keydown",
+      "scroll",
+      "touchstart",
+    ];
+    events.forEach((event) => {
+      document.addEventListener(event, updateLastActivity);
+    });
+
+    // Check activity every minute
+    const intervalId = setInterval(checkActivity, 60000);
+
+    // Set initial activity timestamp
+    updateLastActivity();
+
+    // Cleanup
+    return () => {
+      events.forEach((event) => {
+        document.removeEventListener(event, updateLastActivity);
+      });
+      clearInterval(intervalId);
+    };
+  }, [dispatch, navigate]);
 
   pulsar.register();
   if (isLoading) {

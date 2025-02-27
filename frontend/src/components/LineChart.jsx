@@ -110,9 +110,13 @@ const LineChart = ({
           }}
         >
           <strong>
-            {point.serieId === "car" ? "Car" : "Bike"}: {point.data.y}
+            {point.serieId === "car" ? "Car" : "Bike"}:{" "}
+            {point.data.y.toLocaleString("en-US", {
+              minimumFractionDigits: 3,
+              maximumFractionDigits: 3,
+            })}
             <br />
-            Month: {point.data.x}
+            {t("month")}: {point.data.x}
           </strong>
         </div>
       )}
