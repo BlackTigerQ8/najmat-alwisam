@@ -1208,17 +1208,14 @@ const MonthlySalaryDetails = () => {
         orientation="landscape"
         summary={{
           totalDriversNetSalary:
-            summaryCalculations.allDrivers.driversMainSalary,
+            summaryCalculations?.allDrivers?.bankTransfer || 0,
           totalDriversCashPayment:
-            summaryCalculations.allDrivers.driversCashPayment,
-          totalBankTransfer:
-            summaryCalculations.allDrivers.bankTransfer -
-            summaryCalculations.allDrivers.cashPayment,
-          grandTotal: summaryCalculations.total.grandTotal,
+            summaryCalculations?.allDrivers?.cashPayment || 0,
+          totalBankTransfer: summaryCalculations?.total?.bankTransfer || 0,
+          grandTotal: summaryCalculations?.total?.grandTotal || 0,
           totalBankTransferAllStaff:
-            summaryCalculations.total.totalBankTransfer -
-            summaryCalculations.total.driversCashPayment,
-          totalCashPaymentAllStaff: totalCashPayment,
+            summaryCalculations?.total?.bankTransfer || 0,
+          totalCashPaymentAllStaff: totalCashPayment || 0,
         }}
       />
     </Box>
