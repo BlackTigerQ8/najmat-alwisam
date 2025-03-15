@@ -12,7 +12,8 @@ const BarChart = ({ isDashboard = false, monthlyStats, chartField }) => {
   // Transform monthly stats into the format needed for the bar chart
   const data = Object.entries(monthlyStats).map(([month, stats]) => ({
     month: t(month),
-    [t(chartField)]: stats[chartField] || 0,
+    [t("car")]: stats.car?.totalCash || 0,
+    [t("bike")]: stats.bike?.totalCash || 0,
   }));
 
   return (
@@ -46,7 +47,7 @@ const BarChart = ({ isDashboard = false, monthlyStats, chartField }) => {
           },
         },
       }}
-      keys={[t(chartField)]}
+      keys={[t("car"), t("bike")]}
       indexBy="month"
       margin={{ top: 50, right: 130, bottom: 50, left: 60 }}
       padding={0.3}
@@ -105,7 +106,12 @@ const BarChart = ({ isDashboard = false, monthlyStats, chartField }) => {
           }}
         >
           <strong>
-            {t(id)}: {value}
+            {t(id)}:{" "}
+            {value.toLocaleString("en-US", {
+              minimumFractionDigits: 3,
+              maximumFractionDigits: 3,
+            })}{" "}
+            {t("kd")}
           </strong>
         </div>
       )}

@@ -75,7 +75,7 @@ const DriversSalary = () => {
   // Salary Calculation Utilities
   const calculateSalary = useMemo(
     () => ({
-      forOrders: (orderCount, vehicleType) => {
+      forOrders: (orderCount, vehicleType, mainOrderCount) => {
         const config = configs.find((c) => c.vehicleType === vehicleType);
         if (!config?.rules) return 0;
 
@@ -86,30 +86,28 @@ const DriversSalary = () => {
               (r.maxOrders === Infinity ? Number.MAX_SAFE_INTEGER : r.maxOrders)
         );
 
-        return rule
-          ? rule.multiplier
-            ? orderCount * rule.multiplier
-            : rule.fixedAmount
-          : 0;
+        if (!rule) return 0;
+
+        if (rule.fixedAmount > 0) return rule.fixedAmount;
+
+        return rule.applyToMainOrdersOnly
+          ? mainOrderCount * rule.multiplier
+          : orderCount * rule.multiplier;
       },
 
       total: (driver) => {
         if (driver._id === "sum-row") return 0;
 
-        const mainOrdersSalary = calculateSalary.forOrders(
-          Number(driver.mainOrder || 0),
-          driver.vehicle
-        );
-        const additionalOrdersSalary = calculateSalary.forOrders(
-          Number(driver.additionalOrder || 0),
-          driver.vehicle
+        const totalOrders =
+          Number(driver.mainOrder || 0) + Number(driver.additionalOrder || 0);
+        const mainOrders = Number(driver.mainOrder || 0);
+        const ordersSalary = calculateSalary.forOrders(
+          totalOrders,
+          driver.vehicle,
+          mainOrders
         );
 
-        return (
-          Number(driver.mainSalary || 0) +
-          mainOrdersSalary +
-          additionalOrdersSalary
-        );
+        return Number(driver.mainSalary || 0) + ordersSalary;
       },
 
       deductions: (driver) => {
@@ -204,9 +202,19 @@ const DriversSalary = () => {
     if (!modifications || Object.keys(modifications).length === 0) return;
 
     try {
+      const updatedModifications = {
+        ...modifications,
+        talabatDeductionAmount: Number(
+          modifications.talabatDeductionAmount || 0
+        ),
+        companyDeductionAmount: Number(
+          modifications.companyDeductionAmount || 0
+        ),
+      };
+
       await dispatch(
         overrideDriverSalary({
-          values: { driverId: row._id, ...modifications },
+          values: { driverId: row._id, ...updatedModifications },
         })
       );
 
@@ -233,13 +241,29 @@ const DriversSalary = () => {
     if (newRow._id === "sum-row") return oldRow;
 
     const changes = Object.entries(newRow).reduce((acc, [key, value]) => {
-      if (value !== oldRow[key]) acc[key] = value;
+      // Convert string values to numbers for deduction fields
+      if (
+        key === "talabatDeductionAmount" ||
+        key === "companyDeductionAmount"
+      ) {
+        const newValue = Number(value || 0);
+        const oldValue = Number(oldRow[key] || 0);
+        if (newValue !== oldValue) {
+          acc[key] = newValue;
+        }
+      } else if (value !== oldRow[key]) {
+        acc[key] = value;
+      }
       return acc;
     }, {});
 
     if (Object.keys(changes).length > 0) {
+      // Update the gridState with the new values
       setGridState((prev) => ({
         ...prev,
+        rows: prev.rows.map((row) =>
+          row._id === newRow._id ? { ...row, ...changes } : row
+        ),
         rowModifications: {
           ...prev.rowModifications,
           [newRow._id]: {
@@ -251,7 +275,7 @@ const DriversSalary = () => {
       }));
     }
 
-    return newRow;
+    return { ...oldRow, ...changes };
   };
 
   // Effects
@@ -482,11 +506,25 @@ const DriversSalary = () => {
               (r.maxOrders === Infinity ? Number.MAX_SAFE_INTEGER : r.maxOrders)
         );
 
-        const ordersSalary = rule
-          ? rule.multiplier
-            ? (totalOrders * rule.multiplier).toFixed(3)
-            : rule.fixedAmount.toFixed(3)
-          : "0.000";
+        if (!rule) return "0.000";
+
+        if (rule.fixedAmount > 0) {
+          return (
+            <Box display="flex" justifyContent="center" borderRadius="4px">
+              {rule.fixedAmount.toFixed(3)}
+            </Box>
+          );
+        }
+
+        // Calculate salary based on the rule
+        let ordersSalary;
+        if (rule.applyToMainOrdersOnly) {
+          // For rules with applyToMainOrdersOnly, use only mainOrders
+          ordersSalary = (Number(mainOrder || 0) * rule.multiplier).toFixed(3);
+        } else {
+          // For all other rules, use totalOrders
+          ordersSalary = (totalOrders * rule.multiplier).toFixed(3);
+        }
 
         return (
           <Box display="flex" justifyContent="center" borderRadius="4px">
@@ -531,9 +569,13 @@ const DriversSalary = () => {
         }
 
         // For regular rows, calculate using the salary calculation utility
+        const totalOrders =
+          Number(row.mainOrder || 0) + Number(row.additionalOrder || 0);
+        const mainOrders = Number(row.mainOrder || 0);
         const ordersSalary = calculateSalary.forOrders(
-          Number(row.mainOrder || 0) + Number(row.additionalOrder || 0),
-          row.vehicle
+          totalOrders,
+          row.vehicle,
+          mainOrders
         );
         const finalSalary = (
           Number(row.mainSalary || 0) + ordersSalary

@@ -514,10 +514,20 @@ const carDriverSalary = async (
       };
     }
 
+    // Use the applyToMainOrdersOnly flag to determine calculation method
+    if (rule.applyToMainOrdersOnly) {
+      return {
+        mainSalary: salaryMainOrders * rule.multiplier,
+        additionalSalary: 0,
+        totalSalary: salaryMainOrders * rule.multiplier,
+      };
+    }
+
+    // For all other cases, use total orders
     const totalOrders = salaryMainOrders + salaryAdditionalOrders;
     return {
-      mainSalary: salaryMainOrders,
-      additionalSalary: salaryAdditionalOrders,
+      mainSalary: totalOrders * rule.multiplier,
+      additionalSalary: 0,
       totalSalary: totalOrders * rule.multiplier,
     };
   } catch (error) {
@@ -816,6 +826,15 @@ const overrideDriverSalary = async (req, res) => {
       status: "approved",
       invoiceDate: new Date(new Date().getTime() - 24 * 60 * 60 * 1000),
     };
+
+    if (talabatDeductionAmount || companyDeductionAmount) {
+      invoiceData.deductionDate = new Date();
+    } else {
+      // For regular orders, use yesterday's date
+      invoiceData.invoiceDate = new Date(
+        new Date().getTime() - 24 * 60 * 60 * 1000
+      );
+    }
 
     // Only add fields that were provided in the request
     if (mainOrder !== undefined) invoiceData.mainOrder = mainOrder;

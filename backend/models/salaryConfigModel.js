@@ -5,6 +5,10 @@ const salaryRuleSchema = new mongoose.Schema({
   maxOrders: Number,
   multiplier: Number,
   fixedAmount: Number,
+  applyToMainOrdersOnly: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 const salaryConfigSchema = new mongoose.Schema({

@@ -1,6 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Box, Button, Typography, TextField, IconButton } from "@mui/material";
+import {
+  Box,
+  Button,
+  Typography,
+  TextField,
+  IconButton,
+  Checkbox,
+} from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import {
   useTheme,
@@ -105,6 +112,26 @@ const SalaryConfig = () => {
       headerAlign: "center",
     },
     {
+      field: "applyToMainOrdersOnly",
+      headerName: t("applyToMainOrdersOnly"),
+      type: "boolean",
+      editable: true,
+      flex: 1,
+      align: "center",
+      headerAlign: "center",
+      renderCell: (params) => (
+        <Checkbox
+          sx={{
+            "&.Mui-checked": {
+              color: colors.primary[100],
+            },
+          }}
+          checked={params.row.applyToMainOrdersOnly}
+          onChange={(e) => handleCellEdit(params)}
+        />
+      ),
+    },
+    {
       field: "actions",
       headerName: t("actions"),
       flex: 0.5,
@@ -128,6 +155,7 @@ const SalaryConfig = () => {
       minOrders: Number(newRow.minOrders),
       multiplier: Number(newRow.multiplier),
       fixedAmount: Number(newRow.fixedAmount),
+      applyToMainOrdersOnly: Boolean(newRow.applyToMainOrdersOnly),
     };
 
     const updatedRules = rules.map((rule) =>
@@ -155,6 +183,7 @@ const SalaryConfig = () => {
       maxOrders: 0,
       multiplier: 0,
       fixedAmount: 0,
+      applyToMainOrdersOnly: false,
     };
     setRules([...rules, newRule]);
   };
@@ -342,6 +371,7 @@ const SalaryConfig = () => {
             : Number(rule.maxOrders),
         multiplier: Number(rule.multiplier),
         fixedAmount: Number(rule.fixedAmount),
+        applyToMainOrdersOnly: Boolean(rule.applyToMainOrdersOnly),
       }));
 
       if (!validateRules(rulesWithoutIds)) {

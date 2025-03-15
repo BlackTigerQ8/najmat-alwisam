@@ -761,6 +761,7 @@ i18n
           multiplier: "Multiplier",
           fixedAmount: "Fixed Amount",
           saveChanges: "Save Changes",
+          applyToMainOrdersOnly: "Apply to Main Orders Only",
           addRule: "Add Rule",
           noRulesExist: "No rules exist",
           invalidNumbersInRules:
@@ -1514,6 +1515,7 @@ i18n
           multiplier: "المضاعف",
           fixedAmount: "المبلغ الثابت",
           saveChanges: "حفظ التغييرات",
+          applyToMainOrdersOnly: "تطبيق على الطلبات الرئيسية",
           addRule: "إضافة سياسة",
           noRulesExist: "لا يوجد قواعد",
           invalidNumbersInRules:

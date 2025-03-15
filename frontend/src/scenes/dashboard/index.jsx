@@ -96,110 +96,124 @@ const Dashboard = () => {
 
     // Create print-specific styles
     const printStyles = `
-     @media print {
-      body * {
-        visibility: hidden;
-      }
-      #dashboard, #dashboard * {
-        visibility: visible;
-      }
-      #dashboard {
-        position: absolute;
-        left: 0;
-        top: 0;
-        width: 100%;
-      }
-      .MuiIconButton-root, .header-component {
-        display: none !important;
-      }
-      .print-header {
-        display: flex !important;
-      }
-      /* Reduce spacing between elements */
-      #dashboard .MuiBox-root {
-        gap: 10px !important;
-      }
-      /* Adjust chart heights */
-      #dashboard .MuiBox-root[gridRow="span 2"] {
-        height: 200px !important;
-      }
-      /* Reduce margins */
-      #dashboard > .MuiBox-root {
-        margin: 10px !important;
-      }
-      /* Adjust grid gap */
-      #dashboard .MuiBox-root[display="grid"] {
-        gap: 10px !important;
-      }
-      /* Reduce padding in stat boxes */
-      .MuiBox-root[backgroundColor] {
-        padding: 10px !important;
-      }
-      /* Adjust chart containers */
-      .MuiBox-root[height="250px"] {
-        height: 200px !important;
-        margin: 0 !important;
-      }
-      /* Hide URL and page numbers */
-      @page {
-        margin: 0;
-        size: auto;
-      }
-      @page :first {
-        margin-top: 0;
-      }
-      @page :left {
-        margin-left: 0;
-      }
-      @page :right {
-        margin-right: 0;
-      }
+      @media print {
+        @page {
+          size: A4;
+          margin: 10mm;
+        }
+  
+        body * {
+          visibility: hidden;
+        }
+  
+        #dashboard, #dashboard * {
+          visibility: visible;
+        }
+  
+        #dashboard {
+          position: absolute;
+          left: 0;
+          top: 0;
+          width: 210mm;  /* A4 width */
+          background-color: white !important;
+          color: black !important;
+        }
+  
+        /* Force light mode colors for printing */
+        #dashboard * {
+          color: black !important;
+          background-color: white !important;
+        }
 
-
-
-       /* Set fixed dimensions for chart containers */
-      #dashboard .MuiBox-root[gridRow="span 2"] {
-        height: 300px !important;
+        .MuiIconButton-root, .header-component {
+          display: none !important;
+        }
+  
+        .print-header {
+          display: flex !important;
+        }
+  
+        /* Chart container styles */
+        #dashboard .MuiBox-root[gridRow="span 2"] {
+          height: 40mm !important;
+          page-break-inside: avoid;
+          break-inside: avoid;
+        }
+  
+        /* Fixed dimensions for charts */
+        #dashboard .MuiBox-root[height="250px"] {
+          height: 60mm !important;
+          width: 170mm !important;
+          margin: 0 auto !important;
+          page-break-inside: avoid;
+          break-inside: avoid;
+        }
+  
+        /* Grid layout adjustments */
+        #dashboard .MuiBox-root[display="grid"] {
+          display: block !important;
+          width: 100% !important;
+        }
+  
+        /* Stat boxes adjustments */
+        #dashboard .MuiBox-root[gridColumn="span 4"] {
+          width: 33.33% !important;
+          float: left !important;
+          margin-bottom: 5mm !important;
+          height: 25mm !important; 
+        }
+  
+        /* Clear float after stat boxes */
+        #dashboard .MuiBox-root[gridColumn="span 12"] {
+          clear: both !important;
+        }
+  
+        /* Chart specific adjustments */
+        #dashboard .MuiBox-root[gridColumn="span 6"] {
+          width: 50% !important;
+          margin-bottom: 5mm !important;
+          page-break-inside: avoid;
+          break-inside: avoid;
+        }
+  
+        /* Force light theme colors for charts */
+        .recharts-surface,
+        .recharts-layer {
+          color: black !important;
+        }
+  
+        /* Ensure text is readable */
+        text {
+          fill: black !important;
+        }
+  
+        /* Clear margins and padding */
+        #dashboard .MuiBox-root {
+          margin: 2mm 0 !important;
+          padding: 1mm !important;
+        }
+  
+        /* Ensure proper page breaks */
+        .page-break {
+          page-break-before: always;
+        }
       }
-
-      /* Set consistent size for all chart containers */
-      #dashboard .MuiBox-root[height="250px"] {
-        height: 300px !important;
-        width: 100% !important;
-        max-width: 800px !important;
-        margin: 0 auto !important;
-      }
-
-      /* Ensure charts maintain aspect ratio */
-      #dashboard .MuiBox-root[height="250px"] > div {
-        height: 100% !important;
-        width: 100% !important;
-        aspect-ratio: 16/9;
-        object-fit: contain !important;
-      }
-
-      /* Adjust grid layout for better print layout */
-      #dashboard .MuiBox-root[display="grid"] {
-        grid-template-columns: 1fr !important;
-        gap: 20px !important;
-      }
-
-      /* Make all chart containers take full width */
-      #dashboard .MuiBox-root[gridColumn="span 12"],
-      #dashboard .MuiBox-root[gridColumn="span 6"] {
-        grid-column: 1 / -1 !important;
-        width: 100% !important;
-      }
-    }
-  `;
+    `;
 
     // Add print styles
     const styleSheet = document.createElement("style");
     styleSheet.innerHTML = printStyles;
     document.head.appendChild(styleSheet);
 
+    // Force light mode for printing
+    const originalMode = document.body.className;
+    document.body.className = document.body.className.replace("dark", "light");
+
     // Print
     window.print();
+
+    // Restore original mode
+    document.body.className = originalMode;
 
     // Remove print styles
     document.head.removeChild(styleSheet);

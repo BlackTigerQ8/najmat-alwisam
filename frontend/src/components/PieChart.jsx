@@ -8,16 +8,25 @@ const PieChart = ({ monthlyStats, chartField }) => {
   const colors = tokens(theme.palette.mode);
   const { t } = useTranslation();
 
+  const yearlyTotals = Object.values(monthlyStats).reduce(
+    (acc, month) => {
+      acc.car += month?.car?.[chartField] || 0;
+      acc.bike += month?.bike?.[chartField] || 0;
+      return acc;
+    },
+    { car: 0, bike: 0 }
+  );
+
   const data = [
     {
       id: t("car"),
       label: t("car"),
-      value: monthlyStats[new Date().getMonth() + 1]?.car?.[chartField] || 0,
+      value: yearlyTotals.car,
     },
     {
       id: t("bike"),
       label: t("bike"),
-      value: monthlyStats[new Date().getMonth() + 1]?.bike?.[chartField] || 0,
+      value: yearlyTotals.bike,
     },
   ];
 
