@@ -380,6 +380,9 @@ const InvoicesArchive = () => {
       field: "hour",
       headerName: t("hours"),
       editable: true,
+      valueFormatter: (params) => {
+        return params.value ? Math.round(Number(params.value)) : "0";
+      },
     },
     {
       field: "mainOrder",

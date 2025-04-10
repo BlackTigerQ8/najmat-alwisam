@@ -71,11 +71,41 @@ const DriversSalary = () => {
   const token =
     useSelector((state) => state.drivers.token) ||
     localStorage.getItem("token");
+  const specialDriverId =
+    process.env.REACT_APP_SPECIAL_CAR_DRIVER_ID || "6769923ba62e5d54cb6ea18c";
 
   // Salary Calculation Utilities
   const calculateSalary = useMemo(
     () => ({
-      forOrders: (orderCount, vehicleType, mainOrderCount) => {
+      forOrders: (orderCount, vehicleType, mainOrderCount, driverId = null) => {
+        // Special case for specific driver
+        if (driverId === specialDriverId && vehicleType === "Car") {
+          const config = configs.find((c) => c.vehicleType === vehicleType);
+          if (!config?.rules) return 26;
+
+          const rule = config.rules.find(
+            (r) =>
+              orderCount >= r.minOrders &&
+              orderCount <=
+                (r.maxOrders === Infinity
+                  ? Number.MAX_SAFE_INTEGER
+                  : r.maxOrders)
+          );
+
+          if (!rule) return 26;
+
+          if (rule.fixedAmount > 0) {
+            return rule.fixedAmount + 26;
+          }
+
+          return (
+            (rule.applyToMainOrdersOnly
+              ? mainOrderCount * rule.multiplier
+              : orderCount * rule.multiplier) + 26
+          );
+        }
+
+        // Regular case for other drivers
         const config = configs.find((c) => c.vehicleType === vehicleType);
         if (!config?.rules) return 0;
 
@@ -130,7 +160,9 @@ const DriversSalary = () => {
   );
 
   // Summary Calculations
+  // Summary Calculations
   const summaryCalculations = useMemo(() => {
+    // Only use rows that are currently displayed in the grid (active drivers)
     const carDrivers = gridState.rows.filter(
       (driver) => driver.vehicle === "Car" && driver._id !== "sum-row"
     );
@@ -139,10 +171,18 @@ const DriversSalary = () => {
     );
 
     const calculateDriversData = (drivers) => ({
-      finalSalary: drivers.reduce(
-        (total, driver) => total + calculateSalary.total(driver),
-        0
-      ),
+      finalSalary: drivers.reduce((total, driver) => {
+        const totalOrders =
+          Number(driver.mainOrder || 0) + Number(driver.additionalOrder || 0);
+        const mainOrders = Number(driver.mainOrder || 0);
+        const ordersSalary = calculateSalary.forOrders(
+          totalOrders,
+          driver.vehicle,
+          mainOrders,
+          driver._id
+        );
+        return total + ordersSalary;
+      }, 0),
       totalDeductions: drivers.reduce(
         (total, driver) => total + calculateSalary.deductions(driver),
         0
@@ -453,7 +493,7 @@ const DriversSalary = () => {
     },
     {
       field: "salaryMainOrders",
-      headerName: t("salaryTotalOrders"),
+      headerName: t("salaryMainOrders"),
       flex: 1,
       headerAlign: "center",
       align: "center",
@@ -554,12 +594,17 @@ const DriversSalary = () => {
           const total = gridState.rows
             .filter((driver) => driver._id !== "sum-row")
             .reduce((sum, driver) => {
-              const ordersSalary = calculateSalary.forOrders(
+              const totalOrders =
                 Number(driver.mainOrder || 0) +
-                  Number(driver.additionalOrder || 0),
-                driver.vehicle
+                Number(driver.additionalOrder || 0);
+              const mainOrders = Number(driver.mainOrder || 0);
+              const ordersSalary = calculateSalary.forOrders(
+                totalOrders,
+                driver.vehicle,
+                mainOrders,
+                driver._id
               );
-              return sum + Number(driver.mainSalary || 0) + ordersSalary;
+              return sum + ordersSalary;
             }, 0);
           return (
             <Box display="flex" justifyContent="center" borderRadius="4px">
@@ -575,11 +620,10 @@ const DriversSalary = () => {
         const ordersSalary = calculateSalary.forOrders(
           totalOrders,
           row.vehicle,
-          mainOrders
+          mainOrders,
+          row._id
         );
-        const finalSalary = (
-          Number(row.mainSalary || 0) + ordersSalary
-        ).toFixed(3);
+        const finalSalary = ordersSalary.toFixed(3);
 
         return (
           <Box display="flex" justifyContent="center" borderRadius="4px">
@@ -713,7 +757,16 @@ const DriversSalary = () => {
       gridState.rows,
       "salaryAdditionalOrders"
     ),
-    finalSalary: calculateColumnSum(gridState.rows, "finalSalary"),
+    finalSalary: gridState.rows
+      .filter((row) => row._id !== "sum-row")
+      .reduce((sum, row) => {
+        const totalOrders =
+          Number(row.mainOrder || 0) + Number(row.additionalOrder || 0);
+        const mainOrders = Number(row.mainOrder || 0);
+        return (
+          sum + calculateSalary.forOrders(totalOrders, row.vehicle, mainOrders)
+        );
+      }, 0),
     talabatDeductionAmount: calculateColumnSum(
       gridState.rows,
       "talabatDeductionAmount"

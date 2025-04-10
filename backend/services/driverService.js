@@ -38,6 +38,7 @@ async function addSingleDriverNotifications(driver) {
     passportExpiryDate,
     contractExpiryDate,
     healthInsuranceExpiryDate,
+    driverLicenseExpiryDate,
   } = driver;
 
   const daysUntilExpiryForIdCard = daysUntilExpiry(idExpiryDate);
@@ -46,6 +47,7 @@ async function addSingleDriverNotifications(driver) {
   const daysUntilExpiryForInsurance = daysUntilExpiry(
     healthInsuranceExpiryDate
   );
+  const daysUntilExpiryForLicense = daysUntilExpiry(driverLicenseExpiryDate);
 
   console.log(
     "daysUntilExpiryForIdCard=",
@@ -55,7 +57,9 @@ async function addSingleDriverNotifications(driver) {
     "daysUntilExpiryForContract=",
     daysUntilExpiryForContract,
     "daysUntilExpiryForInsurance=",
-    daysUntilExpiryForInsurance
+    daysUntilExpiryForInsurance,
+    "daysUntilExpiryForLicense=",
+    daysUntilExpiryForLicense
   );
 
   if (
@@ -102,6 +106,18 @@ async function addSingleDriverNotifications(driver) {
       driverId: driver._id,
       fieldName: "healthInsurance",
       expiryDate: healthInsuranceExpiryDate,
+      driverName,
+    });
+  }
+
+  if (
+    daysUntilExpiryForLicense > 0 &&
+    daysUntilExpiryForLicense <= NOTIFICATION_THRESHOLD_FOR_EXPIRY
+  ) {
+    await addNotification({
+      driverId: driver._id,
+      fieldName: "driverLicense",
+      expiryDate: driverLicenseExpiryDate,
       driverName,
     });
   }

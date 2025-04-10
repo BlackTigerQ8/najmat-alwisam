@@ -313,7 +313,7 @@ const Dashboard = () => {
           textAlign="center"
         >
           <StatBox
-            title={summary.totalHours}
+            title={summary.totalHours.toFixed(2)}
             subtitle={t("totalHoursThisMonth")}
             icon={
               <AccessTimeFilledIcon
