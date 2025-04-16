@@ -264,6 +264,14 @@ const Sidebar = () => {
               {t("archive")}
             </Typography>
             <Item
+              title={t("invoicesArchive")}
+              to="/invoices-archive"
+              icon={<ArchiveOutlinedIcon />}
+              selected={selected}
+              setSelected={setSelected}
+              isCollapsed={isCollapsed}
+            />
+            <Item
               title={t("companyFiles")}
               to="/company-files"
               icon={<FolderCopyOutlinedIcon />}

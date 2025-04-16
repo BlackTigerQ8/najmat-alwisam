@@ -242,6 +242,17 @@ const Invoices = () => {
         flex: 1,
         headerAlign: "center",
         align: "center",
+        valueFormatter: (params) => {
+          if (!params.value) return "0";
+          const value = Number(params.value);
+          if (value < 1) {
+            // Convert to minutes (multiply by 60) and round to nearest minute
+            const minutes = Math.round(value * 60);
+            return `${minutes} min`;
+          } else {
+            return `${Math.round(value)} h`;
+          }
+        },
       },
       {
         field: "mainOrder",
@@ -348,6 +359,17 @@ const Invoices = () => {
         align: "center",
         type: "number",
         editable: true,
+        valueFormatter: (params) => {
+          if (!params.value) return "0";
+          const value = Number(params.value);
+          if (value < 1) {
+            // Convert to minutes (multiply by 60) and round to nearest minute
+            const minutes = Math.round(value * 60);
+            return `${minutes} min`;
+          } else {
+            return `${Math.round(value)} h`;
+          }
+        },
       },
       {
         field: "mainOrder",

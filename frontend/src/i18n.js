@@ -579,6 +579,10 @@ i18n
 
           contractExpiryHeading: "{{targetName}} Contract Expiration Alert",
           contractExpiryMessage: "Contract will expire on {{date}}",
+
+          driverLicenseExpiryHeading:
+            "{{targetName}} Driver License Expiration Alert",
+          driverLicenseExpiryMessage: "Driver license will expire on {{date}}",
           /////////////
           archiveFormTitle: "ARCHIVE FORM",
           archiveFormSubtitle: "Add a new file to the archive",
@@ -799,6 +803,8 @@ i18n
           totalBankTransferAllStaff: "Total Bank Transfer All Staff",
           totalCashPaymentAllStaff: "Total Cash Payment All Staff",
           allEmployeesAndDriversSummary: "All Employees and Drivers Summary",
+          h: "h",
+          min: "min",
         },
       },
       ar: {
@@ -1340,6 +1346,11 @@ i18n
 
           contractExpiryHeading: "({{targetName}}) تنبيه انتهاء العقد",
           contractExpiryMessage: "{{date}} سينتهي العقد في",
+
+          driverLicenseExpiryHeading:
+            "({{targetName}}) تنبيه انتهاء رخصة القيادة",
+          driverLicenseExpiryMessage:
+            "{{date}} سوف تنتهي صلاحية رخصة القيادة في",
           /////////////
           archiveFormTitle: "نموذج الأرشيف",
           archiveFormSubtitle: "إضافة ملف جديد إلى الأرشيف",
@@ -1556,6 +1567,8 @@ i18n
           totalBankTransferAllStaff:
             "إجمالي التحويل البنكي للإداريين + السائقين",
           totalCashPaymentAllStaff: "إجمالي السداد النقدي للإداريين + السائقين",
+          // h: "س",
+          // min: "د",
         },
       },
     },

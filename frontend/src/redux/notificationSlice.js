@@ -121,6 +121,30 @@ export const buildInvoiceActionNotification = ({
   };
 };
 
+// Add this to frontend/src/redux/notificationSlice.js
+export const buildDeductionNotification = ({
+  driverId = null,
+  userId = null,
+  senderName,
+  targetName,
+  senderRole,
+  subType = "Add", // Can be 'Add', 'Approve', 'Reject'
+}) => {
+  return {
+    driverId,
+    forUserId: userId,
+    notification_type: driverId ? "Driver_Deduction" : "Employee_Deduction",
+    additionalDetails: {
+      subType,
+      senderName,
+      targetName,
+      senderRole,
+      date: new Date().toDateString(),
+    },
+    role: ["Accountant"], // Send to Accountants
+  };
+};
+
 const notificationSlice = createSlice({
   name: "notifications",
   initialState,

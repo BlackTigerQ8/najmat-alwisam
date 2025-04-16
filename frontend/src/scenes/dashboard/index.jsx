@@ -48,6 +48,12 @@ const Dashboard = () => {
 
   const currentYear = new Date().getFullYear();
 
+  const formatHoursAndMinutes = (decimalHours) => {
+    const hours = Math.floor(decimalHours);
+    const minutes = Math.round((decimalHours - hours) * 60);
+    return `${hours} ${t("h")} ${minutes} ${t("min")}`;
+  };
+
   useEffect(() => {
     const token = localStorage.getItem("token");
     dispatch(fetchDrivers(token));
@@ -313,7 +319,7 @@ const Dashboard = () => {
           textAlign="center"
         >
           <StatBox
-            title={summary.totalHours.toFixed(2)}
+            title={formatHoursAndMinutes(summary.totalHours)}
             subtitle={t("totalHoursThisMonth")}
             icon={
               <AccessTimeFilledIcon

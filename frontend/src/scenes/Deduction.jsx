@@ -28,6 +28,10 @@ import { createDriverInvoice } from "../redux/invoiceSlice";
 import { createUserInvoice } from "../redux/userSlice";
 import { useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import {
+  createNotification,
+  buildDeductionNotification,
+} from "../redux/notificationSlice";
 
 // import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 // import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
@@ -75,8 +79,13 @@ const Deduction = () => {
       selectedUser: yup.string(),
       uploadedFile: yup
         .mixed()
-        .required(t("fileRequired"))
-        .test("fileType", t("fileTypeMustBePdf"), (value) => {
+        .test("fileRequirement", t("fileRequired"), function (value) {
+          // If user is Admin, file is optional
+          if (userInfo.role === "Admin") {
+            // If file is provided, ensure it's PDF
+            return !value || value.type === "application/pdf";
+          }
+          // For non-Admin users, file is required and must be PDF
           return value && value.type === "application/pdf";
         }),
     })
@@ -126,10 +135,39 @@ const Deduction = () => {
 
       if (values.selectedDriver) {
         formData.append("driverId", values.selectedDriver);
-
         dispatch(createDriverInvoice(formData));
+
+        // Find driver info to get name
+        const driver = drivers.find((d) => d._id === values.selectedDriver);
+        if (driver) {
+          // Create notification for Accountants
+          const notification = buildDeductionNotification({
+            driverId: values.selectedDriver,
+            senderName: `${userInfo.firstName} ${userInfo.lastName}`,
+            targetName: `${driver.firstName} ${driver.lastName}`,
+            senderRole: userInfo.role,
+            subType: "Add",
+          });
+
+          await dispatch(createNotification({ values: notification }));
+        }
       } else if (values.selectedUser) {
         dispatch(createUserInvoice(formData));
+
+        // Find user info to get name
+        const user = users.find((u) => u._id === values.selectedUser);
+        if (user) {
+          // Create notification for Accountants
+          const notification = buildDeductionNotification({
+            userId: values.selectedUser,
+            senderName: `${userInfo.firstName} ${userInfo.lastName}`,
+            targetName: `${user.firstName} ${user.lastName}`,
+            senderRole: userInfo.role,
+            subType: "Add",
+          });
+
+          await dispatch(createNotification({ values: notification }));
+        }
       }
 
       resetForm({
